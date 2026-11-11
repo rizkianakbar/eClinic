@@ -3,11 +3,6 @@
 Clinic management system for an Indonesian klinik pratama: registration, queue, electronic medical
 records, pharmacy, cashier, finance and reports, integrated with SATUSEHAT and BPJS PCare.
 
-- Scope contract: [`docs/Penawaran Sistem Manajemen Klinik.pdf`](docs/Penawaran%20Sistem%20Manajemen%20Klinik.pdf)
-- Diagrams: [architecture](docs/1-architecture.png), [patient flow](docs/2-patient-flow.png),
-  [integration sync](docs/3-integration-sync.png), [ERD](docs/4-erd.png)
-- Conventions and rules: [`CLAUDE.md`](CLAUDE.md)
-
 ## Roadmap
 
 Tick a box when the feature is built, tested, and merged. Indonesian names match the offer.
@@ -29,7 +24,7 @@ Tick a box when the feature is built, tested, and merged. Indonesian names match
 - [ ] Nomor rekam medis otomatis (unique MRN)
 - [ ] Kartu berobat dengan QR code: print card, scan to open patient
 - [ ] Pendaftaran kunjungan: poli, doctor, payer (umum / BPJS)
-- [ ] Cek kepesertaan BPJS*
+- [ ] Cek kepesertaan BPJS\*
 - [ ] Riwayat kunjungan
 
 ### 2. Antrean (Queue)
@@ -93,7 +88,7 @@ Tick a box when the feature is built, tested, and merged. Indonesian names match
 - [ ] Outbox: `integration_jobs`, pg_cron runner, backoff, dead jobs
 - [ ] SATUSEHAT: Patient/Practitioner IHS lookup by NIK
 - [ ] SATUSEHAT: Encounter, Condition, vitals, medications
-- [ ] BPJS PCare*: registration and visit
+- [ ] BPJS PCare\*: registration and visit
 - [ ] Status pengiriman data with resend button
 
 ### 8. Pengaturan dan Keamanan (Settings and security)
