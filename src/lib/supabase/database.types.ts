@@ -160,6 +160,65 @@ export type Database = {
           },
         ]
       }
+      patients: {
+        Row: {
+          address: string | null
+          birth_date: string
+          bpjs_number: string | null
+          clinic_id: string
+          created_at: string
+          full_name: string
+          id: string
+          is_active: boolean
+          mrn: string
+          nik: string | null
+          phone: string | null
+          satusehat_id: string | null
+          sex: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          birth_date: string
+          bpjs_number?: string | null
+          clinic_id: string
+          created_at?: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          mrn?: string
+          nik?: string | null
+          phone?: string | null
+          satusehat_id?: string | null
+          sex: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string
+          bpjs_number?: string | null
+          clinic_id?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          mrn?: string
+          nik?: string | null
+          phone?: string | null
+          satusehat_id?: string | null
+          sex?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patients_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           clinic_id: string
