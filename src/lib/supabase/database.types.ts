@@ -371,12 +371,138 @@ export type Database = {
           },
         ]
       }
+      visits: {
+        Row: {
+          cancel_reason: string | null
+          clinic_id: string
+          created_at: string
+          doctor_id: string
+          id: string
+          patient_id: string
+          payer_type: string
+          poli_id: string
+          queue_no: number
+          registered_by: string | null
+          schedule_id: string
+          skipped_at: string | null
+          status: Database["public"]["Enums"]["visit_status"]
+          updated_at: string
+          visit_date: string
+        }
+        Insert: {
+          cancel_reason?: string | null
+          clinic_id: string
+          created_at?: string
+          doctor_id: string
+          id?: string
+          patient_id: string
+          payer_type: string
+          poli_id: string
+          queue_no: number
+          registered_by?: string | null
+          schedule_id: string
+          skipped_at?: string | null
+          status?: Database["public"]["Enums"]["visit_status"]
+          updated_at?: string
+          visit_date: string
+        }
+        Update: {
+          cancel_reason?: string | null
+          clinic_id?: string
+          created_at?: string
+          doctor_id?: string
+          id?: string
+          patient_id?: string
+          payer_type?: string
+          poli_id?: string
+          queue_no?: number
+          registered_by?: string | null
+          schedule_id?: string
+          skipped_at?: string | null
+          status?: Database["public"]["Enums"]["visit_status"]
+          updated_at?: string
+          visit_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visits_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_poli_id_fkey"
+            columns: ["poli_id"]
+            isOneToOne: false
+            referencedRelation: "polis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_registered_by_fkey"
+            columns: ["registered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "doctor_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      timemultirange: { Args: never; Returns: unknown }
+      create_visit: {
+        Args: {
+          p_patient_id: string
+          p_payer_type: string
+          p_schedule_id: string
+        }
+        Returns: {
+          cancel_reason: string | null
+          clinic_id: string
+          created_at: string
+          doctor_id: string
+          id: string
+          patient_id: string
+          payer_type: string
+          poli_id: string
+          queue_no: number
+          registered_by: string | null
+          schedule_id: string
+          skipped_at: string | null
+          status: Database["public"]["Enums"]["visit_status"]
+          updated_at: string
+          visit_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "visits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       user_role:
@@ -387,6 +513,14 @@ export type Database = {
         | "doctor"
         | "pharmacist"
         | "cashier"
+      visit_status:
+        | "registered"
+        | "waiting"
+        | "in_exam"
+        | "to_pharmacy"
+        | "to_cashier"
+        | "done"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -525,6 +659,15 @@ export const Constants = {
         "doctor",
         "pharmacist",
         "cashier",
+      ],
+      visit_status: [
+        "registered",
+        "waiting",
+        "in_exam",
+        "to_pharmacy",
+        "to_cashier",
+        "done",
+        "cancelled",
       ],
     },
   },

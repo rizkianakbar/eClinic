@@ -5,6 +5,9 @@ import { PATIENT_EDITOR_ROLES, SEX_LABELS } from "@/features/patients/patients.c
 import { ageInYears } from "@/features/patients/patients.lib";
 import { getPatient } from "@/features/patients/patients.service";
 import { PatientForm } from "@/features/patients/patients-form";
+import { listPatientVisits, listTodaySessions } from "@/features/visits/visits.service";
+import { VisitsHistory } from "@/features/visits/visits-history";
+import { VisitsRegisterForm } from "@/features/visits/visits-register-form";
 import { requireRole } from "@/lib/auth";
 import { formatDate } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
@@ -12,11 +15,16 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata: Metadata = { title: "Data pasien" };
 
 export default async function PatientPage(props: PageProps<"/patients/[patientId]">) {
-  await requireRole(...PATIENT_EDITOR_ROLES);
+  const session = await requireRole(...PATIENT_EDITOR_ROLES);
   const { patientId } = await props.params;
   if (!z.uuid().safeParse(patientId).success) notFound();
 
-  const patient = await getPatient(await createClient(), patientId);
+  const supabase = await createClient();
+  const [patient, sessions, visits] = await Promise.all([
+    getPatient(supabase, patientId),
+    listTodaySessions(supabase),
+    listPatientVisits(supabase, patientId),
+  ]);
   if (!patient) notFound();
 
   return (
@@ -30,7 +38,27 @@ export default async function PatientPage(props: PageProps<"/patients/[patientId
           {!patient.is_active && " · Nonaktif"}
         </p>
       </div>
-      <PatientForm
+
+      {patient.is_active && (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">Daftarkan kunjungan</h2>
+          <VisitsRegisterForm
+            patientId={patient.id}
+            hasBpjsNumber={Boolean(patient.bpjs_number)}
+            sessions={sessions}
+            canManageSchedules={session.role === "owner" || session.role === "admin"}
+          />
+        </section>
+      )}
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold">Riwayat kunjungan</h2>
+        <VisitsHistory visits={visits} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold">Data pasien</h2>
+        <PatientForm
         mode="edit"
         patientId={patient.id}
         defaultValues={{
@@ -42,7 +70,8 @@ export default async function PatientPage(props: PageProps<"/patients/[patientId
           phone: patient.phone ?? "",
           address: patient.address ?? "",
         }}
-      />
+        />
+      </section>
     </div>
   );
 }
