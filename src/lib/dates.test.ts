@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatDateTime, toJakartaDate } from "./dates";
+import { formatDate, formatDateTime, isoWeekday, toJakartaDate } from "./dates";
 
 describe("toJakartaDate", () => {
   it("uses the Jakarta calendar day, not UTC", () => {
@@ -19,5 +19,13 @@ describe("formatDate", () => {
 describe("formatDateTime", () => {
   it("shows Jakarta local time", () => {
     expect(formatDateTime("2026-11-12T02:30:00Z")).toBe("12 Nov 2026, 09.30");
+  });
+});
+
+describe("isoWeekday", () => {
+  it("numbers Monday 1 through Sunday 7", () => {
+    expect(isoWeekday("2026-11-09")).toBe(1);
+    expect(isoWeekday("2026-11-12")).toBe(4);
+    expect(isoWeekday("2026-11-15")).toBe(7);
   });
 });

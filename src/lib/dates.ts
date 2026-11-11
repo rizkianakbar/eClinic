@@ -37,3 +37,9 @@ export function formatDate(date: Date | string) {
 export function formatDateTime(date: Date | string) {
   return dateTimeFormatter.format(new Date(date));
 }
+
+/** ISO weekday (1 = Monday ... 7 = Sunday) of a "YYYY-MM-DD" calendar date. */
+export function isoWeekday(date: string) {
+  const day = new Date(`${date}T00:00:00Z`).getUTCDay();
+  return day === 0 ? 7 : day;
+}
