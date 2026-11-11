@@ -11,6 +11,7 @@ export type NavItem = {
 export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/dashboard", label: "Beranda", roles: "all" },
   { href: "/registration", label: "Pendaftaran", roles: PATIENT_EDITOR_ROLES },
+  { href: "/settings", label: "Pengaturan", roles: ["owner", "admin"] },
 ];
 
 export function navItemsFor(role: Role, items: readonly NavItem[] = NAV_ITEMS) {

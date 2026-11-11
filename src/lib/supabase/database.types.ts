@@ -160,6 +160,70 @@ export type Database = {
           },
         ]
       }
+      doctor_schedules: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          day_of_week: number
+          doctor_id: string
+          end_time: string
+          id: string
+          is_active: boolean
+          poli_id: string
+          quota: number
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          day_of_week: number
+          doctor_id: string
+          end_time: string
+          id?: string
+          is_active?: boolean
+          poli_id: string
+          quota: number
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          day_of_week?: number
+          doctor_id?: string
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          poli_id?: string
+          quota?: number
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_schedules_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_schedules_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_schedules_poli_id_fkey"
+            columns: ["poli_id"]
+            isOneToOne: false
+            referencedRelation: "polis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           address: string | null
@@ -219,10 +283,49 @@ export type Database = {
           },
         ]
       }
+      polis: {
+        Row: {
+          bpjs_poli_code: string | null
+          clinic_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          bpjs_poli_code?: string | null
+          clinic_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          bpjs_poli_code?: string | null
+          clinic_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "polis_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           clinic_id: string
           created_at: string
+          email: string | null
           full_name: string
           id: string
           is_active: boolean
@@ -235,6 +338,7 @@ export type Database = {
         Insert: {
           clinic_id: string
           created_at?: string
+          email?: string | null
           full_name: string
           id: string
           is_active?: boolean
@@ -247,6 +351,7 @@ export type Database = {
         Update: {
           clinic_id?: string
           created_at?: string
+          email?: string | null
           full_name?: string
           id?: string
           is_active?: boolean
@@ -271,7 +376,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      timemultirange: { Args: never; Returns: unknown }
     }
     Enums: {
       user_role:

@@ -2,12 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { todayInJakarta } from "@/lib/dates";
@@ -62,7 +61,7 @@ export function PatientForm(props: PatientFormProps) {
 
   return (
     <form noValidate className="grid max-w-2xl gap-4 sm:grid-cols-2" onSubmit={form.handleSubmit(onSubmit)}>
-      <Field label="Nama lengkap" htmlFor="full_name" error={errors.full_name?.message} wide>
+      <FormField label="Nama lengkap" htmlFor="full_name" error={errors.full_name?.message} className="sm:col-span-2">
         <Input
           id="full_name"
           autoFocus={props.mode === "create"}
@@ -70,13 +69,13 @@ export function PatientForm(props: PatientFormProps) {
           aria-invalid={Boolean(errors.full_name)}
           {...form.register("full_name")}
         />
-      </Field>
+      </FormField>
 
-      <Field label="NIK" htmlFor="nik" error={errors.nik?.message} hint="16 digit, kosongkan jika belum ada">
+      <FormField label="NIK" htmlFor="nik" error={errors.nik?.message} hint="16 digit, kosongkan jika belum ada">
         <Input id="nik" inputMode="numeric" autoComplete="off" aria-invalid={Boolean(errors.nik)} {...form.register("nik")} />
-      </Field>
+      </FormField>
 
-      <Field label="Nomor BPJS" htmlFor="bpjs_number" error={errors.bpjs_number?.message} hint="13 digit, opsional">
+      <FormField label="Nomor BPJS" htmlFor="bpjs_number" error={errors.bpjs_number?.message} hint="13 digit, opsional">
         <Input
           id="bpjs_number"
           inputMode="numeric"
@@ -84,9 +83,9 @@ export function PatientForm(props: PatientFormProps) {
           aria-invalid={Boolean(errors.bpjs_number)}
           {...form.register("bpjs_number")}
         />
-      </Field>
+      </FormField>
 
-      <Field label="Tanggal lahir" htmlFor="birth_date" error={errors.birth_date?.message}>
+      <FormField label="Tanggal lahir" htmlFor="birth_date" error={errors.birth_date?.message}>
         <Input
           id="birth_date"
           type="date"
@@ -94,9 +93,9 @@ export function PatientForm(props: PatientFormProps) {
           aria-invalid={Boolean(errors.birth_date)}
           {...form.register("birth_date")}
         />
-      </Field>
+      </FormField>
 
-      <Field label="Jenis kelamin" htmlFor="sex" error={errors.sex?.message}>
+      <FormField label="Jenis kelamin" htmlFor="sex" error={errors.sex?.message}>
         <NativeSelect id="sex" className="w-full" aria-invalid={Boolean(errors.sex)} {...form.register("sex")}>
           <NativeSelectOption value="">Pilih...</NativeSelectOption>
           {Object.entries(SEX_LABELS).map(([value, label]) => (
@@ -105,15 +104,15 @@ export function PatientForm(props: PatientFormProps) {
             </NativeSelectOption>
           ))}
         </NativeSelect>
-      </Field>
+      </FormField>
 
-      <Field label="Nomor HP" htmlFor="phone" error={errors.phone?.message} hint="Opsional">
+      <FormField label="Nomor HP" htmlFor="phone" error={errors.phone?.message} hint="Opsional">
         <Input id="phone" type="tel" autoComplete="off" aria-invalid={Boolean(errors.phone)} {...form.register("phone")} />
-      </Field>
+      </FormField>
 
-      <Field label="Alamat" htmlFor="address" error={errors.address?.message} hint="Opsional" wide>
+      <FormField label="Alamat" htmlFor="address" error={errors.address?.message} hint="Opsional" className="sm:col-span-2">
         <Textarea id="address" rows={2} aria-invalid={Boolean(errors.address)} {...form.register("address")} />
-      </Field>
+      </FormField>
 
       <div className="sm:col-span-2">
         <Button type="submit" disabled={mutation.isPending || (props.mode === "edit" && !form.formState.isDirty)}>
@@ -121,27 +120,5 @@ export function PatientForm(props: PatientFormProps) {
         </Button>
       </div>
     </form>
-  );
-}
-
-type FieldProps = {
-  label: string;
-  htmlFor: string;
-  error?: string;
-  hint?: string;
-  wide?: boolean;
-  children: ReactNode;
-};
-
-function Field(props: FieldProps) {
-  return (
-    <div className={props.wide ? "flex flex-col gap-2 sm:col-span-2" : "flex flex-col gap-2"}>
-      <Label htmlFor={props.htmlFor}>
-        {props.label}
-        {props.hint && <span className="font-normal text-muted-foreground">({props.hint})</span>}
-      </Label>
-      {props.children}
-      {props.error && <p className="text-sm text-destructive">{props.error}</p>}
-    </div>
   );
 }
