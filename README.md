@@ -3,18 +3,34 @@
 Clinic management system for an Indonesian klinik pratama: registration, queue, electronic medical
 records, pharmacy, cashier, finance and reports, integrated with SATUSEHAT and BPJS PCare.
 
+## Development
+
+Requires bun. The app uses the hosted Supabase project (Singapore); there is no local Supabase.
+
+```bash
+bun install
+bunx supabase login && bunx supabase link --project-ref <ref>
+cp .env.example .env.local   # fill from Supabase dashboard → Project Settings → API Keys
+bun run dev                  # http://localhost:3000
+```
+
+Schema changes: `bunx supabase migration new <name>`, then `bunx supabase db push --remote`,
+then `bun run db:types`.
+
+Checks: `bun run lint && bun run typecheck && bun run test`, and `bun run test:e2e`.
+
 ## Roadmap
 
 Tick a box when the feature is built, tested, and merged. Indonesian names match the offer.
 
 ### 0. Foundation
 
-- [ ] Scaffold Next.js + TypeScript, Tailwind, shadcn/ui, ESLint, Vitest, Playwright
-- [ ] Local Supabase, base migration (`clinics`, `profiles`, `counters`, `audit_logs`), seed
-- [ ] RLS helpers `auth_clinic_id()` / `auth_role()`, `requireRole()`
-- [ ] Login and authenticated layout with role-based navigation
-- [ ] TanStack Query client, query-key factory, Sonner toasts
-- [ ] `lib/money`, `lib/dates` (Asia/Jakarta) with tests
+- [x] Scaffold Next.js + TypeScript, Tailwind, shadcn/ui, ESLint, Vitest, Playwright
+- [x] Supabase project, base migration (`clinics`, `profiles`, `counters`, `audit_logs`), seed
+- [x] RLS helpers `auth_clinic_id()` / `auth_role()`, `requireRole()`
+- [x] Login and authenticated layout with role-based navigation
+- [x] TanStack Query client, Sonner toasts (query-key factory comes with the first `useQuery`)
+- [x] `lib/money`, `lib/dates` (Asia/Jakarta) with tests
 - [ ] Vercel (`sin1`) + Supabase (Singapore) projects, environments, Sentry, uptime monitor
 
 ### 1. Pendaftaran (Registration)
