@@ -1,0 +1,36 @@
+# project
+docs/
+CLAUDE.md
+
+# dependencies
+/node_modules
+
+# testing
+/coverage
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# next.js
+/.next/
+/out/
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# env files
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# supabase
+supabase/.branches
+supabase/.temp
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
