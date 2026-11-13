@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { parseRange, parseReportTab, rangeDays } from "@/features/reports/reports.lib";
+import { Suspense } from "react";
+import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
+import { parseRange, parseReportTab, rangeDays, type DateRange, type ReportTab } from "@/features/reports/reports.lib";
 import { getDoctorFees, getProfitLoss, getRevenueReport, getTopDiseases, getVisitReport } from "@/features/reports/reports.service";
 import { ReportsDoctorFees } from "@/features/reports/reports-doctor-fees";
 import { ReportsExportLinks } from "@/features/reports/reports-export-links";
@@ -22,7 +24,6 @@ export default async function ReportsPage(props: PageProps<"/reports">) {
   const range = parseRange(searchParams, today);
   const tab = parseReportTab(searchParams.tab);
   const days = rangeDays(range);
-  const supabase = await createClient();
 
   return (
     <>
@@ -41,13 +42,42 @@ export default async function ReportsPage(props: PageProps<"/reports">) {
           <ReportsTabs active={tab} range={range} />
         </div>
         <div className="min-w-0">
-          {tab === "revenue" && <ReportsRevenue report={await getRevenueReport(supabase, range)} days={days} />}
-          {tab === "doctor-fees" && <ReportsDoctorFees fees={await getDoctorFees(supabase, range)} />}
-          {tab === "profit-loss" && <ReportsProfitLoss profitLoss={await getProfitLoss(supabase, range)} />}
-          {tab === "visits" && <ReportsVisits rows={await getVisitReport(supabase, range)} days={days.length} />}
-          {tab === "top-diseases" && <ReportsTopDiseases rows={await getTopDiseases(supabase, range)} />}
+          {/* Keyed by report and period: switching either shows a placeholder here only; menu and filter stay. */}
+          <Suspense key={`${tab}:${range.from}:${range.to}`} fallback={<ReportSkeleton />}>
+            <ReportBody tab={tab} range={range} days={days} />
+          </Suspense>
         </div>
       </div>
     </>
+  );
+}
+
+async function ReportBody(props: { tab: ReportTab; range: DateRange; days: string[] }) {
+  const supabase = await createClient();
+  const { range } = props;
+  switch (props.tab) {
+    case "revenue":
+      return <ReportsRevenue report={await getRevenueReport(supabase, range)} days={props.days} />;
+    case "doctor-fees":
+      return <ReportsDoctorFees fees={await getDoctorFees(supabase, range)} />;
+    case "profit-loss":
+      return <ReportsProfitLoss profitLoss={await getProfitLoss(supabase, range)} />;
+    case "visits":
+      return <ReportsVisits rows={await getVisitReport(supabase, range)} days={props.days.length} />;
+    case "top-diseases":
+      return <ReportsTopDiseases rows={await getTopDiseases(supabase, range)} />;
+  }
+}
+
+function ReportSkeleton() {
+  return (
+    <div className="flex flex-col gap-6" aria-busy aria-label="Memuat laporan">
+      <Skeleton className="h-24 rounded-xl" />
+      <Skeleton className="h-64 rounded-xl" />
+      <div className="grid gap-6 md:grid-cols-2">
+        <SkeletonCard rows={3} />
+        <SkeletonCard rows={3} />
+      </div>
+    </div>
   );
 }

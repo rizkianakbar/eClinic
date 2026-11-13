@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
 import { PATIENT_VIEWER_ROLES } from "@/features/patients/patients.constants";
 import { patientDemographics } from "@/features/patients/patients.lib";
 import { listPatientDemographics, listPatients, type PatientPayerFilter } from "@/features/patients/patients.service";
@@ -12,6 +14,8 @@ export const metadata: Metadata = { title: "Pasien" };
 
 const PAYERS: readonly PatientPayerFilter[] = ["all", "bpjs", "umum"];
 
+type Stats = ReturnType<typeof patientDemographics>;
+
 export default async function PatientsPage(props: PageProps<"/patients">) {
   await requireRole(...PATIENT_VIEWER_ROLES);
   const params = await props.searchParams;
@@ -20,9 +24,11 @@ export default async function PatientsPage(props: PageProps<"/patients">) {
   const payer = PAYERS.find((value) => value === params.payer) ?? "all";
   const today = todayInJakarta();
   const supabase = await createClient();
-  const [result, rows] = await Promise.all([listPatients(supabase, { query, page, payer }), listPatientDemographics(supabase)]);
-  const stats = patientDemographics(rows, today, addDays(today, -6), `${today.slice(0, 7)}-01`);
-  const bpjsShare = stats.total > 0 ? Math.round((stats.bpjs / stats.total) * 100) : 0;
+  // Started now, awaited by the two panels that need it: they stream in after the list instead of holding it up.
+  const stats: Promise<Stats> = listPatientDemographics(supabase).then((rows) =>
+    patientDemographics(rows, today, addDays(today, -6), `${today.slice(0, 7)}-01`),
+  );
+  const result = await listPatients(supabase, { query, page, payer });
 
   return (
     <>
@@ -31,26 +37,42 @@ export default async function PatientsPage(props: PageProps<"/patients">) {
           <h1 className="text-[1.5rem] leading-tight font-semibold tracking-tight">Pasien</h1>
           <p className="text-sm text-muted-foreground">Semua pasien yang pernah terdaftar. Buka satu untuk melihat data dan riwayatnya.</p>
         </div>
-        <dl className="flex items-stretch divide-x rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
-          {[
-            ["Pasien aktif", String(stats.total), "terdaftar"],
-            ["Baru bulan ini", String(stats.newThisMonth), "pasien baru"],
-            ["Peserta BPJS", String(stats.bpjs), `${bpjsShare}% dari semua`],
-          ].map(([label, value, hint]) => (
-            <div key={label} className="flex flex-col gap-0.5 px-4 py-2.5">
-              <dt className="text-xs text-muted-foreground">{label}</dt>
-              <dd className="flex items-baseline gap-1.5">
-                <span className="numeral text-xl">{value}</span>
-                <span className="text-xs text-muted-foreground">{hint}</span>
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <Suspense fallback={<Skeleton className="h-[3.75rem] w-[23rem] max-w-full rounded-xl" />}>
+          <PatientsTotals stats={stats} />
+        </Suspense>
       </header>
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <PatientsList {...result} query={query} page={page} payer={payer} today={today} />
-        <PatientsComposition stats={stats} today={today} />
+        <Suspense fallback={<SkeletonCard rows={5} />}>
+          <CompositionPanel stats={stats} today={today} />
+        </Suspense>
       </div>
     </>
   );
+}
+
+async function PatientsTotals(props: { stats: Promise<Stats> }) {
+  const stats = await props.stats;
+  const bpjsShare = stats.total > 0 ? Math.round((stats.bpjs / stats.total) * 100) : 0;
+  return (
+    <dl className="flex items-stretch divide-x rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
+      {[
+        ["Pasien aktif", String(stats.total), "terdaftar"],
+        ["Baru bulan ini", String(stats.newThisMonth), "pasien baru"],
+        ["Peserta BPJS", String(stats.bpjs), `${bpjsShare}% dari semua`],
+      ].map(([label, value, hint]) => (
+        <div key={label} className="flex flex-col gap-0.5 px-4 py-2.5">
+          <dt className="text-xs text-muted-foreground">{label}</dt>
+          <dd className="flex items-baseline gap-1.5">
+            <span className="numeral text-xl">{value}</span>
+            <span className="text-xs text-muted-foreground">{hint}</span>
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+async function CompositionPanel(props: { stats: Promise<Stats>; today: string }) {
+  return <PatientsComposition stats={await props.stats} today={props.today} />;
 }

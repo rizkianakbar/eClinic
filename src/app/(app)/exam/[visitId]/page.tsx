@@ -16,7 +16,9 @@ import {
   SyringeIcon,
   type LucideIcon,
 } from "lucide-react";
+import { Suspense } from "react";
 import { z } from "zod";
+import { Skeleton } from "@/components/ui/skeleton";
 import { EXAM_VIEWER_ROLES, SOAP_FIELDS } from "@/features/exam/exam.constants";
 import {
   getExamVisit,
@@ -56,7 +58,7 @@ export default async function ExamPage(props: PageProps<"/exam/[visitId]">) {
   if (!z.uuid().safeParse(visitId).success) notFound();
 
   const supabase = await createClient();
-  const [visit, vitals, soap, diagnoses, prescription, procedures, letters] = await Promise.all([
+  const [visit, vitals, soap, diagnoses, prescription, procedures, letters, procedureOptions] = await Promise.all([
     getExamVisit(supabase, visitId),
     listVitals(supabase, visitId),
     listSoapNotes(supabase, visitId),
@@ -64,12 +66,11 @@ export default async function ExamPage(props: PageProps<"/exam/[visitId]">) {
     getPrescription(supabase, visitId),
     listProcedures(supabase, visitId),
     listLetters(supabase, visitId),
-  ]);
-  if (!visit?.patient) notFound();
-  const [history, procedureOptions] = await Promise.all([
-    listPreviousVisits(supabase, visit.patient.id, visit.id),
     listProcedureOptions(supabase),
   ]);
+  if (!visit?.patient) notFound();
+  // Needs the patient id, so it is a second round trip: it streams into the side panel instead of holding the record.
+  const history = listPreviousVisits(supabase, visit.patient.id, visit.id);
 
   const isOwnDoctor = session.role === "doctor" && visit.doctor_id === session.userId;
   const signed = Boolean(soap.main?.signed_at);
@@ -134,7 +135,9 @@ export default async function ExamPage(props: PageProps<"/exam/[visitId]">) {
               <Dot />
               {visit.poli?.name}
               <Dot />
-              {history.length === 0 ? "Pasien baru" : `${history.length} kunjungan sebelumnya`}
+              <Suspense fallback={<span className="inline-block h-3 w-24 animate-pulse rounded bg-muted align-middle" />}>
+                <HistoryCount history={history} />
+              </Suspense>
             </p>
           </div>
         </div>
@@ -278,13 +281,26 @@ export default async function ExamPage(props: PageProps<"/exam/[visitId]">) {
             </ol>
           </RailCard>
 
-          <RailCard title="Kunjungan sebelumnya" icon={HistoryIcon} meta={history.length || undefined}>
-            <ExamHistory visits={history} />
+          <RailCard title="Kunjungan sebelumnya" icon={HistoryIcon}>
+            <Suspense fallback={<Skeleton className="h-24" />}>
+              <HistoryList history={history} />
+            </Suspense>
           </RailCard>
         </aside>
       </div>
     </div>
   );
+}
+
+type History = ReturnType<typeof listPreviousVisits>;
+
+async function HistoryCount(props: { history: History }) {
+  const visits = await props.history;
+  return visits.length === 0 ? "Pasien baru" : `${visits.length} kunjungan sebelumnya`;
+}
+
+async function HistoryList(props: { history: History }) {
+  return <ExamHistory visits={await props.history} />;
 }
 
 type RailCardProps = {

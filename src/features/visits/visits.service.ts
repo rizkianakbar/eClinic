@@ -82,17 +82,19 @@ export async function getVisit(supabase: SupabaseClient, visitId: string) {
  * The primary diagnosis of each visit (clinical roles only: RLS hides diagnoses
  * from front desk and cashier, who get an empty map).
  */
-export async function listPrimaryDiagnoses(supabase: SupabaseClient, visitIds: string[]) {
-  const result = new Map<string, { code: string; name: string }>();
-  if (visitIds.length === 0) return result;
+/**
+ * A patient's primary diagnosis per visit, looked up by patient (inner join on visits), so it can load in
+ * the same round trip as the visits themselves instead of after them.
+ */
+export async function listPatientPrimaryDiagnoses(supabase: SupabaseClient, patientId: string) {
   const { data, error } = await supabase
     .from("visit_diagnoses")
-    .select("visit_id, icd10_code, icd10:icd10_codes(name, name_id)")
-    .in("visit_id", visitIds)
+    .select("visit_id, icd10_code, icd10:icd10_codes(name, name_id), visit:visits!inner(patient_id)")
+    .eq("visit.patient_id", patientId)
     .eq("is_primary", true);
-  if (error) throw new Error(`listPrimaryDiagnoses failed: ${error.code}`);
-  for (const row of data) {
-    result.set(row.visit_id, { code: row.icd10_code, name: row.icd10?.name_id ?? row.icd10?.name ?? row.icd10_code });
-  }
-  return result;
+  if (error) throw new Error(`listPatientPrimaryDiagnoses failed: ${error.code}`);
+  return new Map(
+    data.map((row) => [row.visit_id, { code: row.icd10_code, name: row.icd10?.name_id ?? row.icd10?.name ?? row.icd10_code }]),
+  );
 }
+

@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
 import { QueueDesk } from "@/features/queue/queue-desk";
 import { getOwnerDashboard } from "@/features/reports/reports.service";
 import { listAuditLogs } from "@/features/settings/settings.service";
@@ -35,11 +37,29 @@ export function Home(props: HomeProps) {
             {greeting(jakartaHour(now))}, {firstName}
           </h1>
         </div>
-        {/* Its own async component, so it loads in parallel with the desk below instead of before it. */}
-        {managing && <ClinicToday supabase={props.supabase} now={jakartaClock(now)} />}
+        {/* Each part streams on its own: the greeting paints at once, the rest fills in as its data arrives. */}
+        {managing && (
+          <Suspense fallback={<Skeleton className="h-[3.75rem] w-[26rem] max-w-full rounded-xl" />}>
+            <ClinicToday supabase={props.supabase} now={jakartaClock(now)} />
+          </Suspense>
+        )}
       </header>
-      <RoleDesk {...props} />
+      <Suspense fallback={<DeskSkeleton />}>
+        <RoleDesk {...props} />
+      </Suspense>
     </>
+  );
+}
+
+function DeskSkeleton() {
+  return (
+    <div className="flex flex-col gap-6" aria-busy aria-label="Memuat beranda">
+      <Skeleton className="h-36 rounded-2xl" />
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <SkeletonCard rows={4} />
+        <SkeletonCard rows={3} />
+      </div>
+    </div>
   );
 }
 

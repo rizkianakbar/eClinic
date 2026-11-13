@@ -23,7 +23,7 @@ import { getPatient } from "@/features/patients/patients.service";
 import { PatientsSheet } from "@/features/patients/patients-sheet";
 import {
   listPatientVisits,
-  listPrimaryDiagnoses,
+  listPatientPrimaryDiagnoses,
   listTodaySessions,
 } from "@/features/visits/visits.service";
 import {
@@ -61,18 +61,14 @@ export default async function PatientPage(
   const today = todayInJakarta();
 
   const supabase = await createClient();
-  const [patient, sessions, visits] = await Promise.all([
+  const [patient, sessions, visits, diagnoses] = await Promise.all([
     getPatient(supabase, patientId),
     canEdit ? listTodaySessions(supabase) : Promise.resolve([]),
     listPatientVisits(supabase, patientId),
+    // Front desk and cashier may not read diagnoses (RLS would return none anyway).
+    clinical ? listPatientPrimaryDiagnoses(supabase, patientId) : Promise.resolve(new Map<string, { code: string; name: string }>()),
   ]);
   if (!patient) notFound();
-  const diagnoses = clinical
-    ? await listPrimaryDiagnoses(
-        supabase,
-        visits.map((visit) => visit.id),
-      )
-    : new Map();
 
   const counted = visits.filter((visit) => visit.status !== "cancelled");
   const todayVisit = counted.find((visit) => visit.visit_date === today);
