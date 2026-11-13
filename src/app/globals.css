@@ -243,6 +243,55 @@
   animation: signal-pulse 2.4s var(--ease-out) infinite;
 }
 
+@layer components {
+  /* A row that arrived live (Realtime: another desk's change) fades in from just above, so staff notice who is new.
+     Rows already there when the page opened do not move; see components/ui/arrival.tsx. */
+  [data-arriving] {
+    transition:
+      opacity 200ms var(--ease-out),
+      translate 200ms var(--ease-out);
+
+    @starting-style {
+      opacity: 0;
+      translate: 0 -0.25rem;
+    }
+  }
+
+  /* <details class="disclose">: the content opens and closes instead of snapping. Browsers without
+     ::details-content or interpolate-size keep the instant toggle. */
+  .disclose {
+    interpolate-size: allow-keywords;
+  }
+
+  .disclose::details-content {
+    height: 0;
+    opacity: 0;
+    overflow: clip;
+    transition:
+      height 200ms var(--ease-out),
+      opacity 200ms var(--ease-out),
+      /* No var() easing here: Next's CSS parser silently drops the whole block on `var(…) allow-discrete`. */
+      content-visibility 200ms allow-discrete;
+  }
+
+  .disclose[open]::details-content {
+    height: auto;
+    opacity: 1;
+  }
+
+  /* Small inline reveals (a form that replaces its button, a reason that appears): enter, never exit. */
+  .reveal {
+    transition:
+      opacity 180ms var(--ease-out),
+      translate 180ms var(--ease-out);
+
+    @starting-style {
+      opacity: 0;
+      translate: 0 -0.25rem;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

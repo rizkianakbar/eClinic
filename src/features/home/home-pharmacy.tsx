@@ -7,6 +7,7 @@ import {
   TriangleAlertIcon,
 } from 'lucide-react';
 import Link from 'next/link';
+import { Arrival, ArrivalScope } from '@/components/ui/arrival';
 import { buttonVariants } from '@/components/ui/button';
 import { Elapsed } from '@/components/ui/elapsed';
 import { Panel, PanelEmpty } from '@/components/ui/panel';
@@ -68,49 +69,53 @@ export function HomePharmacy(props: HomePharmacyProps) {
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="flex min-w-0 flex-col gap-4">
-          {next ? (
-            <NextPrescription visit={next} now={props.now} />
-          ) : (
-            <div className="rounded-2xl border bg-card">
-              <PanelEmpty
-                icon={<CheckCheckIcon />}
-                title="Tidak ada resep menunggu"
-                description="Resep muncul di sini begitu dokter menandatangani rekam medis. Halaman ini diperbarui sendiri."
-              />
-            </div>
-          )}
+          <ArrivalScope>
+            {next ? (
+              <Arrival key={next.id}>
+                <NextPrescription visit={next} now={props.now} />
+              </Arrival>
+            ) : (
+              <div className="rounded-2xl border bg-card">
+                <PanelEmpty
+                  icon={<CheckCheckIcon />}
+                  title="Tidak ada resep menunggu"
+                  description="Resep muncul di sini begitu dokter menandatangani rekam medis. Halaman ini diperbarui sendiri."
+                />
+              </div>
+            )}
 
-          {rest.length > 0 && (
-            <Panel title="Antre berikutnya" count={rest.length} dot="bg-line-pharmacy">
-              <ol className="divide-y">
-                {rest.map((visit) => (
-                  <li key={visit.id}>
-                    <Link
-                      href={`/pharmacy/${visit.id}`}
-                      className="group flex items-start gap-3 px-4 py-3 transition-colors hover:bg-muted/50">
-                      <span className="numeral flex size-10 shrink-0 items-center justify-center rounded-lg bg-status-pharmacy-soft text-lg text-status-pharmacy">
-                        {visit.queue_no}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="flex items-center gap-2">
-                          <span className="truncate text-sm font-semibold">{visit.patient?.full_name}</span>
-                          {visit.payer_type === 'bpjs' && <BpjsChip />}
-                        </p>
-                        <MedicineChips medicines={visit.medicines} limit={4} />
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <Elapsed since={visit.updated_at} now={props.now} />
-                        <ArrowRightIcon
-                          className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5"
-                          aria-hidden
-                        />
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ol>
-            </Panel>
-          )}
+            {rest.length > 0 && (
+              <Panel title="Antre berikutnya" count={rest.length} dot="bg-line-pharmacy">
+                <ol className="divide-y">
+                  {rest.map((visit) => (
+                    <Arrival as="li" key={visit.id}>
+                      <Link
+                        href={`/pharmacy/${visit.id}`}
+                        className="group flex items-start gap-3 px-4 py-3 transition-colors hover:bg-muted/50">
+                        <span className="numeral flex size-10 shrink-0 items-center justify-center rounded-lg bg-status-pharmacy-soft text-lg text-status-pharmacy">
+                          {visit.queue_no}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="flex items-center gap-2">
+                            <span className="truncate text-sm font-semibold">{visit.patient?.full_name}</span>
+                            {visit.payer_type === 'bpjs' && <BpjsChip />}
+                          </p>
+                          <MedicineChips medicines={visit.medicines} limit={4} />
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <Elapsed since={visit.updated_at} now={props.now} />
+                          <ArrowRightIcon
+                            className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                            aria-hidden
+                          />
+                        </div>
+                      </Link>
+                    </Arrival>
+                  ))}
+                </ol>
+              </Panel>
+            )}
+          </ArrivalScope>
         </div>
 
         <div className="flex flex-col gap-6">

@@ -167,7 +167,8 @@ export function PharmacyDispenseForm(props: PharmacyDispenseFormProps) {
             {notGiven ? 'Tidak diberikan · batalkan' : 'Tandai tidak diberikan'}
           </label>
           {notGiven && (
-            <>
+            // One wrapper fades in, so the input's own transitions are left alone.
+            <div className="reveal flex min-w-0 flex-1 flex-wrap items-center gap-2">
               <Input
                 className="h-8 max-w-xs flex-1"
                 aria-label="Alasan tidak diberikan"
@@ -191,7 +192,7 @@ export function PharmacyDispenseForm(props: PharmacyDispenseFormProps) {
                   </button>
                 ))}
               </div>
-            </>
+            </div>
           )}
         </div>
         {reasonError && <p className="pl-13 text-[0.8125rem] text-destructive">{reasonError}</p>}

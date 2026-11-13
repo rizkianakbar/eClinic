@@ -40,7 +40,12 @@ export function PrescriptionsNoMedicine(props: PrescriptionsNoMedicineProps) {
 
   if (props.reason) {
     return (
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-primary/25 bg-secondary/50 px-3 py-2.5 text-sm">
+      <div
+        className={cn(
+          'flex flex-wrap items-center gap-3 rounded-lg border border-primary/25 bg-secondary/50 px-3 py-2.5 text-sm',
+          // Fades in when the doctor just decided; a decision loaded with the page stays still.
+          save.isSuccess && 'reveal',
+        )}>
         <span className="flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
           <CheckIcon className="size-3.5" strokeWidth={3} aria-hidden />
         </span>
@@ -72,7 +77,7 @@ export function PrescriptionsNoMedicine(props: PrescriptionsNoMedicineProps) {
   return (
     <form
       noValidate
-      className="flex flex-col gap-2 rounded-lg border border-dashed px-3 py-3"
+      className="reveal flex flex-col gap-2 rounded-lg border border-dashed px-3 py-3"
       onSubmit={form.handleSubmit((values) => save.mutate(values, { onSuccess: () => setOpen(false) }))}>
       <label htmlFor="no_medicine_reason" className="text-sm font-medium">
         Tidak perlu obat, karena…

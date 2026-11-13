@@ -1,4 +1,5 @@
 import { ActivityIcon, CheckIcon } from 'lucide-react';
+import { Arrival, ArrivalScope } from '@/components/ui/arrival';
 import { Elapsed } from '@/components/ui/elapsed';
 import { Panel, PanelEmpty } from '@/components/ui/panel';
 import { ExamVitalsDialog } from '@/features/exam/exam-vitals-dialog';
@@ -24,31 +25,34 @@ export function HomeNurse(props: HomeNurseProps) {
         count={todo.length}
         dot="bg-line-waiting"
         link={{ href: '/queue', label: 'Antrean' }}>
-        {todo.length === 0 ? (
-          <PanelEmpty icon={<ActivityIcon />} title="Semua pasien menunggu sudah dicatat" />
-        ) : (
-          <ul>
-            {todo.map((visit, index) => (
-              <li
-                key={visit.id}
-                className={index === 0 ? 'border-b bg-secondary/40 last:border-0' : 'border-b last:border-0'}>
-                <div className="flex items-center gap-3 px-4 py-3">
-                  <span className="numeral flex size-10 shrink-0 items-center justify-center rounded-lg bg-status-waiting-soft text-lg text-status-waiting">
-                    {visit.queue_no}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold">{visit.patient?.full_name}</span>
-                    <span className="block truncate text-[0.8125rem] text-muted-foreground">
-                      {visit.poli?.name} · {visit.doctor?.full_name}
+        <ArrivalScope>
+          {todo.length === 0 ? (
+            <PanelEmpty icon={<ActivityIcon />} title="Semua pasien menunggu sudah dicatat" />
+          ) : (
+            <ul>
+              {todo.map((visit, index) => (
+                <Arrival
+                  as="li"
+                  key={visit.id}
+                  className={index === 0 ? 'border-b bg-secondary/40 last:border-0' : 'border-b last:border-0'}>
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    <span className="numeral flex size-10 shrink-0 items-center justify-center rounded-lg bg-status-waiting-soft text-lg text-status-waiting">
+                      {visit.queue_no}
                     </span>
-                  </span>
-                  <Elapsed since={visit.created_at} now={props.now} />
-                  <ExamVitalsDialog visitId={visit.id} patientName={visit.patient?.full_name ?? ''} size="default" />
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold">{visit.patient?.full_name}</span>
+                      <span className="block truncate text-[0.8125rem] text-muted-foreground">
+                        {visit.poli?.name} · {visit.doctor?.full_name}
+                      </span>
+                    </span>
+                    <Elapsed since={visit.created_at} now={props.now} />
+                    <ExamVitalsDialog visitId={visit.id} patientName={visit.patient?.full_name ?? ''} size="default" />
+                  </div>
+                </Arrival>
+              ))}
+            </ul>
+          )}
+        </ArrivalScope>
       </Panel>
 
       <Panel title="Sudah dicatat" count={done.length}>

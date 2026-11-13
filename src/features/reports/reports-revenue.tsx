@@ -130,7 +130,9 @@ export function ReportsRevenue(props: ReportsRevenueProps) {
       </div>
 
       {daily.length > 0 && (
-        <details open={props.print} className="group rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
+        <details
+          open={props.print}
+          className="disclose group rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-semibold">
             <ChevronRightIcon
               className="size-4 text-muted-foreground transition-transform group-open:rotate-90"

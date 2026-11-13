@@ -110,7 +110,7 @@ function Entry(props: { logs: Log[] }) {
             {noop && <p className="text-xs text-muted-foreground">Tanpa perubahan isi</p>}
           </>
         ) : (
-          <details className="group">
+          <details className="disclose group">
             <summary className="flex cursor-pointer list-none items-start gap-1 [&::-webkit-details-marker]:hidden">
               {sentence}
               <span className="mt-1 ml-1 inline-flex shrink-0 items-center gap-0.5 text-xs font-medium text-muted-foreground group-hover:text-foreground">

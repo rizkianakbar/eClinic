@@ -8,6 +8,7 @@ import {
   ShieldCheckIcon,
 } from 'lucide-react';
 import Link from 'next/link';
+import { Arrival, ArrivalScope } from '@/components/ui/arrival';
 import { Elapsed } from '@/components/ui/elapsed';
 import { formatTime } from '@/lib/dates';
 import { formatRupiah } from '@/lib/money';
@@ -57,71 +58,76 @@ export function HomeCashier(props: HomeCashierProps) {
             {props.waiting.length}
           </span>
         </h2>
-        {props.waiting.length === 0 ? (
-          <div className="flex items-center gap-3 rounded-xl border border-dashed bg-card/60 px-4 py-3.5">
-            <span className="flex size-8 items-center justify-center rounded-full bg-secondary text-primary">
-              <CheckCheckIcon className="size-4" aria-hidden />
-            </span>
-            <p className="text-sm">
-              <span className="font-medium">Semua tagihan sudah beres.</span>{' '}
-              <span className="text-muted-foreground">
-                Pasien baru muncul di sini dan Anda diberi tahu di layar mana pun.
+        <ArrivalScope>
+          {props.waiting.length === 0 ? (
+            <div className="flex items-center gap-3 rounded-xl border border-dashed bg-card/60 px-4 py-3.5">
+              <span className="flex size-8 items-center justify-center rounded-full bg-secondary text-primary">
+                <CheckCheckIcon className="size-4" aria-hidden />
               </span>
-            </p>
-          </div>
-        ) : (
-          <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {props.waiting.map((visit, index) => (
-              <li key={visit.id}>
-                <Link
-                  href={`/cashier/${visit.id}`}
-                  className={cn(
-                    'group flex h-full flex-col gap-4 rounded-xl border bg-card p-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)] transition-[border-color,box-shadow] hover:border-input hover:shadow-[0_8px_24px_-12px_rgb(15_31_27/0.25)]',
-                    index === 0 &&
-                      'border-primary/30 shadow-[0_0_0_3px_color-mix(in_srgb,var(--primary)_10%,transparent)]',
-                  )}>
-                  <div className="flex items-start gap-3">
-                    <span className="numeral flex size-11 shrink-0 items-center justify-center rounded-xl bg-status-cashier-soft text-xl text-status-cashier">
-                      {visit.queue_no}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-2">
-                        <span className="truncate font-semibold">{visit.patient?.full_name}</span>
-                        {visit.payer_type === 'bpjs' && (
-                          <span className="shrink-0 rounded bg-bpjs-soft px-1.5 text-[0.6875rem] leading-5 font-semibold text-bpjs">
-                            BPJS
-                          </span>
-                        )}
+              <p className="text-sm">
+                <span className="font-medium">Semua tagihan sudah beres.</span>{' '}
+                <span className="text-muted-foreground">
+                  Pasien baru muncul di sini dan Anda diberi tahu di layar mana pun.
+                </span>
+              </p>
+            </div>
+          ) : (
+            <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {props.waiting.map((visit, index) => (
+                <Arrival as="li" key={visit.id}>
+                  <Link
+                    href={`/cashier/${visit.id}`}
+                    className={cn(
+                      'group flex h-full flex-col gap-4 rounded-xl border bg-card p-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)] transition-[border-color,box-shadow] hover:border-input hover:shadow-[0_8px_24px_-12px_rgb(15_31_27/0.25)]',
+                      index === 0 &&
+                        'border-primary/30 shadow-[0_0_0_3px_color-mix(in_srgb,var(--primary)_10%,transparent)]',
+                    )}>
+                    <div className="flex items-start gap-3">
+                      <span className="numeral flex size-11 shrink-0 items-center justify-center rounded-xl bg-status-cashier-soft text-xl text-status-cashier">
+                        {visit.queue_no}
                       </span>
-                      <span className="block truncate text-[0.8125rem] text-muted-foreground">
-                        {visit.poli?.name} · {visit.doctor?.full_name}
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center gap-2">
+                          <span className="truncate font-semibold">{visit.patient?.full_name}</span>
+                          {visit.payer_type === 'bpjs' && (
+                            <span className="shrink-0 rounded bg-bpjs-soft px-1.5 text-[0.6875rem] leading-5 font-semibold text-bpjs">
+                              BPJS
+                            </span>
+                          )}
+                        </span>
+                        <span className="block truncate text-[0.8125rem] text-muted-foreground">
+                          {visit.poli?.name} · {visit.doctor?.full_name}
+                        </span>
                       </span>
-                    </span>
-                    <Elapsed since={visit.updated_at} now={props.now} />
-                  </div>
-                  <div className="mt-auto flex items-end justify-between gap-3 border-t pt-3">
-                    <span>
-                      <span className="block text-xs text-muted-foreground">
-                        {visit.payer_type === 'bpjs'
-                          ? 'Ditanggung BPJS'
-                          : visit.billLines
-                            ? `${visit.billLines} item`
-                            : 'Tagihan dibuat saat dibuka'}
+                      <Elapsed since={visit.updated_at} now={props.now} />
+                    </div>
+                    <div className="mt-auto flex items-end justify-between gap-3 border-t pt-3">
+                      <span>
+                        <span className="block text-xs text-muted-foreground">
+                          {visit.payer_type === 'bpjs'
+                            ? 'Ditanggung BPJS'
+                            : visit.billLines
+                              ? `${visit.billLines} item`
+                              : 'Tagihan dibuat saat dibuka'}
+                        </span>
+                        <span className="numeral block text-xl">
+                          {visit.billTotal !== null ? formatRupiah(visit.billTotal) : '–'}
+                        </span>
                       </span>
-                      <span className="numeral block text-xl">
-                        {visit.billTotal !== null ? formatRupiah(visit.billTotal) : '–'}
+                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-transform group-active:scale-[0.97]">
+                        {visit.payer_type === 'bpjs' ? 'Selesaikan' : 'Terima pembayaran'}
+                        <ArrowRightIcon
+                          className="size-4 transition-transform group-hover:translate-x-0.5"
+                          aria-hidden
+                        />
                       </span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-transform group-active:scale-[0.97]">
-                      {visit.payer_type === 'bpjs' ? 'Selesaikan' : 'Terima pembayaran'}
-                      <ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-                    </span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+                    </div>
+                  </Link>
+                </Arrival>
+              ))}
+            </ul>
+          )}
+        </ArrivalScope>
       </section>
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">

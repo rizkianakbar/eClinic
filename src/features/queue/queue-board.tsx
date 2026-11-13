@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ReactNode, useState } from 'react';
 import { toast } from 'sonner';
+import { Arrival, ArrivalScope } from '@/components/ui/arrival';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SegmentedControl } from '@/components/ui/segmented-control';
@@ -102,35 +103,40 @@ export function QueueBoard(props: QueueBoardProps) {
         )}
       </div>
 
-      {visits.length === 0 ? (
-        <EmptyState
-          icon={StethoscopeIcon}
-          title={scope === 'mine' ? 'Belum ada pasien untuk Anda hari ini' : 'Belum ada pasien hari ini'}
-          description="Pasien muncul di sini begitu didaftarkan di Pendaftaran."
-        />
-      ) : (
-        <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
-          <Lane station="waiting" title="Ruang tunggu" count={lanes.called.length + lanes.waiting.length}>
-            {lanes.called.length + lanes.waiting.length + lanes.skipped.length === 0 && (
-              <LaneEmpty>Ruang tunggu kosong</LaneEmpty>
-            )}
-            {[...lanes.called, ...lanes.waiting].map((visit) => (
-              <WaitingTicket key={visit.id} visit={visit} {...ticketProps} />
-            ))}
-            {lanes.skipped.length > 0 && (
-              <>
-                <p className="px-1 pt-2 text-xs font-medium text-muted-foreground">Dilewati, bisa dipanggil ulang</p>
-                {lanes.skipped.map((visit) => (
-                  <WaitingTicket key={visit.id} visit={visit} {...ticketProps} />
-                ))}
-              </>
-            )}
-          </Lane>
-          <StationLane station="in_exam" title="Ruang periksa" visits={lanes.inExam} {...ticketProps} />
-          <StationLane station="to_pharmacy" title="Farmasi" visits={lanes.toPharmacy} {...ticketProps} />
-          <StationLane station="to_cashier" title="Kasir" visits={lanes.toCashier} {...ticketProps} />
-        </div>
-      )}
+      {/* Keyed by the filters: switching them re-renders the lanes without counting everyone as arriving. */}
+      <ArrivalScope key={`${scope}:${poliId}`}>
+        {visits.length === 0 ? (
+          <EmptyState
+            icon={StethoscopeIcon}
+            title={scope === 'mine' ? 'Belum ada pasien untuk Anda hari ini' : 'Belum ada pasien hari ini'}
+            description="Pasien muncul di sini begitu didaftarkan di Pendaftaran."
+          />
+        ) : (
+          <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
+            <Lane station="waiting" title="Ruang tunggu" count={lanes.called.length + lanes.waiting.length}>
+              {lanes.called.length + lanes.waiting.length + lanes.skipped.length === 0 && (
+                <LaneEmpty>Ruang tunggu kosong</LaneEmpty>
+              )}
+              {[...lanes.called, ...lanes.waiting].map((visit) => (
+                <Arrival key={visit.id}>
+                  <WaitingTicket visit={visit} {...ticketProps} />
+                </Arrival>
+              ))}
+              {lanes.skipped.length > 0 && (
+                <>
+                  <p className="px-1 pt-2 text-xs font-medium text-muted-foreground">Dilewati, bisa dipanggil ulang</p>
+                  {lanes.skipped.map((visit) => (
+                    <WaitingTicket key={visit.id} visit={visit} {...ticketProps} />
+                  ))}
+                </>
+              )}
+            </Lane>
+            <StationLane station="in_exam" title="Ruang periksa" visits={lanes.inExam} {...ticketProps} />
+            <StationLane station="to_pharmacy" title="Farmasi" visits={lanes.toPharmacy} {...ticketProps} />
+            <StationLane station="to_cashier" title="Kasir" visits={lanes.toCashier} {...ticketProps} />
+          </div>
+        )}
+      </ArrivalScope>
     </div>
   );
 }
@@ -360,14 +366,15 @@ function StationLane(props: StationLaneProps) {
         <LaneEmpty>{EMPTY_LANE[props.station] ?? 'Kosong'}</LaneEmpty>
       ) : (
         props.visits.map((visit) => (
-          <QueueTicket
-            key={visit.id}
-            visit={visit}
-            station={props.station}
-            size="compact"
-            showPoli={props.showPoli}
-            href={props.station === 'in_exam' && canOpenExam(props.actor) ? `/exam/${visit.id}` : undefined}
-          />
+          <Arrival key={visit.id}>
+            <QueueTicket
+              visit={visit}
+              station={props.station}
+              size="compact"
+              showPoli={props.showPoli}
+              href={props.station === 'in_exam' && canOpenExam(props.actor) ? `/exam/${visit.id}` : undefined}
+            />
+          </Arrival>
         ))
       )}
     </Lane>

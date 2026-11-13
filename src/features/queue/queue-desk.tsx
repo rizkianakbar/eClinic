@@ -4,6 +4,7 @@ import { ChevronRightIcon, CoffeeIcon, MegaphoneIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { ArrivalScope, useArriving } from '@/components/ui/arrival';
 import { Button } from '@/components/ui/button';
 import { Elapsed } from '@/components/ui/elapsed';
 import { Panel, PanelEmpty } from '@/components/ui/panel';
@@ -73,156 +74,161 @@ export function QueueDesk(props: QueueDeskProps) {
   const triaged = waiting.filter((visit) => vitals.has(visit.id)).length;
 
   return (
-    <div className="flex flex-col gap-6">
-      <DoctorRoom visits={all} actor={props.actor} visitDate={props.visitDate} vitals={vitals} />
+    <ArrivalScope ready={!board.isPending}>
+      <div className="flex flex-col gap-6">
+        <DoctorRoom visits={all} actor={props.actor} visitDate={props.visitDate} vitals={vitals} />
 
-      {/* Phones: the schedule takes the first row, the three counts share the second. */}
-      <dl className="grid grid-cols-6 overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)] lg:grid-cols-4">
-        <DayFigure label="Jadwal hari ini" className="col-span-6 border-b lg:col-span-1 lg:border-b-0">
-          {props.sessions.length === 0 ? (
-            <dd className="text-sm text-muted-foreground">Tidak ada jadwal praktik</dd>
-          ) : (
-            props.sessions.map((session) => (
-              <dd key={session.id} className="flex items-baseline gap-1.5">
-                <span className="numeral text-[1.125rem] whitespace-nowrap">
-                  {toHourMinute(session.startTime)}–{toHourMinute(session.endTime)}
-                </span>
-                <span className="truncate text-xs text-muted-foreground">{session.poliName}</span>
-              </dd>
-            ))
-          )}
-        </DayFigure>
-        <DayFigure label="Kuota terisi" className="col-span-2 lg:col-span-1 lg:border-l">
-          <dd className="numeral text-[1.5rem]">
-            {taken}
-            <span className="text-base text-muted-foreground">/{quota}</span>
-          </dd>
-          <dd className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-            <span
-              className={cn(
-                'block h-full rounded-full',
-                taken >= quota && quota > 0 ? 'bg-status-cancelled' : 'bg-primary',
-              )}
-              style={{ width: `${quota ? Math.min(100, Math.round((taken / quota) * 100)) : 0}%` }}
-            />
-          </dd>
-        </DayFigure>
-        <DayFigure label="Menunggu saya" className="col-span-2 border-l lg:col-span-1">
-          <dd className="numeral text-[1.5rem]">{waiting.length}</dd>
-          <dd className="text-xs text-muted-foreground">
-            {waiting.length === 0
-              ? 'Ruang tunggu kosong'
-              : `${triaged} sudah tanda vital · terlama ${longest < 60 ? `${longest} mnt` : `${Math.floor(longest / 60)} j ${longest % 60} m`}`}
-          </dd>
-        </DayFigure>
-        <DayFigure label="Selesai diperiksa" className="col-span-2 border-l lg:col-span-1">
-          <dd className="numeral text-[1.5rem]">{seen}</dd>
-          <dd className="text-xs text-muted-foreground">
-            {seen === 0 ? 'Belum ada' : `${bpjsSeen} BPJS · ${seen - bpjsSeen} umum`}
-          </dd>
-        </DayFigure>
-      </dl>
+        {/* Phones: the schedule takes the first row, the three counts share the second. */}
+        <dl className="grid grid-cols-6 overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)] lg:grid-cols-4">
+          <DayFigure label="Jadwal hari ini" className="col-span-6 border-b lg:col-span-1 lg:border-b-0">
+            {props.sessions.length === 0 ? (
+              <dd className="text-sm text-muted-foreground">Tidak ada jadwal praktik</dd>
+            ) : (
+              props.sessions.map((session) => (
+                <dd key={session.id} className="flex items-baseline gap-1.5">
+                  <span className="numeral text-[1.125rem] whitespace-nowrap">
+                    {toHourMinute(session.startTime)}–{toHourMinute(session.endTime)}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground">{session.poliName}</span>
+                </dd>
+              ))
+            )}
+          </DayFigure>
+          <DayFigure label="Kuota terisi" className="col-span-2 lg:col-span-1 lg:border-l">
+            <dd className="numeral text-[1.5rem]">
+              {taken}
+              <span className="text-base text-muted-foreground">/{quota}</span>
+            </dd>
+            <dd className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+              <span
+                className={cn(
+                  'block h-full rounded-full',
+                  taken >= quota && quota > 0 ? 'bg-status-cancelled' : 'bg-primary',
+                )}
+                style={{ width: `${quota ? Math.min(100, Math.round((taken / quota) * 100)) : 0}%` }}
+              />
+            </dd>
+          </DayFigure>
+          <DayFigure label="Menunggu saya" className="col-span-2 border-l lg:col-span-1">
+            <dd className="numeral text-[1.5rem]">{waiting.length}</dd>
+            <dd className="text-xs text-muted-foreground">
+              {waiting.length === 0
+                ? 'Ruang tunggu kosong'
+                : `${triaged} sudah tanda vital · terlama ${longest < 60 ? `${longest} mnt` : `${Math.floor(longest / 60)} j ${longest % 60} m`}`}
+            </dd>
+          </DayFigure>
+          <DayFigure label="Selesai diperiksa" className="col-span-2 border-l lg:col-span-1">
+            <dd className="numeral text-[1.5rem]">{seen}</dd>
+            <dd className="text-xs text-muted-foreground">
+              {seen === 0 ? 'Belum ada' : `${bpjsSeen} BPJS · ${seen - bpjsSeen} umum`}
+            </dd>
+          </DayFigure>
+        </dl>
 
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
-        <Panel
-          title="Antrean saya"
-          count={waiting.length}
-          dot="bg-line-waiting"
-          link={{ href: '/queue', label: 'Papan antrean' }}>
-          {board.isPending ? (
-            <div className="h-40 animate-pulse bg-muted/60" />
-          ) : waiting.length + lanes.skipped.length === 0 ? (
-            <PanelEmpty
-              icon={<CoffeeIcon />}
-              title="Tidak ada pasien menunggu"
-              description="Pasien yang didaftarkan ke jadwal Anda muncul di sini."
-            />
-          ) : (
-            <ol className="divide-y">
-              {waiting.map((visit) => (
-                <WaitingRow
-                  key={visit.id}
-                  visit={visit}
-                  actor={props.actor}
-                  visitDate={props.visitDate}
-                  details={details.data}
-                  now={props.now}
-                />
-              ))}
-              {lanes.skipped.length > 0 && (
-                <>
-                  <li className="bg-muted/40 px-4 py-1.5 text-xs font-medium text-muted-foreground">
-                    Dilewati, bisa dipanggil ulang
-                  </li>
-                  {lanes.skipped.map((visit) => (
-                    <WaitingRow
-                      key={visit.id}
-                      visit={visit}
-                      actor={props.actor}
-                      visitDate={props.visitDate}
-                      details={details.data}
-                      now={props.now}
-                    />
-                  ))}
-                </>
-              )}
-            </ol>
-          )}
-        </Panel>
-
-        <Panel title="Pasien saya hari ini" count={finished.length}>
-          {finished.length === 0 ? (
-            <PanelEmpty title="Belum ada pasien diperiksa" description="Diagnosis utama tiap pasien tampil di sini." />
-          ) : (
-            <ul className="divide-y">
-              {finished.map((visit) => {
-                const station = STATION_COLORS[visit.status as keyof typeof STATION_COLORS] ?? STATION_COLORS.done;
-                const diagnosis = details.data?.diagnoses.get(visit.id);
-
-                return (
-                  <li key={visit.id}>
-                    <Link
-                      href={`/exam/${visit.id}`}
-                      className="group flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50">
-                      <span
-                        className={cn(
-                          'numeral flex size-8 shrink-0 items-center justify-center rounded-lg text-sm',
-                          station.soft,
-                          station.text,
-                        )}>
-                        {visit.queue_no}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium">{visit.patient?.full_name}</span>
-                        <span className="block truncate text-xs text-muted-foreground">
-                          {diagnosis ? (
-                            <>
-                              <span className="tabular font-semibold text-foreground/70">{diagnosis.code}</span>{' '}
-                              {diagnosis.name}
-                            </>
-                          ) : visit.status === 'in_exam' ? (
-                            'Sedang diperiksa'
-                          ) : (
-                            'Tanpa diagnosis'
-                          )}
-                        </span>
-                      </span>
-                      <span className={cn('shrink-0 text-xs font-medium', station.text)}>
-                        {STATUS_SHORT[visit.status] ?? ''}
-                      </span>
-                      <ChevronRightIcon
-                        className="size-4 shrink-0 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5"
-                        aria-hidden
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
+          <Panel
+            title="Antrean saya"
+            count={waiting.length}
+            dot="bg-line-waiting"
+            link={{ href: '/queue', label: 'Papan antrean' }}>
+            {board.isPending ? (
+              <div className="h-40 animate-pulse bg-muted/60" />
+            ) : waiting.length + lanes.skipped.length === 0 ? (
+              <PanelEmpty
+                icon={<CoffeeIcon />}
+                title="Tidak ada pasien menunggu"
+                description="Pasien yang didaftarkan ke jadwal Anda muncul di sini."
+              />
+            ) : (
+              <ol className="divide-y">
+                {waiting.map((visit) => (
+                  <WaitingRow
+                    key={visit.id}
+                    visit={visit}
+                    actor={props.actor}
+                    visitDate={props.visitDate}
+                    details={details.data}
+                    now={props.now}
+                  />
+                ))}
+                {lanes.skipped.length > 0 && (
+                  <>
+                    <li className="bg-muted/40 px-4 py-1.5 text-xs font-medium text-muted-foreground">
+                      Dilewati, bisa dipanggil ulang
+                    </li>
+                    {lanes.skipped.map((visit) => (
+                      <WaitingRow
+                        key={visit.id}
+                        visit={visit}
+                        actor={props.actor}
+                        visitDate={props.visitDate}
+                        details={details.data}
+                        now={props.now}
                       />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Panel>
+                    ))}
+                  </>
+                )}
+              </ol>
+            )}
+          </Panel>
+
+          <Panel title="Pasien saya hari ini" count={finished.length}>
+            {finished.length === 0 ? (
+              <PanelEmpty
+                title="Belum ada pasien diperiksa"
+                description="Diagnosis utama tiap pasien tampil di sini."
+              />
+            ) : (
+              <ul className="divide-y">
+                {finished.map((visit) => {
+                  const station = STATION_COLORS[visit.status as keyof typeof STATION_COLORS] ?? STATION_COLORS.done;
+                  const diagnosis = details.data?.diagnoses.get(visit.id);
+
+                  return (
+                    <li key={visit.id}>
+                      <Link
+                        href={`/exam/${visit.id}`}
+                        className="group flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50">
+                        <span
+                          className={cn(
+                            'numeral flex size-8 shrink-0 items-center justify-center rounded-lg text-sm',
+                            station.soft,
+                            station.text,
+                          )}>
+                          {visit.queue_no}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-medium">{visit.patient?.full_name}</span>
+                          <span className="block truncate text-xs text-muted-foreground">
+                            {diagnosis ? (
+                              <>
+                                <span className="tabular font-semibold text-foreground/70">{diagnosis.code}</span>{' '}
+                                {diagnosis.name}
+                              </>
+                            ) : visit.status === 'in_exam' ? (
+                              'Sedang diperiksa'
+                            ) : (
+                              'Tanpa diagnosis'
+                            )}
+                          </span>
+                        </span>
+                        <span className={cn('shrink-0 text-xs font-medium', station.text)}>
+                          {STATUS_SHORT[visit.status] ?? ''}
+                        </span>
+                        <ChevronRightIcon
+                          className="size-4 shrink-0 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5"
+                          aria-hidden
+                        />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Panel>
+        </div>
       </div>
-    </div>
+    </ArrivalScope>
   );
 }
 
@@ -267,9 +273,12 @@ function WaitingRow(props: WaitingRowProps) {
   const called = Boolean(visit.called_at) && !visit.skipped_at;
   const color = STATION_COLORS.waiting;
   const patient = visit.patient;
+  const arriving = useArriving();
 
   return (
-    <li className={cn('flex items-start gap-3 px-4 py-3', called && 'bg-status-waiting-soft/40')}>
+    <li
+      data-arriving={arriving || undefined}
+      className={cn('flex items-start gap-3 px-4 py-3', called && 'bg-status-waiting-soft/40')}>
       <span
         className={cn(
           'numeral flex size-10 shrink-0 items-center justify-center rounded-lg text-lg',
