@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatRupiah, parseRupiah } from "./money";
+import { formatRupiah, parseRupiah, rupiahField, formatRupiahCompact } from "./money";
 
 describe("formatRupiah", () => {
   it("formats with Indonesian thousand separators and no decimals", () => {
@@ -27,5 +27,27 @@ describe("parseRupiah", () => {
   it("returns null for empty or invalid input", () => {
     expect(parseRupiah("")).toBeNull();
     expect(parseRupiah("abc")).toBeNull();
+  });
+});
+
+describe("rupiahField", () => {
+  const field = rupiahField("Harga");
+
+  it("parses formatted input and passes numbers through", () => {
+    expect(field.parse("Rp 15.000")).toBe(15000);
+    expect(field.parse(15000)).toBe(15000);
+  });
+
+  it("rejects blanks and negatives with a message", () => {
+    expect(field.safeParse("").error?.issues[0]?.message).toBe("Harga wajib diisi dengan angka, contoh: 15000.");
+    expect(field.safeParse("-5").error?.issues[0]?.message).toBe("Harga tidak boleh negatif.");
+  });
+});
+
+describe("formatRupiahCompact", () => {
+  it("shortens to rb / jt", () => {
+    expect(formatRupiahCompact(650_000)).toBe("Rp 650 rb");
+    expect(formatRupiahCompact(1_250_000)).toBe("Rp 1,3 jt");
+    expect(formatRupiahCompact(0)).toBe("Rp 0");
   });
 });
