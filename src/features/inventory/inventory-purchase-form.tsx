@@ -60,7 +60,7 @@ export function InventoryPurchaseForm(props: InventoryPurchaseFormProps) {
           },
         }),
       )}>
-      <div className="grid max-w-3xl gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 max-w-3xl gap-4 sm:grid-cols-3">
         <FormField label="Supplier" htmlFor="supplier_id" error={errors.supplier_id?.message}>
           <NativeSelect
             id="supplier_id"

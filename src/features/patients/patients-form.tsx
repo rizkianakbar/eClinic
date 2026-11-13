@@ -68,7 +68,7 @@ export function PatientForm(props: PatientFormProps) {
 
   return (
     <form noValidate className="flex min-h-0 flex-1 flex-col" onSubmit={form.handleSubmit(onSubmit)}>
-      <SheetBody className="grid content-start gap-x-4 gap-y-5 sm:grid-cols-2">
+      <SheetBody className="grid grid-cols-1 content-start gap-x-4 gap-y-5 sm:grid-cols-2">
         <FormField label="Nama lengkap" htmlFor="full_name" error={errors.full_name?.message} className="sm:col-span-2">
           <Input
             id="full_name"

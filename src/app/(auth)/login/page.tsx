@@ -15,7 +15,7 @@ export default async function LoginPage(props: PageProps<'/login'>) {
   const testAccounts = devLoginEnabled() ? await listTestAccounts(createAdminClient()) : [];
 
   return (
-    <main className="grid min-h-dvh bg-background lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+    <main className="grid grid-cols-1 min-h-dvh bg-background lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
       <section className="relative hidden flex-col justify-between overflow-hidden bg-[radial-gradient(120%_80%_at_0%_0%,#1d5c4c_0%,#0f2f28_55%,#0b221d_100%)] p-12 text-white lg:flex">
         <div className="flex items-center gap-2.5">
           <span className="flex size-9 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">

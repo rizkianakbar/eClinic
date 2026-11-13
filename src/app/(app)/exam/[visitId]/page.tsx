@@ -122,7 +122,7 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
     <div className={editable ? 'flex flex-col gap-6 pb-28' : 'flex flex-col gap-6'}>
       <Link
         href="/queue"
-        className="-mb-2 -ml-1 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-0.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+        className="-mb-2 -ml-1 -my-1.5 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
         <ChevronLeftIcon className="size-4" aria-hidden />
         Antrean
       </Link>
@@ -172,7 +172,7 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
         <VisitsJourneyPosition status={visit.status} className="w-full max-w-md" />
       </header>
 
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <ExamDraftsProvider>
           <div className="flex min-w-0 flex-col gap-4">
             <ExamSection

@@ -65,7 +65,7 @@ export function Expenses(props: ExpensesProps) {
                   <span className="min-w-0 flex-1">
                     <span
                       className={cn(
-                        'block truncate text-sm font-medium',
+                        'block text-sm font-medium max-sm:line-clamp-2 sm:truncate',
                         voided && 'text-muted-foreground line-through',
                       )}>
                       {item.category}
@@ -81,27 +81,30 @@ export function Expenses(props: ExpensesProps) {
                       )}
                     </span>
                   </span>
-                  <span
-                    className={cn(
-                      'tabular text-right text-sm font-semibold',
-                      voided && 'font-normal text-muted-foreground line-through',
-                    )}>
-                    {formatRupiah(item.amount)}
-                  </span>
-                  {!props.readOnly && (
-                    <span className="w-20 text-right">
-                      {voided ? (
-                        <span className="rounded-md bg-muted px-1.5 text-xs leading-5 text-muted-foreground">
-                          Batal
-                        </span>
-                      ) : (
-                        <ExpensesVoidDialog
-                          expenseId={item.id}
-                          label={`${item.category} ${formatRupiah(item.amount)}`}
-                        />
-                      )}
+                  {/* Phones: the amount sits over its action, so the description keeps the width. */}
+                  <span className="flex shrink-0 flex-col items-end gap-0.5 sm:flex-row sm:items-center sm:gap-3">
+                    <span
+                      className={cn(
+                        'tabular text-right text-sm font-semibold whitespace-nowrap',
+                        voided && 'font-normal text-muted-foreground line-through',
+                      )}>
+                      {formatRupiah(item.amount)}
                     </span>
-                  )}
+                    {!props.readOnly && (
+                      <span className="text-right sm:w-20">
+                        {voided ? (
+                          <span className="rounded-md bg-muted px-1.5 text-xs leading-5 text-muted-foreground">
+                            Batal
+                          </span>
+                        ) : (
+                          <ExpensesVoidDialog
+                            expenseId={item.id}
+                            label={`${item.category} ${formatRupiah(item.amount)}`}
+                          />
+                        )}
+                      </span>
+                    )}
+                  </span>
                 </li>
               );
             })}

@@ -59,7 +59,7 @@ export function PatientsList(props: PatientsListProps) {
             <TableRow>
               <TableHead>Pasien</TableHead>
               <TableHead className="hidden md:table-cell">Kontak</TableHead>
-              <TableHead>Kunjungan terakhir</TableHead>
+              <TableHead className="hidden sm:table-cell">Kunjungan terakhir</TableHead>
               <TableHead className="hidden text-right xl:table-cell">Kunjungan</TableHead>
               <TableHead className="w-8" />
             </TableRow>
@@ -90,6 +90,12 @@ export function PatientsList(props: PatientsListProps) {
                         RM {patient.mrn} · {SEX_LABELS[patient.sex as keyof typeof SEX_LABELS]},{' '}
                         {ageInYears(patient.birth_date)} th
                       </span>
+                      {/* Phones: the last visit folds under the name instead of a squeezed column. */}
+                      <span className="block text-[0.8125rem] text-muted-foreground sm:hidden">
+                        {patient.lastVisit
+                          ? `Terakhir ${relativeDay(patient.lastVisit, props.today).toLowerCase()}`
+                          : 'Belum pernah berkunjung'}
+                      </span>
                     </span>
                   </div>
                 </TableCell>
@@ -105,7 +111,7 @@ export function PatientsList(props: PatientsListProps) {
                     {patient.nik ? `NIK ${formatIdNumber(patient.nik)}` : 'Belum ada NIK'}
                   </span>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   {patient.lastVisit ? (
                     <>
                       <span className="block">{relativeDay(patient.lastVisit, props.today)}</span>

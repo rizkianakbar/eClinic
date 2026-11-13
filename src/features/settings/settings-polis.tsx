@@ -48,7 +48,7 @@ export function SettingsPolis(props: SettingsPolisProps) {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
+                  <div className="flex flex-col items-end gap-1 sm:flex-row sm:justify-end">
                     <SettingsPoliDialog mode="edit" poli={poli} consultationServices={props.consultationServices} />
                     <SettingsActiveToggle
                       id={poli.id}

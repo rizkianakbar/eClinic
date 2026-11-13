@@ -41,7 +41,7 @@ export function HomeOwner(props: HomeOwnerProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Panel
           title="Tren 14 hari"
           link={{ href: '/reports', label: 'Laporan' }}
@@ -117,7 +117,7 @@ export function HomeOwner(props: HomeOwnerProps) {
         </Panel>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Panel
           title="Belum dibayar"
           count={props.unpaid.length}

@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DataImportDialog } from '@/features/data-import/data-import-dialog';
+import { formatPhone } from '@/features/patients/patients.lib';
 import { SettingsActiveToggle } from '@/features/settings/settings-active-toggle';
 import { setSupplierActiveAction } from './inventory.actions';
 import type { listSuppliers } from './inventory.service';
@@ -27,25 +28,39 @@ export function InventorySuppliers(props: InventorySuppliersProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Nama</TableHead>
-              <TableHead>Telepon</TableHead>
-              <TableHead>Alamat</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="hidden md:table-cell">Telepon</TableHead>
+              <TableHead className="hidden md:table-cell">Alamat</TableHead>
+              <TableHead className="hidden md:table-cell">Status</TableHead>
               <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {props.suppliers.map((supplier) => (
               <TableRow key={supplier.id} className={supplier.is_active ? undefined : 'text-muted-foreground'}>
-                <TableCell className="font-medium">{supplier.name}</TableCell>
-                <TableCell>{supplier.phone ?? '-'}</TableCell>
-                <TableCell className="max-w-xs truncate">{supplier.address ?? '-'}</TableCell>
-                <TableCell>
+                <TableCell className="max-w-0 md:max-w-none">
+                  <span className="block truncate font-medium">{supplier.name}</span>
+                  {/* Phones and small tablets: contact and status fold under the name. */}
+                  <span className="block truncate text-[0.8125rem] text-muted-foreground md:hidden">
+                    {[
+                      supplier.phone && formatPhone(supplier.phone),
+                      supplier.address,
+                      !supplier.is_active && 'nonaktif',
+                    ]
+                      .filter(Boolean)
+                      .join(' · ') || 'Belum ada kontak'}
+                  </span>
+                </TableCell>
+                <TableCell className="tabular hidden md:table-cell">
+                  {supplier.phone ? formatPhone(supplier.phone) : '-'}
+                </TableCell>
+                <TableCell className="hidden max-w-xs truncate md:table-cell">{supplier.address ?? '-'}</TableCell>
+                <TableCell className="hidden md:table-cell">
                   <Badge variant={supplier.is_active ? 'secondary' : 'outline'}>
                     {supplier.is_active ? 'Aktif' : 'Nonaktif'}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
+                  <div className="flex flex-col items-end gap-1 sm:flex-row sm:justify-end">
                     <InventorySupplierDialog mode="edit" supplier={supplier} />
                     <SettingsActiveToggle
                       id={supplier.id}

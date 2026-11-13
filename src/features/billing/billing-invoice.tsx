@@ -54,7 +54,7 @@ export function BillingInvoice(props: BillingInvoiceProps) {
   const groups = groupInvoiceItems(invoice.items);
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_23rem]">
+    <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_23rem]">
       <section aria-label="Rincian tagihan" className="flex flex-col gap-2.5">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           Rincian tagihan

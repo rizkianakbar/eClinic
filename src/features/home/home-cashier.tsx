@@ -70,7 +70,7 @@ export function HomeCashier(props: HomeCashierProps) {
             </p>
           </div>
         ) : (
-          <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {props.waiting.map((visit, index) => (
               <li key={visit.id}>
                 <Link
@@ -124,7 +124,7 @@ export function HomeCashier(props: HomeCashierProps) {
         )}
       </section>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <section aria-label="Transaksi hari ini" className="flex min-w-0 flex-col gap-2.5">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
             Transaksi hari ini

@@ -69,7 +69,7 @@ export function VisitsRegistrationDesk(props: VisitsRegistrationDeskProps) {
   );
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_26rem]">
+    <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_26rem]">
       <div className="flex min-w-0 flex-col gap-8">
         <section aria-label="Cari pasien" className="flex flex-col gap-2.5">
           <h2 className="text-sm font-semibold">1. Cari pasien</h2>

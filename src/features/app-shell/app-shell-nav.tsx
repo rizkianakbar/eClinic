@@ -4,6 +4,7 @@ import { HeartPulseIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { type MouseEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { markScrollEdges, revealInRow, SCROLL_EDGE_FADE } from '@/lib/scroll-edges';
 import { cn } from '@/lib/utils';
 import { isActivePath, type NavItem, ROLE_STATION } from './app-shell.lib';
 import { useAppShellLive } from './app-shell-live';
@@ -64,9 +65,20 @@ export function AppShellTabs(props: AppShellTabsProps) {
 
     place();
 
+    // Phones: bring the active tab into view when it sits off the scrolled row.
+    const active = container.querySelector<HTMLElement>('[aria-current="page"]');
+
+    if (active) revealInRow(container, active);
+
+    markScrollEdges(container);
+
     const enable = requestAnimationFrame(() => line.setAttribute('data-ready', ''));
+
     // Tabs change width when a live count appears, so watch them, not just the row.
-    const observer = new ResizeObserver(place);
+    const observer = new ResizeObserver(() => {
+      place();
+      markScrollEdges(container);
+    });
 
     observer.observe(container);
     for (const tab of container.querySelectorAll('a')) observer.observe(tab);
@@ -130,7 +142,11 @@ export function AppShellTabs(props: AppShellTabsProps) {
           <nav
             ref={nav}
             aria-label="Menu utama"
-            className="relative -mb-px flex min-w-0 flex-1 items-stretch overflow-x-auto scrollbar-none"
+            className={cn(
+              'relative -mb-px flex min-w-0 flex-1 items-stretch overflow-x-auto scrollbar-none',
+              SCROLL_EDGE_FADE,
+            )}
+            onScroll={(event) => markScrollEdges(event.currentTarget)}
             onMouseLeave={() => setHighlight(null)}>
             <span
               aria-hidden

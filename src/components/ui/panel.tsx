@@ -36,7 +36,7 @@ export function Panel(props: PanelProps) {
         {props.link && (
           <Link
             href={props.link.href}
-            className="group inline-flex items-center gap-1 text-[0.8125rem] font-medium text-muted-foreground transition-colors hover:text-foreground">
+            className="group -my-2 inline-flex items-center gap-1 py-2 text-[0.8125rem] font-medium text-muted-foreground transition-colors hover:text-foreground">
             {props.link.label}
             <ArrowRightIcon className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
           </Link>

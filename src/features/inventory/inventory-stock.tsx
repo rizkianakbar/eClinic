@@ -71,8 +71,8 @@ export function InventoryStock(props: InventoryStockProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Obat</TableHead>
-              <TableHead className="w-[34%]">Stok</TableHead>
-              <TableHead>Kedaluwarsa terdekat</TableHead>
+              <TableHead className="w-[46%] sm:w-[34%]">Stok</TableHead>
+              <TableHead className="hidden sm:table-cell">Kedaluwarsa terdekat</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -90,11 +90,20 @@ export function InventoryStock(props: InventoryStockProps) {
                     <Link href={`/inventory/medicines/${item.medicineId}`} className="font-medium hover:underline">
                       {item.name}
                     </Link>
+                    {/* Phones: the nearest expiry folds under the name; the stock bar keeps its room. */}
+                    <span
+                      className={cn(
+                        'block text-[0.8125rem] sm:hidden',
+                        expiringSoon ? 'font-medium text-status-cancelled' : 'text-muted-foreground',
+                      )}>
+                      {item.earliestExpiry ? `ED ${formatDate(item.earliestExpiry)}` : 'Tidak ada batch'}
+                      {expiringSoon && ' · segera'}
+                    </span>
                   </TableCell>
                   <TableCell>
                     <StockLevel qty={item.qtyOnHand} min={item.minStock} unit={item.unit} level={level} />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     {item.earliestExpiry ? (
                       <span
                         className={cn(

@@ -73,7 +73,7 @@ export default async function ExpensesPage(props: PageProps<'/expenses'>) {
         ]}
       />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <section className="flex min-w-0 flex-col gap-2.5">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
             Catatan pengeluaran

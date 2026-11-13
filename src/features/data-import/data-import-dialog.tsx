@@ -124,7 +124,7 @@ export function DataImportDialog(props: DataImportDialogProps) {
 
         {step === 'pick' && (
           <div className="flex flex-col gap-5">
-            <ol className="grid gap-2 sm:grid-cols-3">
+            <ol className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               {[
                 { title: 'Unduh template', text: 'Kosong, atau berisi data sekarang untuk mengubah harga sekaligus.' },
                 { title: 'Isi di Excel', text: 'Satu baris satu data. Kolom bertanda * wajib diisi.' },

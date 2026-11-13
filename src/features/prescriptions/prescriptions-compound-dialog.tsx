@@ -130,7 +130,7 @@ export function PrescriptionsCompoundDialog(props: PrescriptionsCompoundDialogPr
             </div>
           </fieldset>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <FormField label="Bentuk" htmlFor="compound_form" error={errors.form?.message}>
               <NativeSelect id="compound_form" className="w-full" {...form.register('form')}>
                 {Object.entries(COMPOUND_FORM_LABELS).map(([value, label]) => (

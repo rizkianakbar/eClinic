@@ -11,12 +11,13 @@ export const segmentedGroup =
 
 export function segmentedItem(active: boolean, className?: string) {
   return cn(
-    'flex h-8 shrink-0 items-center justify-center gap-1.5 px-3 text-sm font-medium whitespace-nowrap transition-colors duration-150 select-none',
+    'flex h-8 pointer-coarse:h-9 shrink-0 items-center justify-center gap-1.5 px-3 text-sm font-medium whitespace-nowrap transition-colors duration-150 select-none',
     active ? 'bg-foreground text-background' : 'text-foreground/80 hover:bg-muted hover:text-foreground',
     className,
   );
 }
 
 /** For <label> + hidden radio pairs: the same look, driven by :has(:checked). */
+// relative: the sr-only radio is absolutely positioned; it must stay inside the (scrolling) group.
 export const segmentedRadioItem =
-  'flex h-8 cursor-pointer items-center justify-center gap-1.5 px-3 text-sm font-medium whitespace-nowrap text-foreground/80 transition-colors duration-150 select-none hover:bg-muted has-checked:bg-foreground has-checked:text-background has-focus-visible:ring-3 has-focus-visible:ring-inset has-focus-visible:ring-primary/30 has-disabled:cursor-not-allowed has-disabled:opacity-50';
+  'relative flex h-8 pointer-coarse:h-9 cursor-pointer items-center justify-center gap-1.5 px-3 text-sm font-medium whitespace-nowrap text-foreground/80 transition-colors duration-150 select-none hover:bg-muted has-checked:bg-foreground has-checked:text-background has-focus-visible:ring-3 has-focus-visible:ring-inset has-focus-visible:ring-primary/30 has-disabled:cursor-not-allowed has-disabled:opacity-50';

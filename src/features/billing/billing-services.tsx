@@ -43,10 +43,10 @@ export function BillingServices(props: BillingServicesProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Nama</TableHead>
-              <TableHead>Jenis</TableHead>
-              <TableHead className="text-right">Tarif</TableHead>
-              <TableHead className="text-right">Jasa dokter</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="hidden md:table-cell">Jenis</TableHead>
+              <TableHead className="hidden text-right sm:table-cell">Tarif</TableHead>
+              <TableHead className="hidden text-right md:table-cell">Jasa dokter</TableHead>
+              <TableHead className="hidden md:table-cell">Status</TableHead>
               <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
@@ -64,17 +64,26 @@ export function BillingServices(props: BillingServicesProps) {
                         : 'Isi paket belum diatur'}
                     </p>
                   )}
+                  {/* Phones and small tablets: the details fold into one line under the name. */}
+                  <p className="tabular text-[0.8125rem] text-muted-foreground md:hidden">
+                    <span className="sm:hidden">{formatRupiah(service.price)} · </span>
+                    {SERVICE_TYPE_LABELS[service.type as keyof typeof SERVICE_TYPE_LABELS]}
+                    {service.doctor_fee_type !== 'none' && ` · jasa ${feeLabel(service)}`}
+                    {!service.is_active && ' · nonaktif'}
+                  </p>
                 </TableCell>
-                <TableCell>{SERVICE_TYPE_LABELS[service.type as keyof typeof SERVICE_TYPE_LABELS]}</TableCell>
-                <TableCell className="text-right">{formatRupiah(service.price)}</TableCell>
-                <TableCell className="text-right">{feeLabel(service)}</TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {SERVICE_TYPE_LABELS[service.type as keyof typeof SERVICE_TYPE_LABELS]}
+                </TableCell>
+                <TableCell className="hidden text-right sm:table-cell">{formatRupiah(service.price)}</TableCell>
+                <TableCell className="hidden text-right md:table-cell">{feeLabel(service)}</TableCell>
+                <TableCell className="hidden md:table-cell">
                   <Badge variant={service.is_active ? 'secondary' : 'outline'}>
                     {service.is_active ? 'Aktif' : 'Nonaktif'}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
+                  <div className="flex flex-col items-end gap-1 sm:flex-row sm:justify-end">
                     <BillingServiceDialog mode="edit" service={service as ServiceValues & { id: string }} />
                     {service.type === 'package' && (
                       <BillingPackageDialog

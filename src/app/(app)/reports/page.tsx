@@ -44,7 +44,7 @@ export default async function ReportsPage(props: PageProps<'/reports'>) {
         <ReportsExportLinks report={tab} range={range} />
       </header>
       <ReportsRangeFilter range={range} today={today} keep={{ tab }} />
-      <div className="grid items-start gap-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
         <div className="lg:sticky lg:top-20">
           <ReportsTabs active={tab} range={range} />
         </div>
@@ -82,7 +82,7 @@ function ReportSkeleton() {
     <div className="flex flex-col gap-6" role="status" aria-busy aria-label="Memuat laporan">
       <Skeleton className="h-24 rounded-xl" />
       <Skeleton className="h-64 rounded-xl" />
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <SkeletonCard rows={3} />
         <SkeletonCard rows={3} />
       </div>

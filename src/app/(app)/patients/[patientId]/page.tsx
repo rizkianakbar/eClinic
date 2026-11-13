@@ -69,7 +69,7 @@ export default async function PatientPage(props: PageProps<'/patients/[patientId
       <header className="flex flex-col gap-4">
         <Link
           href="/patients"
-          className="-ml-1 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-0.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          className="-ml-1 -my-1.5 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
           <ChevronLeftIcon className="size-4" aria-hidden />
           Pasien
         </Link>
@@ -129,7 +129,7 @@ export default async function PatientPage(props: PageProps<'/patients/[patientId
         </div>
       </header>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[21rem_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[21rem_minmax(0,1fr)]">
         {/* One profile card: the numbers first, then who the patient is. */}
         <aside className="flex flex-col gap-2.5 lg:sticky lg:top-20">
           <h2 className="text-sm font-semibold">Profil</h2>

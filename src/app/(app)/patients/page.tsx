@@ -73,7 +73,7 @@ export default async function PatientsPage(props: PageProps<'/patients'>) {
           clinical={(EXAM_VIEWER_ROLES as readonly string[]).includes(session.role)}
         />
       ) : (
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <PatientsList
             {...(await listPatients(supabase, { query, page, payer }))}
             query={query}

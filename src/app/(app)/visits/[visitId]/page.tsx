@@ -54,7 +54,7 @@ export default async function VisitPage(props: PageProps<'/visits/[visitId]'>) {
         />
         <VisitsJourneyPosition status={visit.status} className="w-full max-w-md" />
       </div>
-      <dl className="grid gap-x-6 gap-y-4 rounded-xl border bg-card p-5 shadow-[0_1px_2px_rgb(20_32_29/0.04)] sm:grid-cols-2 lg:grid-cols-3">
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-4 rounded-xl border bg-card p-5 shadow-[0_1px_2px_rgb(20_32_29/0.04)] sm:grid-cols-2 lg:grid-cols-3">
         {facts.map(([label, value]) => (
           <div key={label}>
             <dt className="text-xs font-medium text-muted-foreground">{label}</dt>

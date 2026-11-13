@@ -66,7 +66,7 @@ export function HomePharmacy(props: HomePharmacyProps) {
         />
       </dl>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="flex min-w-0 flex-col gap-4">
           {next ? (
             <NextPrescription visit={next} now={props.now} />
@@ -221,7 +221,7 @@ function NextPrescription(props: { visit: Waiting; now: number }) {
           </Link>
         </div>
       </div>
-      <ol className="grid gap-px border-t bg-border sm:grid-cols-2">
+      <ol className="grid grid-cols-1 gap-px border-t bg-border sm:grid-cols-2">
         {visit.medicines.map((medicine, index) => (
           <li key={medicine.id} className="flex items-center gap-3 bg-card px-5 py-2.5">
             <span

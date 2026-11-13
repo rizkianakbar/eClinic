@@ -42,7 +42,7 @@ export default async function AccountPage() {
       </header>
 
       <Section title="Profil" description="Data diri Anda di klinik. Untuk mengubahnya, hubungi admin klinik.">
-        <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
           <Fact label="Nama lengkap" value={session.fullName} />
           <Fact label="Email (untuk masuk)" value={profile?.email ?? '–'} />
           <Fact label="Peran" value={ROLE_LABELS[session.role]} />
@@ -106,7 +106,7 @@ function Section(props: SectionProps) {
   return (
     <section
       id={props.id}
-      className="scroll-mt-24 grid gap-4 border-t pt-8 md:grid-cols-[16rem_minmax(0,1fr)] md:gap-10">
+      className="scroll-mt-24 grid grid-cols-1 gap-4 border-t pt-8 md:grid-cols-[16rem_minmax(0,1fr)] md:gap-10">
       <div className="flex flex-col gap-1">
         <h2 className="text-sm font-semibold">{props.title}</h2>
         <p className="text-[0.8125rem] text-muted-foreground">{props.description}</p>

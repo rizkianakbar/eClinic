@@ -53,7 +53,7 @@ export function HomeOwnerTrend(props: HomeOwnerTrendProps) {
               aria-selected={active}
               onClick={() => setSelected(entry.key)}
               className={cn(
-                'relative flex min-w-0 flex-col items-start gap-1 border-r px-5 py-4 text-left transition-colors last:border-r-0',
+                'relative flex min-w-0 flex-col items-start gap-1 border-r px-3 py-3 text-left sm:px-5 sm:py-4 transition-colors last:border-r-0',
                 active ? 'bg-card' : 'bg-card hover:bg-muted/40',
               )}>
               <span
@@ -147,8 +147,10 @@ export function HomeOwnerTrend(props: HomeOwnerTrendProps) {
             <li
               key={entry.day}
               className={cn(
-                'min-w-0 flex-1 truncate',
-                index === metric.series.length - 1 && 'font-semibold text-foreground',
+                'min-w-0 flex-1 whitespace-nowrap',
+                index === metric.series.length - 1 && 'font-semibold text-foreground max-sm:text-right',
+                // Phones: every third day, counted back from today, so the labels never crowd.
+                (metric.series.length - 1 - index) % 3 !== 0 && 'max-sm:invisible',
               )}>
               {index === metric.series.length - 1 ? 'Hari ini' : weekday.format(new Date(entry.day))}
             </li>

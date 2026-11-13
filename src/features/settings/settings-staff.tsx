@@ -45,8 +45,8 @@ export function SettingsStaff(props: SettingsStaffProps) {
         <TableHeader>
           <TableRow>
             <TableHead>Nama</TableHead>
-            <TableHead>Peran</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead className="hidden sm:table-cell">Peran</TableHead>
+            <TableHead className="hidden md:table-cell">Status</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -70,10 +70,21 @@ export function SettingsStaff(props: SettingsStaffProps) {
                       <span className="block truncate text-[0.8125rem] text-muted-foreground">
                         {member.email ?? 'Belum ada email'}
                       </span>
+                      {/* Phones: role (and status) fold under the e-mail. */}
+                      <span className="mt-1 flex items-center gap-2 sm:hidden">
+                        <span
+                          className={cn(
+                            'inline-flex h-5 items-center rounded px-1.5 text-[0.6875rem] font-medium',
+                            ROLE_TONES[member.role],
+                          )}>
+                          {ROLE_LABELS[member.role]}
+                        </span>
+                        {!member.is_active && <span className="text-xs text-muted-foreground">Nonaktif</span>}
+                      </span>
                     </span>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <span
                     className={cn(
                       'inline-flex h-6 items-center rounded-md px-2 text-xs font-medium',
@@ -82,7 +93,7 @@ export function SettingsStaff(props: SettingsStaffProps) {
                     {ROLE_LABELS[member.role]}
                   </span>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   <span className="inline-flex items-center gap-1.5 text-[0.8125rem]">
                     <span
                       className={cn(

@@ -6,13 +6,16 @@ const rupiahFormatter = new Intl.NumberFormat('id-ID', {
   maximumFractionDigits: 0,
 });
 
-/** Formats integer rupiah, e.g. 150000 -> "Rp 150.000". */
+/**
+ * Formats integer rupiah, e.g. 150000 -> "Rp 150.000". The space after "Rp" is non-breaking, so an
+ * amount never splits across two lines in a narrow column (phones).
+ */
 export function formatRupiah(amount: number) {
   if (!Number.isSafeInteger(amount)) {
     throw new RangeError(`Rupiah amount must be a safe integer, got ${amount}`);
   }
 
-  return rupiahFormatter.format(amount).replace(/ /g, ' ');
+  return rupiahFormatter.format(amount).replace(/\s/g, '\u00a0');
 }
 
 /** Parses user input like "Rp 150.000" or "150000" into integer rupiah. Returns null when empty or invalid. */
@@ -46,5 +49,5 @@ const compactFormatter = new Intl.NumberFormat('id-ID', { notation: 'compact', m
 
 /** Short rupiah for chart axes: 650000 -> "Rp 650 rb", 1250000 -> "Rp 1,3 jt". */
 export function formatRupiahCompact(amount: number) {
-  return `Rp ${compactFormatter.format(amount).replace(/ /g, ' ')}`;
+  return `Rp\u00a0${compactFormatter.format(amount).replace(/\s/g, '\u00a0')}`;
 }

@@ -76,14 +76,15 @@ export function QueueDesk(props: QueueDeskProps) {
     <div className="flex flex-col gap-6">
       <DoctorRoom visits={all} actor={props.actor} visitDate={props.visitDate} vitals={vitals} />
 
-      <dl className="grid grid-cols-2 divide-x divide-y overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)] lg:grid-cols-4 lg:divide-y-0">
-        <DayFigure label="Jadwal hari ini">
+      {/* Phones: the schedule takes the first row, the three counts share the second. */}
+      <dl className="grid grid-cols-6 overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)] lg:grid-cols-4">
+        <DayFigure label="Jadwal hari ini" className="col-span-6 border-b lg:col-span-1 lg:border-b-0">
           {props.sessions.length === 0 ? (
             <dd className="text-sm text-muted-foreground">Tidak ada jadwal praktik</dd>
           ) : (
             props.sessions.map((session) => (
               <dd key={session.id} className="flex items-baseline gap-1.5">
-                <span className="numeral text-[1.125rem]">
+                <span className="numeral text-[1.125rem] whitespace-nowrap">
                   {toHourMinute(session.startTime)}–{toHourMinute(session.endTime)}
                 </span>
                 <span className="truncate text-xs text-muted-foreground">{session.poliName}</span>
@@ -91,7 +92,7 @@ export function QueueDesk(props: QueueDeskProps) {
             ))
           )}
         </DayFigure>
-        <DayFigure label="Kuota terisi">
+        <DayFigure label="Kuota terisi" className="col-span-2 lg:col-span-1 lg:border-l">
           <dd className="numeral text-[1.5rem]">
             {taken}
             <span className="text-base text-muted-foreground">/{quota}</span>
@@ -106,7 +107,7 @@ export function QueueDesk(props: QueueDeskProps) {
             />
           </dd>
         </DayFigure>
-        <DayFigure label="Menunggu saya">
+        <DayFigure label="Menunggu saya" className="col-span-2 border-l lg:col-span-1">
           <dd className="numeral text-[1.5rem]">{waiting.length}</dd>
           <dd className="text-xs text-muted-foreground">
             {waiting.length === 0
@@ -114,7 +115,7 @@ export function QueueDesk(props: QueueDeskProps) {
               : `${triaged} sudah tanda vital · terlama ${longest < 60 ? `${longest} mnt` : `${Math.floor(longest / 60)} j ${longest % 60} m`}`}
           </dd>
         </DayFigure>
-        <DayFigure label="Selesai diperiksa">
+        <DayFigure label="Selesai diperiksa" className="col-span-2 border-l lg:col-span-1">
           <dd className="numeral text-[1.5rem]">{seen}</dd>
           <dd className="text-xs text-muted-foreground">
             {seen === 0 ? 'Belum ada' : `${bpjsSeen} BPJS · ${seen - bpjsSeen} umum`}
@@ -122,7 +123,7 @@ export function QueueDesk(props: QueueDeskProps) {
         </DayFigure>
       </dl>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <Panel
           title="Antrean saya"
           count={waiting.length}
@@ -232,9 +233,15 @@ const STATUS_SHORT: Record<string, string> = {
   done: 'Pulang',
 };
 
-function DayFigure(props: { label: string; children: React.ReactNode }) {
+type DayFigureProps = {
+  label: string;
+  className?: string;
+  children: React.ReactNode;
+};
+
+function DayFigure(props: DayFigureProps) {
   return (
-    <div className="flex min-w-0 flex-col gap-0.5 px-5 py-4">
+    <div className={cn('flex min-w-0 flex-col gap-0.5 px-3 py-4 sm:px-5', props.className)}>
       <dt className="mb-0.5 text-xs font-medium text-muted-foreground">{props.label}</dt>
       {props.children}
     </div>

@@ -29,7 +29,7 @@ export function HomeClinicToday(props: HomeClinicTodayProps) {
 
   return (
     <Frame href={props.href}>
-      <div className="flex flex-col justify-center gap-0.5 px-4 py-2.5">
+      <div className="flex shrink-0 flex-col justify-center gap-0.5 px-4 py-2.5 whitespace-nowrap">
         <span className="flex items-center gap-2 text-sm font-medium">
           <span
             className={cn(
@@ -45,8 +45,9 @@ export function HomeClinicToday(props: HomeClinicTodayProps) {
         </span>
       </div>
       {doctors.length > 0 && (
-        <div className="flex items-center gap-3 px-4 py-2.5">
-          <span className="flex -space-x-1.5">
+        <div className="flex min-w-0 items-center gap-3 px-4 py-2.5">
+          {/* Phones keep the counts; the faces need the room. */}
+          <span className="hidden -space-x-1.5 sm:flex">
             {shown.map((name) => (
               <span
                 key={name}
@@ -61,9 +62,9 @@ export function HomeClinicToday(props: HomeClinicTodayProps) {
               </span>
             )}
           </span>
-          <span className="flex flex-col">
-            <span className="text-sm font-medium">{doctors.length} dokter praktik</span>
-            <span className="text-xs text-muted-foreground">
+          <span className="flex min-w-0 flex-col">
+            <span className="truncate text-sm font-medium">{doctors.length} dokter praktik</span>
+            <span className="truncate text-xs text-muted-foreground">
               {props.sessions.length} sesi · kuota {props.sessions.reduce((sum, session) => sum + session.quota, 0)}{' '}
               pasien
             </span>

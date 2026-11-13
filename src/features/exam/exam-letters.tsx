@@ -105,7 +105,7 @@ function SickLetterDialog(props: SickLetterDialogProps) {
         </DialogHeader>
         <form
           noValidate
-          className="grid gap-4 sm:grid-cols-2"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2"
           onSubmit={form.handleSubmit((values) =>
             create.mutate(values, {
               onSuccess: (letter) => {
@@ -168,7 +168,7 @@ function ReferralLetterDialog(props: ReferralLetterDialogProps) {
         </DialogHeader>
         <form
           noValidate
-          className="grid gap-4 sm:grid-cols-2"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2"
           onSubmit={form.handleSubmit((values) =>
             create.mutate(values, {
               onSuccess: (letter) => {

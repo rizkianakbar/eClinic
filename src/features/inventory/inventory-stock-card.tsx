@@ -41,7 +41,7 @@ export function InventoryStockCard(props: InventoryStockCardProps) {
       <div className="flex flex-col gap-3">
         <Link
           href="/inventory"
-          className="-ml-1 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-0.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          className="-ml-1 -my-1.5 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
           <ChevronLeftIcon className="size-4" aria-hidden />
           Semua obat
         </Link>
@@ -67,7 +67,7 @@ export function InventoryStockCard(props: InventoryStockCardProps) {
         </div>
       </div>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
         <aside className="flex flex-col gap-2.5 lg:sticky lg:top-20">
           <h3 className="text-sm font-semibold">Stok sekarang</h3>
           <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">

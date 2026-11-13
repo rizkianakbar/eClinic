@@ -20,7 +20,7 @@ export function InventoryPurchase(props: InventoryPurchaseProps) {
       <div className="flex flex-col gap-3">
         <Link
           href="/inventory/purchases"
-          className="-ml-1 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-0.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          className="-ml-1 -my-1.5 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
           <ChevronLeftIcon className="size-4" aria-hidden />
           Semua pembelian
         </Link>

@@ -47,7 +47,7 @@ export default async function InvoicePage(props: PageProps<'/cashier/[visitId]'>
       <header className="flex flex-col gap-4">
         <Link
           href="/cashier"
-          className="-ml-1 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-0.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          className="-ml-1 -my-1.5 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
           <ChevronLeftIcon className="size-4" aria-hidden />
           Kasir
         </Link>

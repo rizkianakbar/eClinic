@@ -24,7 +24,7 @@ export function PharmacyDispensed(props: PharmacyDispensedProps) {
   ).length;
 
   return (
-    <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
       <div className="flex min-w-0 flex-col gap-4">
         <section className="flex flex-wrap items-center gap-4 rounded-2xl border border-primary/25 bg-secondary/50 px-5 py-4">
           <span className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground">

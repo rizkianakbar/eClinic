@@ -32,7 +32,7 @@ const SHORTCUTS = [
 /** The admin's desk: what changed recently, and the settings they touch most. */
 export function HomeAdmin(props: HomeAdminProps) {
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <Panel title="Aktivitas terbaru" link={{ href: '/settings/activity', label: 'Log aktivitas' }}>
         {props.activity.length === 0 ? (
           <PanelEmpty title="Belum ada perubahan minggu ini" />

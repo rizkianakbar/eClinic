@@ -68,7 +68,13 @@ export function ReportsBarChart(props: ReportsBarChartProps) {
         )}
         aria-hidden>
         {props.series.map((entry, index) => (
-          <li key={entry.day} className="min-w-0 flex-1 overflow-visible whitespace-nowrap">
+          <li
+            key={entry.day}
+            className={cn(
+              'min-w-0 flex-1 overflow-visible whitespace-nowrap',
+              // Phones: half as many labels.
+              index % (every * 2) !== 0 && 'max-sm:invisible',
+            )}>
             {index % every === 0
               ? dayName
                 ? weekday.format(new Date(entry.day))

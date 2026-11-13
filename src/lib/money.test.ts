@@ -3,13 +3,13 @@ import { formatRupiah, formatRupiahCompact, parseRupiah, rupiahField } from './m
 
 describe('formatRupiah', () => {
   it('formats with Indonesian thousand separators and no decimals', () => {
-    expect(formatRupiah(150000)).toBe('Rp 150.000');
-    expect(formatRupiah(0)).toBe('Rp 0');
-    expect(formatRupiah(1250000000)).toBe('Rp 1.250.000.000');
+    expect(formatRupiah(150000)).toBe('Rp\u00a0150.000');
+    expect(formatRupiah(0)).toBe('Rp\u00a00');
+    expect(formatRupiah(1250000000)).toBe('Rp\u00a01.250.000.000');
   });
 
   it('formats negative amounts', () => {
-    expect(formatRupiah(-5000)).toBe('-Rp 5.000');
+    expect(formatRupiah(-5000)).toBe('-Rp\u00a05.000');
   });
 
   it('rejects non-integers', () => {
@@ -46,8 +46,8 @@ describe('rupiahField', () => {
 
 describe('formatRupiahCompact', () => {
   it('shortens to rb / jt', () => {
-    expect(formatRupiahCompact(650_000)).toBe('Rp 650 rb');
-    expect(formatRupiahCompact(1_250_000)).toBe('Rp 1,3 jt');
-    expect(formatRupiahCompact(0)).toBe('Rp 0');
+    expect(formatRupiahCompact(650_000)).toBe('Rp\u00a0650\u00a0rb');
+    expect(formatRupiahCompact(1_250_000)).toBe('Rp\u00a01,3\u00a0jt');
+    expect(formatRupiahCompact(0)).toBe('Rp\u00a00');
   });
 });

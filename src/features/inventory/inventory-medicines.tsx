@@ -35,29 +35,37 @@ export function InventoryMedicines(props: InventoryMedicinesProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Nama</TableHead>
-              <TableHead>Satuan</TableHead>
-              <TableHead className="text-right">Harga jual</TableHead>
-              <TableHead className="text-right">Stok min.</TableHead>
-              <TableHead>KFA</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="hidden md:table-cell">Satuan</TableHead>
+              <TableHead className="hidden text-right md:table-cell">Harga jual</TableHead>
+              <TableHead className="hidden text-right md:table-cell">Stok min.</TableHead>
+              <TableHead className="hidden md:table-cell">KFA</TableHead>
+              <TableHead className="hidden md:table-cell">Status</TableHead>
               <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {props.medicines.map((medicine) => (
               <TableRow key={medicine.id} className={medicine.is_active ? undefined : 'text-muted-foreground'}>
-                <TableCell className="font-medium">{medicine.name}</TableCell>
-                <TableCell>{medicine.unit}</TableCell>
-                <TableCell className="text-right">{formatRupiah(medicine.price)}</TableCell>
-                <TableCell className="text-right">{medicine.min_stock}</TableCell>
-                <TableCell>{medicine.kfa_code ?? '-'}</TableCell>
                 <TableCell>
+                  <span className="font-medium">{medicine.name}</span>
+                  {/* Phones and small tablets: the details fold into one line under the name. */}
+                  <span className="tabular block text-[0.8125rem] text-muted-foreground md:hidden">
+                    {formatRupiah(medicine.price)} / {medicine.unit} · min {medicine.min_stock}
+                    {medicine.kfa_code && ` · KFA ${medicine.kfa_code}`}
+                    {!medicine.is_active && ' · nonaktif'}
+                  </span>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">{medicine.unit}</TableCell>
+                <TableCell className="hidden text-right md:table-cell">{formatRupiah(medicine.price)}</TableCell>
+                <TableCell className="hidden text-right md:table-cell">{medicine.min_stock}</TableCell>
+                <TableCell className="hidden md:table-cell">{medicine.kfa_code ?? '-'}</TableCell>
+                <TableCell className="hidden md:table-cell">
                   <Badge variant={medicine.is_active ? 'secondary' : 'outline'}>
                     {medicine.is_active ? 'Aktif' : 'Nonaktif'}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
+                  <div className="flex flex-col items-end gap-1 sm:flex-row sm:justify-end">
                     <InventoryMedicineDialog mode="edit" medicine={medicine} />
                     <SettingsActiveToggle
                       id={medicine.id}

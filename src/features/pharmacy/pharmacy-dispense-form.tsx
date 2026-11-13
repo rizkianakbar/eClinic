@@ -202,7 +202,7 @@ export function PharmacyDispenseForm(props: PharmacyDispenseFormProps) {
   return (
     <form
       noValidate
-      className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]"
+      className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]"
       onSubmit={form.handleSubmit((data) =>
         submit.mutate(data, {
           onSuccess: () => toast.success('Obat diserahkan. Etiket siap dicetak; pasien diteruskan ke kasir.'),

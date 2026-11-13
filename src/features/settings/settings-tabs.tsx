@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef } from 'react';
+import { markScrollEdges, revealInRow, SCROLL_EDGE_FADE } from '@/lib/scroll-edges';
 import { cn } from '@/lib/utils';
 
 const GROUPS = [
@@ -43,11 +45,30 @@ const GROUPS = [
 /** Side menu on wide screens, a scrolling strip on phones. */
 export function SettingsTabs() {
   const pathname = usePathname();
+  const row = useRef<HTMLElement>(null);
+
+  // Below lg the menu is one scrolling row: keep the current section in view and fade the clipped edges.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname is the trigger; the effect reads the DOM.
+  useEffect(() => {
+    const element = row.current;
+    const active = element?.querySelector<HTMLElement>('[aria-current="page"]');
+
+    if (!element) return;
+
+    if (active) revealInRow(element, active);
+
+    markScrollEdges(element);
+  }, [pathname]);
 
   return (
     <nav
+      ref={row}
       aria-label="Bagian pengaturan"
-      className="-mx-1 flex gap-1 overflow-x-auto px-1 lg:mx-0 lg:flex-col lg:gap-4 lg:overflow-visible lg:px-0">
+      onScroll={(event) => markScrollEdges(event.currentTarget)}
+      className={cn(
+        '-mx-1 flex scrollbar-none gap-1 overflow-x-auto px-1 lg:mx-0 lg:flex-col lg:gap-4 lg:overflow-visible lg:px-0',
+        SCROLL_EDGE_FADE,
+      )}>
       {GROUPS.map((group) => (
         <div key={group.label} className="flex gap-1 lg:flex-col lg:gap-0.5">
           <p className="mb-1 hidden px-2.5 text-xs font-medium text-muted-foreground lg:block">{group.label}</p>

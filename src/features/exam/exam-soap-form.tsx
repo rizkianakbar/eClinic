@@ -138,33 +138,42 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
       <div className="pointer-events-none fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30">
         <div className="pointer-events-auto mx-auto flex max-w-3xl flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border bg-card/95 py-2 pr-2 pl-4 shadow-[0_12px_40px_-12px_rgb(15_31_27/0.3),0_0_0_1px_rgb(20_32_29/0.02)] backdrop-blur-md">
           <ol className="flex flex-1 flex-wrap items-center gap-x-4 gap-y-1 text-[0.8125rem]">
-            <Step done={hasNotes} href="#soap">
+            <Step done={hasNotes} href="#soap" short="SOAP">
               Catatan SOAP
             </Step>
-            <Step done={props.hasPrimaryDiagnosis} href="#diagnosis">
+            <Step done={props.hasPrimaryDiagnosis} href="#diagnosis" short="Diagnosis">
               Diagnosis utama
             </Step>
-            <Step done={medicineDecided} href="#resep">
+            <Step done={medicineDecided} href="#resep" short="Resep">
               Resep atau tanpa obat
             </Step>
-            <li className="text-muted-foreground">
+            <li className="hidden text-muted-foreground sm:list-item">
               Lanjut ke <span className="font-medium text-foreground">{nextStation}</span>
             </li>
             {isDirty && <li className="font-medium text-status-waiting">Belum disimpan</li>}
           </ol>
-          <div className="flex gap-2">
+          {/* Phones: the buttons take their own row, full width. */}
+          <div className="flex w-full gap-2 sm:w-auto">
             <Button
               type="submit"
               variant="outline"
               size="sm"
+              className="max-sm:flex-1"
               disabled={save.isPending || !isDirty}
               title="Simpan draf (Ctrl+S)">
-              {save.isPending ? 'Menyimpan…' : 'Simpan draf'}
+              {save.isPending ? (
+                'Menyimpan…'
+              ) : (
+                <>
+                  Simpan<span className="max-sm:hidden"> draf</span>
+                </>
+              )}
             </Button>
             <Dialog open={confirming} onOpenChange={setConfirming}>
               <Button
                 type="button"
                 size="sm"
+                className="max-sm:flex-2"
                 onClick={() => setConfirming(true)}
                 disabled={!canSign}
                 title={
@@ -175,7 +184,7 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
                       : undefined
                 }>
                 <PenLineIcon />
-                Tanda tangani & selesai
+                Tanda tangani<span className="max-sm:hidden"> & selesai</span>
               </Button>
               <DialogContent>
                 <DialogHeader>
@@ -205,6 +214,8 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
 type StepProps = {
   done: boolean;
   href: string;
+  /** The label on phones. */
+  short: string;
   children: string;
 };
 
@@ -224,7 +235,8 @@ function Step(props: StepProps) {
         ) : (
           <CircleIcon className="size-4 text-input" aria-hidden />
         )}
-        {props.children}
+        <span className="sm:hidden">{props.short}</span>
+        <span className="max-sm:hidden">{props.children}</span>
         <span className="sr-only">{props.done ? '(sudah)' : '(belum)'}</span>
       </a>
     </li>

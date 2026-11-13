@@ -109,7 +109,7 @@ export function QueueBoard(props: QueueBoardProps) {
           description="Pasien muncul di sini begitu didaftarkan di Pendaftaran."
         />
       ) : (
-        <div className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
+        <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
           <Lane station="waiting" title="Ruang tunggu" count={lanes.called.length + lanes.waiting.length}>
             {lanes.called.length + lanes.waiting.length + lanes.skipped.length === 0 && (
               <LaneEmpty>Ruang tunggu kosong</LaneEmpty>
@@ -432,7 +432,7 @@ export function WaitingTicket(props: WaitingTicketProps) {
 function BoardSkeleton() {
   return (
     <div
-      className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]"
+      className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]"
       role="status"
       aria-busy
       aria-label="Memuat antrean">

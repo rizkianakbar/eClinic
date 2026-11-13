@@ -61,7 +61,7 @@ function DeskSkeleton() {
   return (
     <div className="flex flex-col gap-6" role="status" aria-busy aria-label="Memuat beranda">
       <Skeleton className="h-36 rounded-2xl" />
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <SkeletonCard rows={4} />
         <SkeletonCard rows={3} />
       </div>

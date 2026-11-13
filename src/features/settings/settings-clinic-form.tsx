@@ -39,7 +39,7 @@ type SectionProps = {
 /** One card per topic: what it is on the left, the fields on the right. */
 function Section(props: SectionProps) {
   return (
-    <section className="grid gap-4 border-b px-5 py-5 last:border-b-0 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-6">
+    <section className="grid grid-cols-1 gap-4 border-b px-5 py-5 last:border-b-0 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-6">
       <div>
         <h2 className="text-sm font-semibold">{props.title}</h2>
         <p className="mt-0.5 text-[0.8125rem] text-muted-foreground">{props.description}</p>
@@ -95,7 +95,7 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
   return (
     <form
       noValidate
-      className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]"
+      className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]"
       onSubmit={form.handleSubmit((values) =>
         save.mutate(values, {
           onSuccess: () => {
@@ -198,7 +198,7 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
                 {...form.register('address')}
               />
             </FormField>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField label="Telepon" htmlFor="clinic_phone" error={errors.phone?.message}>
                 <Input id="clinic_phone" type="tel" {...form.register('phone')} />
               </FormField>
