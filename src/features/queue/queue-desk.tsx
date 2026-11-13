@@ -28,6 +28,7 @@ import {
   type QueueVisit,
 } from './queue.lib';
 import { DoctorRoom } from './queue-board';
+import { QueueDeskSkeleton } from './queue-skeleton';
 import { QueueVitalChips } from './queue-vital-chips';
 
 type QueueDeskProps = {
@@ -72,6 +73,8 @@ export function QueueDesk(props: QueueDeskProps) {
   ).length;
 
   const triaged = waiting.filter((visit) => vitals.has(visit.id)).length;
+
+  if (board.isPending) return <QueueDeskSkeleton />;
 
   return (
     <ArrivalScope ready={!board.isPending}>
@@ -131,9 +134,7 @@ export function QueueDesk(props: QueueDeskProps) {
             count={waiting.length}
             dot="bg-line-waiting"
             link={{ href: '/queue', label: 'Papan antrean' }}>
-            {board.isPending ? (
-              <div className="h-40 animate-pulse bg-muted/60" />
-            ) : waiting.length + lanes.skipped.length === 0 ? (
+            {waiting.length + lanes.skipped.length === 0 ? (
               <PanelEmpty
                 icon={<CoffeeIcon />}
                 title="Tidak ada pasien menunggu"

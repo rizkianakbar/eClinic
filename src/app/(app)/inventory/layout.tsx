@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { PHARMACY_ROLES } from '@/features/inventory/inventory.constants';
 import { nearExpiryCutoff } from '@/features/inventory/inventory.lib';
 import { getStockSummary } from '@/features/inventory/inventory.service';
+import { InventorySummarySkeleton } from '@/features/inventory/inventory-skeleton';
 import { InventoryTabs } from '@/features/inventory/inventory-tabs';
 import { requireRole } from '@/lib/auth';
 import { todayInJakarta } from '@/lib/dates';
@@ -22,7 +22,7 @@ export default async function InventoryLayout(props: LayoutProps<'/inventory'>) 
           <p className="text-sm text-muted-foreground">Stok per batch, pembelian dari supplier, dan stok opname.</p>
         </div>
         {/* The summary reads every batch: it streams in beside the list instead of holding the page. */}
-        <Suspense fallback={<Skeleton className="h-15 w-140 max-w-full rounded-xl" />}>
+        <Suspense fallback={<InventorySummarySkeleton />}>
           <StockSummary />
         </Suspense>
       </header>

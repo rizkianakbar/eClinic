@@ -52,3 +52,21 @@ export function InventorySearch(props: InventorySearchProps) {
     </div>
   );
 }
+
+type InventorySearchSkeletonProps = {
+  placeholder: string;
+  className?: string;
+};
+
+/** The same search box, inert, for loading screens: it takes the real box's place and size exactly. */
+export function InventorySearchSkeleton(props: InventorySearchSkeletonProps) {
+  return (
+    <div aria-hidden className={cn('relative w-full max-w-xs', props.className)}>
+      <SearchIcon
+        className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-muted-foreground"
+        aria-hidden
+      />
+      <Input readOnly tabIndex={-1} placeholder={props.placeholder} className="pl-11" />
+    </div>
+  );
+}

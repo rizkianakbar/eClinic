@@ -22,7 +22,7 @@ type HomeCashierProps = {
   now: number;
 };
 
-const METHODS = [
+export const METHODS = [
   { key: 'cash', label: 'Tunai', icon: BanknoteIcon, tone: 'bg-primary' },
   { key: 'qris', label: 'QRIS', icon: QrCodeIcon, tone: 'bg-[#7a5bd1]' },
   { key: 'transfer', label: 'Transfer', icon: LandmarkIcon, tone: 'bg-[#3a7bd5]' },

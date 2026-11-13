@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
-/** The (app)/loading.tsx skeleton: while it is on screen, the page is still loading. */
-const SKELETON = '[aria-label="Memuat halaman"]';
+/** A route's loading.tsx (SkeletonPage with `route`): the page is not there yet while one is on screen. */
+const SKELETON = '[data-route-loading]';
 /** A click that never lands (cancelled, offline) must not leave the bar hanging. */
 const GIVE_UP_MS = 15_000;
 

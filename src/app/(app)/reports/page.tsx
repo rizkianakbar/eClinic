@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { Skeleton, SkeletonCard } from '@/components/ui/skeleton';
 import { type DateRange, parseRange, parseReportTab, type ReportTab, rangeDays } from '@/features/reports/reports.lib';
 import {
   getDoctorFees,
@@ -14,6 +13,7 @@ import { ReportsExportLinks } from '@/features/reports/reports-export-links';
 import { ReportsProfitLoss } from '@/features/reports/reports-profit-loss';
 import { ReportsRangeFilter } from '@/features/reports/reports-range-filter';
 import { ReportsRevenue } from '@/features/reports/reports-revenue';
+import { ReportBodySkeleton } from '@/features/reports/reports-skeleton';
 import { ReportsTabs } from '@/features/reports/reports-tabs';
 import { ReportsTopDiseases } from '@/features/reports/reports-top-diseases';
 import { ReportsVisits } from '@/features/reports/reports-visits';
@@ -50,7 +50,7 @@ export default async function ReportsPage(props: PageProps<'/reports'>) {
         </div>
         <div className="min-w-0">
           {/* Keyed by report and period: switching either shows a placeholder here only; menu and filter stay. */}
-          <Suspense key={`${tab}:${range.from}:${range.to}`} fallback={<ReportSkeleton />}>
+          <Suspense key={`${tab}:${range.from}:${range.to}`} fallback={<ReportBodySkeleton />}>
             <ReportBody tab={tab} range={range} days={days} />
           </Suspense>
         </div>
@@ -75,17 +75,4 @@ async function ReportBody(props: { tab: ReportTab; range: DateRange; days: strin
     case 'top-diseases':
       return <ReportsTopDiseases rows={await getTopDiseases(supabase, range)} />;
   }
-}
-
-function ReportSkeleton() {
-  return (
-    <div className="flex flex-col gap-6" role="status" aria-busy aria-label="Memuat laporan">
-      <Skeleton className="h-24 rounded-xl" />
-      <Skeleton className="h-64 rounded-xl" />
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <SkeletonCard rows={3} />
-        <SkeletonCard rows={3} />
-      </div>
-    </div>
-  );
 }

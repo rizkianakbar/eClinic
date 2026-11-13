@@ -3,7 +3,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { segmentedGroup, segmentedItem } from '@/components/ui/segmented';
-import { Skeleton, SkeletonCard } from '@/components/ui/skeleton';
 import { EXAM_VIEWER_ROLES } from '@/features/exam/exam.constants';
 import { InventorySearch } from '@/features/inventory/inventory-search';
 import { PATIENT_VIEWER_ROLES } from '@/features/patients/patients.constants';
@@ -11,6 +10,11 @@ import type { PatientStats } from '@/features/patients/patients.lib';
 import { getPatientStats, listPatients, type PatientPayerFilter } from '@/features/patients/patients.service';
 import { PatientsComposition } from '@/features/patients/patients-composition';
 import { PatientsList } from '@/features/patients/patients-list';
+import {
+  PatientsCompositionSkeleton,
+  PatientsTotalsSkeleton,
+  VisitHistorySkeleton,
+} from '@/features/patients/patients-skeleton';
 import { type DateRange, parseRange } from '@/features/reports/reports.lib';
 import { ReportsRangeFilter } from '@/features/reports/reports-range-filter';
 import { listVisitHistory } from '@/features/visits/visits.service';
@@ -47,7 +51,7 @@ export default async function PatientsPage(props: PageProps<'/patients'>) {
             Semua pasien yang pernah terdaftar. Buka satu untuk melihat data dan riwayatnya.
           </p>
         </div>
-        <Suspense fallback={<Skeleton className="h-15 w-92 max-w-full rounded-xl" />}>
+        <Suspense fallback={<PatientsTotalsSkeleton />}>
           <PatientsTotals stats={stats} />
         </Suspense>
       </header>
@@ -81,7 +85,7 @@ export default async function PatientsPage(props: PageProps<'/patients'>) {
             payer={payer}
             today={today}
           />
-          <Suspense fallback={<SkeletonCard rows={5} />}>
+          <Suspense fallback={<PatientsCompositionSkeleton />}>
             <CompositionPanel stats={stats} today={today} />
           </Suspense>
         </div>
@@ -111,7 +115,7 @@ function VisitHistory(props: VisitHistoryProps) {
         placeholder="Cari pasien: nama, no. RM, NIK, atau no. BPJS"
         className="max-w-md"
       />
-      <Suspense key={`${range.from}:${range.to}:${props.query}:${props.page}`} fallback={<SkeletonCard rows={6} />}>
+      <Suspense key={`${range.from}:${range.to}:${props.query}:${props.page}`} fallback={<VisitHistorySkeleton />}>
         <VisitHistoryList
           range={range}
           query={props.query}

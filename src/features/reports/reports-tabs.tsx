@@ -4,7 +4,7 @@ import { NavTabs } from '@/components/ui/nav-tabs';
 import { cn } from '@/lib/utils';
 import type { DateRange, ReportTab } from './reports.lib';
 
-const REPORTS: { tab: ReportTab; label: string; question: string; icon: typeof BanknoteIcon }[] = [
+export const REPORTS: { tab: ReportTab; label: string; question: string; icon: typeof BanknoteIcon }[] = [
   { tab: 'revenue', label: 'Pendapatan', question: 'Berapa uang masuk, dari mana', icon: BanknoteIcon },
   { tab: 'profit-loss', label: 'Laba rugi', question: 'Untung atau rugi setelah biaya', icon: ScaleIcon },
   { tab: 'doctor-fees', label: 'Jasa medis', question: 'Berapa hak tiap dokter', icon: HandCoinsIcon },

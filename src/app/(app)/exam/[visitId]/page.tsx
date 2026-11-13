@@ -18,7 +18,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { z } from 'zod';
-import { Skeleton } from '@/components/ui/skeleton';
 import { EXAM_VIEWER_ROLES, SOAP_FIELDS } from '@/features/exam/exam.constants';
 import {
   getExamVisit,
@@ -37,6 +36,7 @@ import { ExamHistory } from '@/features/exam/exam-history';
 import { ExamLetters } from '@/features/exam/exam-letters';
 import { ExamProcedures } from '@/features/exam/exam-procedures';
 import { ExamSection } from '@/features/exam/exam-section';
+import { ExamHistorySkeleton } from '@/features/exam/exam-skeleton';
 import { ExamSoapForm } from '@/features/exam/exam-soap-form';
 import { SoapText } from '@/features/exam/exam-soap-sheet';
 import { ExamVitals } from '@/features/exam/exam-vitals';
@@ -333,7 +333,7 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
           </RailCard>
 
           <RailCard title="Kunjungan sebelumnya" icon={HistoryIcon}>
-            <Suspense fallback={<Skeleton className="h-24" />}>
+            <Suspense fallback={<ExamHistorySkeleton />}>
               <HistoryList history={history} />
             </Suspense>
           </RailCard>

@@ -34,6 +34,7 @@ import {
   type QueueVisit,
 } from './queue.lib';
 import { QueueCancelDialog } from './queue-cancel-dialog';
+import { QueueBoardSkeleton } from './queue-skeleton';
 import { QueueTicket } from './queue-ticket';
 import { QueueVitalChips } from './queue-vital-chips';
 
@@ -52,7 +53,7 @@ export function QueueBoard(props: QueueBoardProps) {
   const [poliId, setPoliId] = useState('all');
   const board = useQueueBoard(visitDate);
 
-  if (board.isPending) return <BoardSkeleton />;
+  if (board.isPending) return <QueueBoardSkeleton doctor={isDoctor} />;
 
   if (board.isError) {
     return <EmptyState title="Antrean gagal dimuat" description={board.error.message} />;
@@ -434,23 +435,4 @@ export function WaitingTicket(props: WaitingTicketProps) {
   );
 
   return <QueueTicket visit={visit} station="waiting" showPoli={props.showPoli} actions={actions} />;
-}
-
-function BoardSkeleton() {
-  return (
-    <div
-      className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]"
-      role="status"
-      aria-busy
-      aria-label="Memuat antrean">
-      {[0, 1].map((column) => (
-        <div key={column} className="flex flex-col gap-2">
-          <div className="h-5 w-32 animate-pulse rounded bg-muted" />
-          {[0, 1, 2].map((row) => (
-            <div key={row} className="h-18 animate-pulse rounded-xl bg-muted/70" />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
 }

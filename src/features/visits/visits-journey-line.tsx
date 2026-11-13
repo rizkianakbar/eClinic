@@ -77,7 +77,8 @@ export function VisitsJourneyCounts(props: VisitsJourneyCountsProps) {
 }
 
 type VisitsJourneyPositionProps = {
-  status: JourneyStatus | 'registered' | 'cancelled';
+  /** null while the visit is loading: the stations without a position. */
+  status: JourneyStatus | 'registered' | 'cancelled' | null;
   className?: string;
 };
 
@@ -95,9 +96,11 @@ export function VisitsJourneyPosition(props: VisitsJourneyPositionProps) {
     );
   }
 
-  const current = JOURNEY.findIndex(
-    (station) => station.status === (props.status === 'registered' ? 'waiting' : props.status),
-  );
+  // null: still loading; every station is drawn, none marked.
+  const current =
+    props.status === null
+      ? -1
+      : JOURNEY.findIndex((station) => station.status === (props.status === 'registered' ? 'waiting' : props.status));
 
   return (
     <ol aria-label="Posisi pasien" className={cn('grid grid-cols-5', props.className)}>

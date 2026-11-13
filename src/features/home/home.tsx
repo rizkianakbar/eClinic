@@ -1,5 +1,4 @@
-import { Suspense } from 'react';
-import { Skeleton, SkeletonCard } from '@/components/ui/skeleton';
+import { type ReactNode, Suspense } from 'react';
 import { QueueDesk } from '@/features/queue/queue-desk';
 import { getOwnerDashboard } from '@/features/reports/reports.service';
 import { listAuditLogs } from '@/features/settings/settings.service';
@@ -13,6 +12,7 @@ import { HomeAdmin } from './home-admin';
 import { HomeClinicToday } from './home-clinic-today';
 import { HomeNurse } from './home-nurse';
 import { HomeOwner } from './home-owner';
+import { HomeClinicTodaySkeleton, HomeDeskSkeleton } from './home-skeleton';
 
 type HomeProps = {
   session: Session;
@@ -30,42 +30,47 @@ const fullDate = new Intl.DateTimeFormat('id-ID', {
 });
 
 export function Home(props: HomeProps) {
-  const firstName = props.session.fullName.replace(/\s*\(.*\)$/, '');
   const managing = props.session.role === 'owner' || props.session.role === 'admin';
   const now = new Date();
 
   return (
     <>
-      <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-        <div className="flex flex-col gap-0.5">
-          <p className="text-sm text-muted-foreground">{fullDate.format(new Date(props.today))}</p>
-          <h1 className="text-[1.5rem] leading-tight font-semibold tracking-tight">
-            {greeting(jakartaHour(now))}, {firstName}
-          </h1>
-        </div>
+      <HomeHeader session={props.session} today={props.today}>
         {/* Each part streams on its own: the greeting paints at once, the rest fills in as its data arrives. */}
         {managing && (
-          <Suspense fallback={<Skeleton className="h-15 w-104 max-w-full rounded-xl" />}>
+          <Suspense fallback={<HomeClinicTodaySkeleton />}>
             <ClinicToday supabase={props.supabase} now={jakartaClock(now)} />
           </Suspense>
         )}
-      </header>
-      <Suspense fallback={<DeskSkeleton />}>
+      </HomeHeader>
+      <Suspense fallback={<HomeDeskSkeleton role={props.session.role} />}>
         <RoleDesk {...props} />
       </Suspense>
     </>
   );
 }
 
-function DeskSkeleton() {
+type HomeHeaderProps = {
+  session: Session;
+  today: string;
+  /** Right side: today's clinic hours (owner, admin). */
+  children?: ReactNode;
+};
+
+/** The date and greeting: needs only the session, so the loading screen draws it for real. */
+export function HomeHeader(props: HomeHeaderProps) {
+  const firstName = props.session.fullName.replace(/\s*\(.*\)$/, '');
+
   return (
-    <div className="flex flex-col gap-6" role="status" aria-busy aria-label="Memuat beranda">
-      <Skeleton className="h-36 rounded-2xl" />
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <SkeletonCard rows={4} />
-        <SkeletonCard rows={3} />
+    <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+      <div className="flex flex-col gap-0.5">
+        <p className="text-sm text-muted-foreground">{fullDate.format(new Date(props.today))}</p>
+        <h1 className="text-[1.5rem] leading-tight font-semibold tracking-tight">
+          {greeting(jakartaHour(new Date()))}, {firstName}
+        </h1>
       </div>
-    </div>
+      {props.children}
+    </header>
   );
 }
 

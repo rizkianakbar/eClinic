@@ -55,23 +55,30 @@ export function HomeAdmin(props: HomeAdminProps) {
         )}
       </Panel>
 
-      <Panel title="Pengaturan">
-        <ul>
-          {SHORTCUTS.map((shortcut) => (
-            <li key={shortcut.href} className="border-b last:border-0">
-              <Link href={shortcut.href} className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
-                  <shortcut.icon className="size-4" aria-hidden />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium">{shortcut.label}</span>
-                  <span className="block truncate text-[0.8125rem] text-muted-foreground">{shortcut.hint}</span>
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </Panel>
+      <HomeAdminShortcuts />
     </div>
+  );
+}
+
+/** Admin's way into the master data: fixed links, so the loading screen shows them for real too. */
+export function HomeAdminShortcuts() {
+  return (
+    <Panel title="Pengaturan">
+      <ul>
+        {SHORTCUTS.map((shortcut) => (
+          <li key={shortcut.href} className="border-b last:border-0">
+            <Link href={shortcut.href} className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
+                <shortcut.icon className="size-4" aria-hidden />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-medium">{shortcut.label}</span>
+                <span className="block truncate text-[0.8125rem] text-muted-foreground">{shortcut.hint}</span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </Panel>
   );
 }
