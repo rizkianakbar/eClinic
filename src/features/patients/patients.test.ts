@@ -9,7 +9,6 @@ import {
   patientSchema,
   patientWriteErrorMessage,
   initials,
-  patientDemographics,
 } from "./patients.lib";
 
 const valid = {
@@ -128,35 +127,6 @@ describe("initials", () => {
     expect(initials("dr. Budi Santoso")).toBe("BS");
     expect(initials("Apt. Dewi")).toBe("D");
     expect(initials("Ani")).toBe("A");
-  });
-});
-
-describe("patientDemographics", () => {
-  const row = (id: string, sex: string, birth: string, bpjs: string | null, created = "2026-10-01T03:00:00Z") => ({
-    id,
-    full_name: `Pasien ${id}`,
-    sex,
-    birth_date: birth,
-    bpjs_number: bpjs,
-    created_at: created,
-  });
-
-  it("splits by sex, life stage and payer, and finds birthdays and new patients", () => {
-    const result = patientDemographics(
-      [
-        row("a", "male", "2023-11-12", null, "2026-11-11T02:00:00Z"),
-        row("b", "female", "1990-01-05", "0001"),
-        row("c", "female", "1950-11-12", "0002"),
-      ],
-      "2026-11-12",
-      "2026-11-05",
-      "2026-11-01",
-    );
-    expect(result).toMatchObject({ total: 3, male: 1, female: 2, bpjs: 2, newThisMonth: 1 });
-    expect(result.ages).toEqual({ balita: 1, anak: 0, dewasa: 1, pralansia: 0, lansia: 1 });
-    expect(result.birthdays.map((entry) => entry.id)).toEqual(["a", "c"]);
-    expect(result.birthdays[1].age).toBe(76);
-    expect(result.recent.map((entry) => entry.id)).toEqual(["a"]);
   });
 });
 

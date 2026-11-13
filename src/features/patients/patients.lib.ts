@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { todayInJakarta, toJakartaDate } from "@/lib/dates";
+import { todayInJakarta } from "@/lib/dates";
 
 /** Accepts the form's string or an already-parsed null, so the action can re-validate parsed values. */
 const optionalString = z
@@ -128,37 +128,18 @@ export const AGE_GROUPS = [
   { key: "lansia", label: "Lansia", range: "60+", max: Infinity },
 ] as const;
 
-type DemographicRow = { id: string; full_name: string; sex: string; birth_date: string; bpjs_number: string | null; created_at: string };
-
 /**
- * Who the clinic's patients are: sex, life stage, payer; whose birthday is
- * today; who joined in the last 7 days (created_at compared as Jakarta dates).
+ * Who the clinic's active patients are, as `patient_demographics()` computes it in the database:
+ * sex, life stage (AGE_GROUPS), payer, new this month, whose birthday is today, who joined in the last
+ * 7 days (Jakarta dates).
  */
-export function patientDemographics(rows: readonly DemographicRow[], today: string, weekAgo: string, monthStart: string) {
-  const ages = Object.fromEntries(AGE_GROUPS.map((group) => [group.key, 0])) as Record<(typeof AGE_GROUPS)[number]["key"], number>;
-  let male = 0;
-  let bpjs = 0;
-  const birthdays: { id: string; full_name: string; age: number }[] = [];
-  const recent: DemographicRow[] = [];
-  let newThisMonth = 0;
-  for (const row of rows) {
-    const joined = toJakartaDate(new Date(row.created_at));
-    if (joined >= monthStart) newThisMonth += 1;
-    if (row.sex === "male") male += 1;
-    if (row.bpjs_number) bpjs += 1;
-    const age = ageInYears(row.birth_date, today);
-    ages[AGE_GROUPS.find((group) => age <= group.max)!.key] += 1;
-    if (row.birth_date.slice(5) === today.slice(5)) birthdays.push({ id: row.id, full_name: row.full_name, age });
-    if (joined >= weekAgo) recent.push(row);
-  }
-  return {
-    total: rows.length,
-    male,
-    female: rows.length - male,
-    bpjs,
-    newThisMonth,
-    ages,
-    birthdays,
-    recent: recent.sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 5),
-  };
-}
+export type PatientStats = {
+  total: number;
+  male: number;
+  female: number;
+  bpjs: number;
+  newThisMonth: number;
+  ages: Record<(typeof AGE_GROUPS)[number]["key"], number>;
+  birthdays: { id: string; full_name: string; age: number }[];
+  recent: { id: string; full_name: string; sex: string; birth_date: string; bpjs_number: string | null; created_at: string }[];
+};

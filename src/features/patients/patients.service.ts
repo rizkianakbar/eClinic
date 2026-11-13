@@ -1,6 +1,7 @@
 import "server-only";
+import { addDays } from "@/lib/dates";
 import type { SupabaseClient } from "@/lib/supabase/server";
-import { escapeLike, parsePatientSearch, patientWriteErrorMessage, type PatientValues } from "./patients.lib";
+import { escapeLike, parsePatientSearch, patientWriteErrorMessage, type PatientStats, type PatientValues } from "./patients.lib";
 
 type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -88,13 +89,14 @@ export async function listPatients(
   };
 }
 
-/** Every active patient's basic facts, for the composition panel (a small clinic: thousands, not millions). */
-export async function listPatientDemographics(supabase: SupabaseClient) {
-  const { data, error } = await supabase
-    .from("patients")
-    .select("id, full_name, sex, birth_date, bpjs_number, created_at")
-    .eq("is_active", true)
-    .limit(20_000);
-  if (error) throw new Error(`listPatientDemographics failed: ${error.code}`);
-  return data;
+/** The composition panel's figures, computed in the database over all active patients (one round trip). */
+export async function getPatientStats(supabase: SupabaseClient, today: string): Promise<PatientStats> {
+  const { data, error } = await supabase.rpc("patient_demographics", {
+    p_today: today,
+    p_week_ago: addDays(today, -6),
+    p_month_start: `${today.slice(0, 7)}-01`,
+  });
+  if (error) throw new Error(`getPatientStats failed: ${error.code}`);
+  const stats = data as Omit<PatientStats, "female">;
+  return { ...stats, female: stats.total - stats.male };
 }

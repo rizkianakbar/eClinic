@@ -2454,6 +2454,10 @@ export type Database = {
         Args: { p_not_given: Json; p_visit_id: string }
         Returns: string
       }
+      patient_demographics: {
+        Args: { p_month_start: string; p_today: string; p_week_ago: string }
+        Returns: Json
+      }
       pay_invoice: {
         Args: {
           p_cash_received: number
@@ -2560,6 +2564,15 @@ export type Database = {
       sign_visit: {
         Args: { p_visit_id: string }
         Returns: Database["public"]["Enums"]["visit_status"]
+      }
+      stock_summary: {
+        Args: { p_cutoff: string }
+        Returns: {
+          expiring: number
+          low: number
+          medicines: number
+          value: number
+        }[]
       }
       void_invoice: {
         Args: { p_invoice_id: string; p_reason: string }

@@ -1,6 +1,7 @@
 import "server-only";
 import { masterDataErrorMessage } from "@/features/settings/settings.lib";
 import type { ActionResult } from "@/lib/query";
+import { fetchAll } from "@/lib/supabase/fetch-all";
 import type { SupabaseClient } from "@/lib/supabase/server";
 import { escapeLike } from "@/features/patients/patients.lib";
 import {
@@ -209,12 +210,16 @@ export async function receivePurchase(
 
 /** Every batch with stock (expired ones included: opname is where they are written off). */
 export async function listOpnameBatches(supabase: SupabaseClient) {
-  const { data, error } = await supabase
-    .from("stock_batches")
-    .select("id, batch_no, expiry_date, qty_on_hand, medicine:medicines(name, unit)")
-    .gt("qty_on_hand", 0)
-    .order("expiry_date");
-  if (error) throw new Error(`listOpnameBatches failed: ${error.code}`);
+  // Every batch in stock must be on the count sheet, so page past the 1000-row cap.
+  const data = await fetchAll("listOpnameBatches", (from, to) =>
+    supabase
+      .from("stock_batches")
+      .select("id, batch_no, expiry_date, qty_on_hand, medicine:medicines(name, unit)")
+      .gt("qty_on_hand", 0)
+      .order("expiry_date")
+      .order("id")
+      .range(from, to),
+  );
   return data.sort((a, b) => (a.medicine?.name ?? "").localeCompare(b.medicine?.name ?? "", "id"));
 }
 
@@ -246,16 +251,14 @@ export async function getStockOpname(supabase: SupabaseClient, opnameId: string)
   return data;
 }
 
-/** Headline numbers for the stock pages: active medicines, stock value at purchase cost, and the two alerts. */
+/**
+ * Headline numbers for the stock pages: active medicines, stock value at purchase cost, and the two
+ * alerts. One database call (`stock_summary`), computed over every batch.
+ */
 export async function getStockSummary(supabase: SupabaseClient, cutoff: string) {
-  const [medicines, batches, alerts] = await Promise.all([
-    supabase.from("medicine_stock").select("medicine_id", { count: "exact", head: true }).eq("is_active", true),
-    supabase.from("stock_batches").select("qty_on_hand, unit_cost").gt("qty_on_hand", 0).limit(50_000),
-    countStockAlerts(supabase, cutoff),
-  ]);
-  if (medicines.error || batches.error) throw new Error("getStockSummary failed");
-  const value = batches.data.reduce((sum, batch) => sum + batch.qty_on_hand * batch.unit_cost, 0);
-  return { medicines: medicines.count ?? 0, value, ...alerts };
+  const { data, error } = await supabase.rpc("stock_summary", { p_cutoff: cutoff }).single();
+  if (error) throw new Error(`getStockSummary failed: ${error.code}`);
+  return data;
 }
 
 /** Purchases since `since` ("YYYY-MM-DD"): how many invoices and how much was spent. */

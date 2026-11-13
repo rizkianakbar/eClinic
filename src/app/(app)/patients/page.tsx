@@ -2,19 +2,19 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
 import { PATIENT_VIEWER_ROLES } from "@/features/patients/patients.constants";
-import { patientDemographics } from "@/features/patients/patients.lib";
-import { listPatientDemographics, listPatients, type PatientPayerFilter } from "@/features/patients/patients.service";
+import type { PatientStats } from "@/features/patients/patients.lib";
+import { getPatientStats, listPatients, type PatientPayerFilter } from "@/features/patients/patients.service";
 import { PatientsComposition } from "@/features/patients/patients-composition";
 import { PatientsList } from "@/features/patients/patients-list";
 import { requireRole } from "@/lib/auth";
-import { addDays, todayInJakarta } from "@/lib/dates";
+import { todayInJakarta } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Pasien" };
 
 const PAYERS: readonly PatientPayerFilter[] = ["all", "bpjs", "umum"];
 
-type Stats = ReturnType<typeof patientDemographics>;
+type Stats = PatientStats;
 
 export default async function PatientsPage(props: PageProps<"/patients">) {
   await requireRole(...PATIENT_VIEWER_ROLES);
@@ -25,9 +25,7 @@ export default async function PatientsPage(props: PageProps<"/patients">) {
   const today = todayInJakarta();
   const supabase = await createClient();
   // Started now, awaited by the two panels that need it: they stream in after the list instead of holding it up.
-  const stats: Promise<Stats> = listPatientDemographics(supabase).then((rows) =>
-    patientDemographics(rows, today, addDays(today, -6), `${today.slice(0, 7)}-01`),
-  );
+  const stats = getPatientStats(supabase, today);
   const result = await listPatients(supabase, { query, page, payer });
 
   return (

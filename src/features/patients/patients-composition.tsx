@@ -2,10 +2,10 @@ import { CakeIcon, UserPlusIcon } from "lucide-react";
 import Link from "next/link";
 import { relativeDay, toJakartaDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
-import { AGE_GROUPS, initials, type patientDemographics } from "./patients.lib";
+import { AGE_GROUPS, initials, type PatientStats } from "./patients.lib";
 
 type PatientsCompositionProps = {
-  stats: ReturnType<typeof patientDemographics>;
+  stats: PatientStats;
   today: string;
 };
 

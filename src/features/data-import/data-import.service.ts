@@ -2,6 +2,7 @@ import "server-only";
 import ExcelJS from "exceljs";
 import type { ActionResult } from "@/lib/query";
 import { readSpreadsheet } from "@/lib/spreadsheet";
+import { fetchAll } from "@/lib/supabase/fetch-all";
 import type { SupabaseClient } from "@/lib/supabase/server";
 import {
   IMPORT_CONFIG,
@@ -17,15 +18,14 @@ import {
 const JADE = "FF17735C";
 const DATA_SHEET = "Data";
 
-/** Every saved row of the kind (RLS keeps it to the clinic), paged past PostgREST's 1000-row cap. */
+/**
+ * Every saved row of the kind (RLS keeps it to the clinic), paged past the 1000-row cap. Only the columns
+ * the import compares and writes back (plus id; services also need type, to leave packages out).
+ */
 async function listExisting(supabase: SupabaseClient, kind: ImportKind) {
-  const rows: Record<string, unknown>[] = [];
-  for (let from = 0; ; from += 1000) {
-    const { data, error } = await supabase.from(kind).select("*").order("name").range(from, from + 999);
-    if (error) throw new Error(`listExisting failed: ${error.code}`);
-    rows.push(...data);
-    if (data.length < 1000) return rows;
-  }
+  const columns = ["id", ...IMPORT_CONFIG[kind].columns.map((column) => column.key)].join(", ");
+  const rows = await fetchAll("listExisting", (from, to) => supabase.from(kind).select(columns).order("name").order("id").range(from, to));
+  return rows as unknown as Record<string, unknown>[];
 }
 
 /**

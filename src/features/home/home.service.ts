@@ -1,6 +1,7 @@
 import "server-only";
 import { shortItems } from "@/features/pharmacy/pharmacy.lib";
 import { availableStock } from "@/features/pharmacy/pharmacy.service";
+import { fetchAll } from "@/lib/supabase/fetch-all";
 import type { SupabaseClient } from "@/lib/supabase/server";
 
 const VISIT_SELECT =
@@ -33,17 +34,19 @@ export async function listCashierDesk(supabase: SupabaseClient) {
 
 /** Today's paid invoices with how they were paid (Jakarta day). */
 export async function listPaidTodayDetail(supabase: SupabaseClient, today: string) {
-  const { data, error } = await supabase
-    .from("invoices")
-    .select(
-      "id, invoice_no, subtotal, total, payer_type, paid_at, payments(method, amount), visit:visits(id, queue_no, patient:patients(full_name, mrn), poli:polis(name))",
-    )
-    .eq("status", "paid")
-    .gte("paid_at", `${today}T00:00:00+07:00`)
-    .order("paid_at", { ascending: false })
-    .limit(200);
-  if (error) throw new Error(`listPaidTodayDetail failed: ${error.code}`);
-  return data;
+  // The day's totals per payment method are summed from this list: every paid invoice of the day.
+  return fetchAll("listPaidTodayDetail", (from, to) =>
+    supabase
+      .from("invoices")
+      .select(
+        "id, invoice_no, subtotal, total, payer_type, paid_at, payments(method, amount), visit:visits(id, queue_no, patient:patients(full_name, mrn), poli:polis(name))",
+      )
+      .eq("status", "paid")
+      .gte("paid_at", `${today}T00:00:00+07:00`)
+      .order("paid_at", { ascending: false })
+      .order("id")
+      .range(from, to),
+  );
 }
 
 /** Prescriptions waiting at the pharmacy, oldest first, with their size. */
@@ -136,9 +139,10 @@ export async function listTodayVitals(supabase: SupabaseClient, visitIds: string
 export async function getOwnerTrend(supabase: SupabaseClient, today: string, days: string[]) {
   const [revenue, visits] = await Promise.all([
     supabase.rpc("report_revenue_daily", { p_from: days[0], p_to: today }),
-    supabase.from("visits").select("visit_date").gte("visit_date", days[0]).lte("visit_date", today).neq("status", "cancelled").limit(10_000),
+    fetchAll("getOwnerTrend visits", (from, to) =>
+      supabase.from("visits").select("visit_date").gte("visit_date", days[0]).lte("visit_date", today).neq("status", "cancelled").order("id").range(from, to),
+    ),
   ]);
   if (revenue.error) throw new Error(`getOwnerTrend revenue failed: ${revenue.error.code}`);
-  if (visits.error) throw new Error(`getOwnerTrend visits failed: ${visits.error.code}`);
-  return { revenue: revenue.data, visits: visits.data };
+  return { revenue: revenue.data, visits };
 }
