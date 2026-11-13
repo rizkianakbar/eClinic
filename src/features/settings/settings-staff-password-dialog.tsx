@@ -1,5 +1,6 @@
 "use client";
 
+import { KeyRoundIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -43,8 +44,9 @@ export function SettingsStaffPasswordDialog(props: SettingsStaffPasswordDialogPr
         if (!next) form.reset();
       }}
     >
-      <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-        Kata sandi
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+        <KeyRoundIcon />
+        Atur ulang kata sandi
       </Button>
       <DialogContent>
         <DialogHeader>

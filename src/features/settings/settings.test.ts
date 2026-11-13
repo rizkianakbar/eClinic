@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   assignableRoles,
+  auditSubject,
+  changedFields,
+  clinicProfileSchema,
+  groupAuditLogs,
+  logoFileError,
+  normalizeIcd10Code,
+  parseIcd10Rows,
   masterDataErrorMessage,
   poliSchema,
   staffAuthErrorMessage,
@@ -60,9 +67,10 @@ describe("assignableRoles", () => {
 
 describe("poliSchema", () => {
   it("requires a name and makes the BPJS code optional", () => {
-    expect(poliSchema.parse({ name: " Poli Umum ", bpjs_poli_code: "" })).toEqual({
+    expect(poliSchema.parse({ name: " Poli Umum ", bpjs_poli_code: "", consultation_service_id: "" })).toEqual({
       name: "Poli Umum",
       bpjs_poli_code: null,
+      consultation_service_id: null,
     });
     expect(poliSchema.safeParse({ name: "", bpjs_poli_code: "" }).error?.issues[0]?.message).toBe(
       "Nama poli wajib diisi.",
@@ -78,5 +86,85 @@ describe("error messages", () => {
   it("uses the caller's duplicate message for unique violations", () => {
     expect(masterDataErrorMessage({ code: "23505" }, "Nama poli ini sudah ada.")).toBe("Nama poli ini sudah ada.");
     expect(masterDataErrorMessage({ code: "42501" }, "")).toMatch(/tidak punya akses/);
+  });
+});
+
+describe("clinicProfileSchema and logoFileError", () => {
+  it("normalizes the profile", () => {
+    expect(
+      clinicProfileSchema.parse({ name: " Klinik ", address: "", phone: "", email: " A@B.COM ", license_no: "", idle_logout_minutes: "15" }),
+    ).toEqual({ name: "Klinik", address: null, phone: null, email: "a@b.com", license_no: null, idle_logout_minutes: 15 });
+  });
+
+  it("checks logo type and size", () => {
+    expect(logoFileError({ type: "image/gif", size: 10 })).toMatch(/PNG, JPG/);
+    expect(logoFileError({ type: "image/png", size: 2 * 1024 * 1024 })).toMatch(/1 MB/);
+    expect(logoFileError({ type: "image/png", size: 1000 })).toBeNull();
+  });
+});
+
+describe("ICD-10 import", () => {
+  it("normalizes codes", () => {
+    expect(normalizeIcd10Code(" j069 ")).toBe("J06.9");
+    expect(normalizeIcd10Code("J06.9")).toBe("J06.9");
+    expect(normalizeIcd10Code("A09")).toBe("A09");
+    expect(normalizeIcd10Code("123")).toBeNull();
+  });
+
+  it("skips the header, reports bad rows with line numbers and de-duplicates", () => {
+    const result = parseIcd10Rows([
+      ["Kode", "Nama", "Nama Indonesia"],
+      ["J06.9", "Acute upper respiratory infection", "ISPA"],
+      ["XX", "Bad", ""],
+      ["A09", "", ""],
+      ["", "", ""],
+      ["j069", "Acute URI (updated)", ""],
+    ]);
+    expect(result.rows).toEqual([{ code: "J06.9", name: "Acute URI (updated)", name_id: null }]);
+    expect(result.skipped).toEqual([
+      { line: 3, reason: 'Kode "XX" bukan format ICD-10.' },
+      { line: 4, reason: "Nama penyakit untuk A09 kosong." },
+    ]);
+  });
+});
+
+describe("changedFields", () => {
+  it("lists changed fields, ignoring timestamps", () => {
+    expect(
+      changedFields(
+        { name: "Paracetamol", price: 500, updated_at: "a", is_active: true },
+        { name: "Paracetamol", price: 600, updated_at: "b", is_active: false },
+      ),
+    ).toEqual([
+      { field: "price", label: "price", from: "500", to: "600", ref: false },
+      { field: "is_active", label: "is active", from: "Aktif", to: "Nonaktif", ref: false },
+    ]);
+    expect(changedFields(null, { a: 1 })).toEqual([]);
+    expect(changedFields({ poli_id: "a", note: null }, { poli_id: "b", note: "x" }, { note: "Catatan" })).toEqual([
+      { field: "poli_id", label: "poli id", from: "a", to: "b", ref: true },
+      { field: "note", label: "Catatan", from: "kosong", to: "x", ref: false },
+    ]);
+  });
+});
+
+describe("auditSubject", () => {
+  it("names the row from after, falling back to before", () => {
+    expect(auditSubject(null, { name: "Antasida" })).toBe("Antasida");
+    expect(auditSubject({ full_name: "Budi" }, null)).toBe("Budi");
+    expect(auditSubject({ qty: 1 }, { qty: 2 })).toBeNull();
+  });
+});
+
+describe("groupAuditLogs", () => {
+  const log = (actor: string, at: string, table = "medicines") => ({ actor_id: actor, action: "insert", table_name: table, created_at: at });
+  it("folds a burst by one person on one table, splits on a gap or a different table", () => {
+    const groups = groupAuditLogs([
+      log("a", "2026-11-12T10:05:00Z"),
+      log("a", "2026-11-12T10:04:30Z"),
+      log("a", "2026-11-12T10:03:30Z"),
+      log("a", "2026-11-12T10:03:20Z", "suppliers"),
+      log("a", "2026-11-12T09:00:00Z", "suppliers"),
+    ]);
+    expect(groups.map((group) => group.length)).toEqual([3, 1, 1]);
   });
 });

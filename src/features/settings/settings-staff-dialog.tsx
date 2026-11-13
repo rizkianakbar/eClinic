@@ -2,11 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
@@ -31,7 +31,15 @@ type Staff = {
   sip_number: string | null;
 };
 
-type SettingsStaffDialogProps = { actorRole: Role } & ({ mode: "create" } | { mode: "edit"; staff: Staff });
+type SettingsStaffDialogProps = { actorRole: Role } & (
+  | { mode: "create" }
+  | {
+      mode: "edit";
+      staff: Staff;
+      /** Account access controls (password reset, deactivate) shown under the form. */
+      access?: ReactNode;
+    }
+);
 
 export function SettingsStaffDialog(props: SettingsStaffDialogProps) {
   const [open, setOpen] = useState(false);
@@ -44,13 +52,18 @@ export function SettingsStaffDialog(props: SettingsStaffDialogProps) {
           Tambah staf
         </Button>
       ) : (
-        <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-          Ubah
+        <Button variant="outline" size="xs" onClick={() => setOpen(true)}>
+          Kelola
         </Button>
       )}
-      <DialogContent className="sm:max-w-md">
+      <DialogContent variant="drawer">
         <DialogHeader>
-          <DialogTitle>{props.mode === "create" ? "Tambah staf" : `Ubah ${props.staff.full_name}`}</DialogTitle>
+          <DialogTitle>{props.mode === "create" ? "Tambah staf" : props.staff.full_name}</DialogTitle>
+          <DialogDescription>
+            {props.mode === "create"
+              ? "Staf masuk dengan email dan kata sandi ini. Berikan langsung ke orangnya."
+              : "Ubah nama, peran, atau data praktik. Email tidak bisa diganti."}
+          </DialogDescription>
         </DialogHeader>
         <StaffForm {...props} onDone={() => setOpen(false)} />
       </DialogContent>
@@ -133,9 +146,19 @@ function StaffForm(props: StaffFormProps) {
         </>
       )}
 
+      {props.mode === "edit" && props.access && (
+        <section className="mt-2 flex flex-col gap-2 border-t pt-5">
+          <h3 className="text-sm font-semibold">Akses akun</h3>
+          <p className="text-[0.8125rem] text-muted-foreground">
+            Atur ulang kata sandi jika staf lupa. Nonaktifkan saat staf berhenti; aksesnya langsung dicabut.
+          </p>
+          <div className="flex flex-wrap gap-2">{props.access}</div>
+        </section>
+      )}
+
       <DialogFooter>
         <Button type="submit" disabled={pending}>
-          {pending ? "Menyimpan..." : "Simpan"}
+          {pending ? "Menyimpan…" : isCreate ? "Buat akun" : "Simpan perubahan"}
         </Button>
       </DialogFooter>
     </form>

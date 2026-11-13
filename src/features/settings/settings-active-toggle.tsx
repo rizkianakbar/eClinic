@@ -23,6 +23,8 @@ type SettingsActiveToggleProps = {
   name: string;
   /** What deactivating means for this record. */
   consequence: string;
+  /** "xs" inside dense cards. */
+  size?: "sm" | "xs";
 };
 
 /** Activate directly; deactivate after confirmation. Nothing is ever deleted. */
@@ -41,7 +43,7 @@ export function SettingsActiveToggle(props: SettingsActiveToggleProps) {
 
   if (!props.isActive) {
     return (
-      <Button variant="outline" size="sm" disabled={toggle.isPending} onClick={() => run(true)}>
+      <Button variant="outline" size={props.size ?? "sm"} disabled={toggle.isPending} onClick={() => run(true)}>
         Aktifkan
       </Button>
     );
@@ -49,7 +51,12 @@ export function SettingsActiveToggle(props: SettingsActiveToggleProps) {
 
   return (
     <Dialog open={confirming} onOpenChange={setConfirming}>
-      <Button variant="ghost" size="sm" onClick={() => setConfirming(true)}>
+      <Button
+        variant="ghost"
+        size={props.size ?? "sm"}
+        className="text-destructive hover:bg-status-cancelled-soft hover:text-destructive"
+        onClick={() => setConfirming(true)}
+      >
         Nonaktifkan
       </Button>
       <DialogContent>

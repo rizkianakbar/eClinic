@@ -1,7 +1,8 @@
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ROLE_LABELS } from "@/features/auth/auth.constants";
-import type { Session } from "@/lib/auth";
+import { initials } from "@/features/patients/patients.lib";
+import type { Role, Session } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 import { setStaffActiveAction } from "./settings.actions";
 import type { listStaff } from "./settings.service";
 import { SettingsActiveToggle } from "./settings-active-toggle";
@@ -13,15 +14,30 @@ type SettingsStaffProps = {
   staff: Awaited<ReturnType<typeof listStaff>>;
 };
 
+/** Each role keeps one colour wherever staff are listed. */
+const ROLE_TONES: Record<Role, string> = {
+  owner: "bg-[#1e3a34] text-white",
+  admin: "bg-muted text-foreground",
+  front_desk: "bg-status-waiting-soft text-status-waiting",
+  nurse: "bg-[#fde8ef] text-[#a3325c]",
+  doctor: "bg-status-exam-soft text-status-exam",
+  pharmacist: "bg-status-pharmacy-soft text-status-pharmacy",
+  cashier: "bg-status-cashier-soft text-status-cashier",
+};
+
 export function SettingsStaff(props: SettingsStaffProps) {
   const { session } = props;
+  const active = props.staff.filter((member) => member.is_active).length;
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">
-          Staf login dengan email dan kata sandi dari sini. Staf nonaktif langsung kehilangan akses.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold">Staf</h2>
+          <p className="text-sm text-muted-foreground">
+            {active} aktif dari {props.staff.length} akun. Staf nonaktif langsung kehilangan akses.
+          </p>
+        </div>
         <SettingsStaffDialog mode="create" actorRole={session.role} />
       </div>
 
@@ -29,10 +45,9 @@ export function SettingsStaff(props: SettingsStaffProps) {
         <TableHeader>
           <TableRow>
             <TableHead>Nama</TableHead>
-            <TableHead>Email</TableHead>
             <TableHead>Peran</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead className="text-right">Aksi</TableHead>
+            <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -40,30 +55,53 @@ export function SettingsStaff(props: SettingsStaffProps) {
             const isSelf = member.id === session.userId;
             const locked = isSelf || (member.role === "owner" && session.role !== "owner");
             return (
-              <TableRow key={member.id} className={member.is_active ? undefined : "text-muted-foreground"}>
-                <TableCell className="font-medium">{member.full_name}</TableCell>
-                <TableCell>{member.email ?? "-"}</TableCell>
-                <TableCell>{ROLE_LABELS[member.role]}</TableCell>
+              <TableRow key={member.id} className={member.is_active ? undefined : "opacity-60"}>
                 <TableCell>
-                  <Badge variant={member.is_active ? "secondary" : "outline"}>
+                  <div className="flex items-center gap-3">
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-[0.6875rem] font-semibold text-secondary-foreground">
+                      {initials(member.full_name)}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">
+                        {member.full_name}
+                        {isSelf && <span className="ml-1.5 text-xs font-normal text-muted-foreground">(Anda)</span>}
+                      </span>
+                      <span className="block truncate text-[0.8125rem] text-muted-foreground">{member.email ?? "Belum ada email"}</span>
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className={cn("inline-flex h-6 items-center rounded-md px-2 text-xs font-medium", ROLE_TONES[member.role])}>
+                    {ROLE_LABELS[member.role]}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className="inline-flex items-center gap-1.5 text-[0.8125rem]">
+                    <span className={cn("size-1.5 rounded-full", member.is_active ? "bg-primary" : "bg-muted-foreground/50")} aria-hidden />
                     {member.is_active ? "Aktif" : "Nonaktif"}
-                  </Badge>
+                  </span>
                 </TableCell>
                 <TableCell className="text-right">
                   {locked ? (
-                    <span className="text-sm text-muted-foreground">{isSelf ? "Akun Anda" : "Hanya pemilik"}</span>
+                    <span className="text-xs text-muted-foreground">{isSelf ? "Lewat Akun saya" : "Hanya pemilik"}</span>
                   ) : (
-                    <div className="flex justify-end gap-1">
-                      <SettingsStaffDialog mode="edit" actorRole={session.role} staff={member} />
-                      <SettingsStaffPasswordDialog staffId={member.id} name={member.full_name} />
-                      <SettingsActiveToggle
-                        id={member.id}
-                        isActive={member.is_active}
-                        action={setStaffActiveAction}
-                        name={member.full_name}
-                        consequence="Staf ini langsung keluar dan tidak bisa login lagi."
-                      />
-                    </div>
+                    <SettingsStaffDialog
+                      mode="edit"
+                      actorRole={session.role}
+                      staff={member}
+                      access={
+                        <>
+                          <SettingsStaffPasswordDialog staffId={member.id} name={member.full_name} />
+                          <SettingsActiveToggle
+                            id={member.id}
+                            isActive={member.is_active}
+                            action={setStaffActiveAction}
+                            name={member.full_name}
+                            consequence="Staf ini langsung keluar dan tidak bisa login lagi."
+                          />
+                        </>
+                      }
+                    />
                   )}
                 </TableCell>
               </TableRow>
