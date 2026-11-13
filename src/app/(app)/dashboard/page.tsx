@@ -1,19 +1,24 @@
 import type { Metadata } from "next";
-import { ROLE_LABELS } from "@/features/auth/auth.constants";
+import { redirect } from "next/navigation";
+import { STATION_HOME } from "@/features/app-shell/app-shell.lib";
+import { Home } from "@/features/home/home";
+import { VisitsLiveRefresh } from "@/features/visits/visits-live-refresh";
 import { requireRole } from "@/lib/auth";
-import { formatDate } from "@/lib/dates";
+import { todayInJakarta } from "@/lib/dates";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Beranda" };
 
 export default async function DashboardPage() {
   const session = await requireRole();
+  const station = STATION_HOME[session.role];
+  if (station) redirect(station);
+  const today = todayInJakarta();
 
   return (
-    <div className="flex flex-col gap-1">
-      <h1 className="text-2xl font-semibold">Selamat datang, {session.fullName}</h1>
-      <p className="text-muted-foreground">
-        {ROLE_LABELS[session.role]} · {formatDate(new Date())}
-      </p>
-    </div>
+    <>
+      <VisitsLiveRefresh visitDate={today} />
+      <Home session={session} supabase={await createClient()} today={today} />
+    </>
   );
 }
