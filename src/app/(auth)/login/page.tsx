@@ -74,7 +74,9 @@ export default async function LoginPage(props: PageProps<'/login'>) {
           )}
           <LoginForm />
           <p className="text-[0.8125rem] text-muted-foreground">{t('auth.login.forgot')}</p>
-          {testAccounts.length > 0 && <AuthTestAccounts accounts={testAccounts} />}
+          {/* {testAccounts.length > 0 && ( */}
+          <AuthTestAccounts accounts={testAccounts} />
+          {/* )} */}
         </div>
       </section>
     </main>
