@@ -11,6 +11,7 @@ import { todayInJakarta } from "@/lib/dates";
 import { navItemsFor } from "./app-shell.lib";
 import { AppShellBell } from "./app-shell-bell";
 import { AppShellLiveProvider } from "./app-shell-live";
+import { AppShellPrefetch } from "./app-shell-prefetch";
 import { AppShellTabs } from "./app-shell-nav";
 import { AppShellSearch } from "./app-shell-search";
 import { AppShellUserMenu } from "./app-shell-user-menu";
@@ -73,6 +74,7 @@ export function AppShell(props: AppShellProps) {
           <div className="mx-auto flex w-full max-w-[90rem] flex-col gap-6">{props.children}</div>
         </main>
         <AuthIdleLogout minutes={session.idleLogoutMinutes} />
+        <AppShellPrefetch />
       </div>
     </AppShellLiveProvider>
   );

@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, use, useEffect, useRef, type ReactNode } from "react";
 import { toast } from "sonner";
-import { useQueueBoard } from "@/features/queue/queue.hooks";
+import { useQueueBoard, useQueueRealtime } from "@/features/queue/queue.hooks";
 import type { QueueVisit } from "@/features/queue/queue.lib";
 import { journeyCounts } from "@/features/visits/visits.lib";
 import type { Role } from "@/lib/auth";
@@ -42,6 +42,7 @@ type AppShellLiveProviderProps = {
 export function AppShellLiveProvider(props: AppShellLiveProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
+  useQueueRealtime(props.visitDate);
   const board = useQueueBoard(props.visitDate);
   const visits = board.data ?? [];
   const mine = myStationVisits(visits, props.role, props.userId);
