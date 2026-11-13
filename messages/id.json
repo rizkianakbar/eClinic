@@ -630,7 +630,10 @@
       "setUp": "Atur jadwal dokter",
       "doctors": "{count} dokter praktik",
       "sessions": "{sessions} sesi · kuota {quota} pasien",
-      "schedules": "Jadwal dokter"
+      "schedules": "Jadwal dokter",
+      "tipSession": "{poli} · {from}–{to}",
+      "tipLoad": "{taken}/{quota} pasien",
+      "tipMore": "Dokter lain hari ini"
     },
     "admin": {
       "recent": "Aktivitas terbaru",

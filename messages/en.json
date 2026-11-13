@@ -630,7 +630,10 @@
       "setUp": "Set up doctor sessions",
       "doctors": "{count, plural, one {# doctor} other {# doctors}} practising",
       "sessions": "{sessions, plural, one {# session} other {# sessions}} · quota {quota} patients",
-      "schedules": "Doctor sessions"
+      "schedules": "Doctor sessions",
+      "tipSession": "{poli} · {from}–{to}",
+      "tipLoad": "{taken}/{quota} patients",
+      "tipMore": "Other doctors today"
     },
     "admin": {
       "recent": "Recent activity",
