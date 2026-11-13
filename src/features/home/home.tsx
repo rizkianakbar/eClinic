@@ -21,11 +21,9 @@ type HomeProps = {
 /** Beranda is each role's workstation: what is waiting for me, then today's context. */
 const fullDate = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
-export async function Home(props: HomeProps) {
+export function Home(props: HomeProps) {
   const firstName = props.session.fullName.replace(/\s*\(.*\)$/, "");
   const managing = props.session.role === "owner" || props.session.role === "admin";
-  const sessions = managing ? await listTodaySessions(props.supabase) : [];
-
   const now = new Date();
 
   return (
@@ -37,11 +35,16 @@ export async function Home(props: HomeProps) {
             {greeting(jakartaHour(now))}, {firstName}
           </h1>
         </div>
-        {managing && <HomeClinicToday sessions={sessions} now={jakartaClock(now)} href="/settings/schedules" />}
+        {/* Its own async component, so it loads in parallel with the desk below instead of before it. */}
+        {managing && <ClinicToday supabase={props.supabase} now={jakartaClock(now)} />}
       </header>
       <RoleDesk {...props} />
     </>
   );
+}
+
+async function ClinicToday(props: { supabase: SupabaseClient; now: string }) {
+  return <HomeClinicToday sessions={await listTodaySessions(props.supabase)} now={props.now} href="/settings/schedules" />;
 }
 
 async function RoleDesk(props: HomeProps) {
