@@ -2194,6 +2194,7 @@ export type Database = {
           status: Database["public"]["Enums"]["visit_status"]
           updated_at: string
           visit_date: string
+          vitals_recorded_at: string | null
         }
         Insert: {
           called_at?: string | null
@@ -2212,6 +2213,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["visit_status"]
           updated_at?: string
           visit_date: string
+          vitals_recorded_at?: string | null
         }
         Update: {
           called_at?: string | null
@@ -2230,6 +2232,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["visit_status"]
           updated_at?: string
           visit_date?: string
+          vitals_recorded_at?: string | null
         }
         Relationships: [
           {
@@ -2442,6 +2445,7 @@ export type Database = {
           status: Database["public"]["Enums"]["visit_status"]
           updated_at: string
           visit_date: string
+          vitals_recorded_at: string | null
         }
         SetofOptions: {
           from: "*"

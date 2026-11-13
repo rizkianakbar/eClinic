@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Elapsed } from '@/components/ui/elapsed';
 import { Panel, PanelEmpty } from '@/components/ui/panel';
 import type { getOwnerDashboard } from '@/features/reports/reports.service';
-import { JOURNEY } from '@/features/visits/visits.lib';
+import { JOURNEY, stationSince } from '@/features/visits/visits.lib';
 import { STATION_COLORS } from '@/features/visits/visits-journey-line';
 import { formatRupiah } from '@/lib/money';
 import { cn } from '@/lib/utils';
@@ -148,7 +148,7 @@ export function HomeOwner(props: HomeOwnerProps) {
                           {formatRupiah(visit.billTotal)}
                         </span>
                       )}
-                      <Elapsed since={visit.updated_at} now={props.now} />
+                      <Elapsed since={stationSince(visit)} now={props.now} />
                     </>
                   }
                 />

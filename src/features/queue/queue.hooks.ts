@@ -53,7 +53,7 @@ export function useQueueBoard(visitDate: string) {
       const { data, error } = await createClient()
         .from('visits')
         .select(
-          'id, queue_no, status, doctor_id, poli_id, called_at, skipped_at, updated_at, created_at, payer_type, patient:patients(full_name, mrn, sex, birth_date), poli:polis(name), doctor:profiles!visits_doctor_id_fkey(full_name)',
+          'id, queue_no, status, doctor_id, poli_id, called_at, skipped_at, updated_at, created_at, vitals_recorded_at, payer_type, patient:patients(full_name, mrn, sex, birth_date), poli:polis(name), doctor:profiles!visits_doctor_id_fkey(full_name)',
         )
         .eq('visit_date', visitDate)
         .order('queue_no');

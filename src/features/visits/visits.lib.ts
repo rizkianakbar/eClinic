@@ -90,6 +90,17 @@ export function journeyCounts(visits: readonly { status: JourneyVisitStatus }[])
   return counts;
 }
 
+/**
+ * When the patient arrived at the station they are at now, for wait timers. In the waiting room that is
+ * registration (calling or recording vitals updates the visit but is not a new arrival); after that, the
+ * last status change.
+ */
+export function stationSince(visit: { status: string; created_at?: string; updated_at: string }) {
+  const inWaitingRoom = visit.status === 'waiting' || visit.status === 'registered';
+
+  return inWaitingRoom && visit.created_at ? visit.created_at : visit.updated_at;
+}
+
 /** Index of a visit's station on the journey line; -1 when cancelled. */
 export function journeyIndex(status: JourneyVisitStatus) {
   if (status === 'cancelled') return -1;

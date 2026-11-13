@@ -1,4 +1,4 @@
-import { MegaphoneIcon } from 'lucide-react';
+import { ActivityIcon, MegaphoneIcon } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { SEX_LABELS } from '@/features/patients/patients.constants';
@@ -66,6 +66,12 @@ export function QueueTicket(props: QueueTicketProps) {
           <p className={cn('flex items-center gap-1.5 text-[0.8125rem] font-medium', color.text)}>
             <MegaphoneIcon className="size-3.5" aria-hidden />
             Dipanggil {formatTime(visit.called_at!)}
+          </p>
+        )}
+        {props.station === 'waiting' && visit.vitals_recorded_at === null && (
+          <p className="flex items-center gap-1.5 text-[0.8125rem] font-medium text-status-waiting">
+            <ActivityIcon className="size-3.5" aria-hidden />
+            Perlu tanda vital sebelum dipanggil
           </p>
         )}
         {visit.skipped_at && (

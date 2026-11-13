@@ -6,6 +6,7 @@ import {
   journeyIndex,
   type PracticeSession,
   sessionEnded,
+  stationSince,
   visitErrorMessage,
 } from './visits.lib';
 
@@ -90,5 +91,18 @@ describe('journeyIndex', () => {
     expect(journeyIndex('in_exam')).toBe(1);
     expect(journeyIndex('done')).toBe(4);
     expect(journeyIndex('cancelled')).toBe(-1);
+  });
+});
+
+describe('stationSince', () => {
+  const visit = { created_at: '2026-11-13T01:00:00Z', updated_at: '2026-11-13T01:20:00Z' };
+
+  it('counts the waiting room from registration, not from a call or vitals', () => {
+    expect(stationSince({ ...visit, status: 'waiting' })).toBe('2026-11-13T01:00:00Z');
+  });
+
+  it('counts later stations from the last status change', () => {
+    expect(stationSince({ ...visit, status: 'to_pharmacy' })).toBe('2026-11-13T01:20:00Z');
+    expect(stationSince({ status: 'waiting', updated_at: visit.updated_at })).toBe(visit.updated_at);
   });
 });

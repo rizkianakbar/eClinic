@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Elapsed } from '@/components/ui/elapsed';
 import { Panel, PanelEmpty } from '@/components/ui/panel';
+import { ExamVitalsDialog } from '@/features/exam/exam-vitals-dialog';
 import { SEX_LABELS } from '@/features/patients/patients.constants';
 import { ageInYears } from '@/features/patients/patients.lib';
 import { toHourMinute } from '@/features/schedules/schedules.lib';
@@ -15,7 +16,16 @@ import { STATION_COLORS } from '@/features/visits/visits-journey-line';
 import { cn } from '@/lib/utils';
 import { callVisitAction, skipVisitAction, startExamAction } from './queue.actions';
 import { type DeskDetails, useDeskDetails, useQueueAction, useQueueBoard } from './queue.hooks';
-import { type Actor, buildLanes, canCall, canSkip, canStartExam, type QueueVisit } from './queue.lib';
+import {
+  type Actor,
+  blockedByVitals,
+  buildLanes,
+  canCall,
+  canRecordVitals,
+  canSkip,
+  canStartExam,
+  type QueueVisit,
+} from './queue.lib';
 import { DoctorRoom } from './queue-board';
 import { QueueVitalChips } from './queue-vital-chips';
 
@@ -303,6 +313,14 @@ function WaitingRow(props: WaitingRowProps) {
               <MegaphoneIcon />
               {visit.called_at || visit.skipped_at ? 'Ulang' : 'Panggil'}
             </Button>
+          )}
+          {blockedByVitals(actor, visit) && canRecordVitals(actor, visit) && (
+            <ExamVitalsDialog
+              visitId={visit.id}
+              patientName={visit.patient?.full_name ?? ''}
+              label="Catat vital"
+              primary
+            />
           )}
           {canSkip(actor, visit) && called && (
             <Button size="xs" variant="ghost" disabled={pending} onClick={() => skip.mutate(visit.id)}>

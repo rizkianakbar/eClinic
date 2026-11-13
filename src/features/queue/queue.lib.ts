@@ -16,6 +16,8 @@ export type QueueVisit = {
   updated_at: string;
   /** Registration time: how long the patient has been at the clinic. */
   created_at?: string;
+  /** When triage vitals were first recorded; required before the patient is called or examined. */
+  vitals_recorded_at: string | null;
   payer_type: string;
   patient: { full_name: string; mrn: string; sex: string; birth_date: string } | null;
   poli: { name: string } | null;
@@ -36,8 +38,19 @@ export const QUEUE_VIEWER_ROLES = [
 // Mirrors private.visits_before_update(); the database is the real guard.
 const isOwnDoctor = (actor: Actor, visit: QueueVisit) => actor.role === 'doctor' && visit.doctor_id === actor.userId;
 
+/** Triage done: vitals recorded. Without it nobody calls the patient in or starts the exam (clinic decision). */
+export const hasVitals = (visit: QueueVisit) => visit.vitals_recorded_at !== null;
+
 export const canCall = (actor: Actor, visit: QueueVisit) =>
-  visit.status === 'waiting' && (isOwnDoctor(actor, visit) || ['nurse', 'admin', 'owner'].includes(actor.role));
+  visit.status === 'waiting' &&
+  hasVitals(visit) &&
+  (isOwnDoctor(actor, visit) || ['nurse', 'admin', 'owner'].includes(actor.role));
+
+/** Would be allowed to call, if only the vitals were recorded: show "waiting for vitals" instead of hiding it. */
+export const blockedByVitals = (actor: Actor, visit: QueueVisit) =>
+  visit.status === 'waiting' &&
+  !hasVitals(visit) &&
+  (isOwnDoctor(actor, visit) || ['nurse', 'admin', 'owner'].includes(actor.role));
 
 export const canSkip = (actor: Actor, visit: QueueVisit) =>
   visit.status === 'waiting' &&
@@ -45,7 +58,7 @@ export const canSkip = (actor: Actor, visit: QueueVisit) =>
   (isOwnDoctor(actor, visit) || ['nurse', 'front_desk', 'admin', 'owner'].includes(actor.role));
 
 export const canStartExam = (actor: Actor, visit: QueueVisit) =>
-  visit.status === 'waiting' && isOwnDoctor(actor, visit);
+  visit.status === 'waiting' && hasVitals(visit) && isOwnDoctor(actor, visit);
 
 /** Nurse triage, or the visit's own doctor, while the patient waits. */
 export const canRecordVitals = (actor: Actor, visit: QueueVisit) =>
@@ -113,7 +126,8 @@ export function polisOf(visits: readonly QueueVisit[]) {
 
 /**
  * A doctor's room right now, in the order they act on it: the patient being
- * examined, else the one already called, else the next number to call.
+ * examined, else the one already called, else the next number to call. Patients
+ * still waiting for triage are listed apart: they cannot be called yet.
  */
 export function doctorRoom(visits: readonly QueueVisit[], doctorId: string) {
   const mine = visits.filter((visit) => visit.doctor_id === doctorId);
@@ -123,17 +137,23 @@ export function doctorRoom(visits: readonly QueueVisit[], doctorId: string) {
     examining: lanes.inExam[0],
     called: lanes.called[0],
     next: nextToCall(mine, doctorId),
+    awaitingVitals: uncalled(mine, doctorId).filter((visit) => !hasVitals(visit)),
     waitingCount: lanes.waiting.length + lanes.called.length,
   };
 }
 
-/** The next patient for a doctor: lowest number still waiting, not yet called or skipped. */
-export function nextToCall(visits: readonly QueueVisit[], doctorId: string) {
+/** A doctor's patients still waiting, not yet called or skipped, in queue order. */
+function uncalled(visits: readonly QueueVisit[], doctorId: string) {
   return [...visits]
     .filter(
       (visit) => visit.doctor_id === doctorId && visit.status === 'waiting' && !visit.skipped_at && !visit.called_at,
     )
-    .sort(byQueueNo)[0];
+    .sort(byQueueNo);
+}
+
+/** The next patient for a doctor: the lowest number that is waiting, uncalled, and has had triage. */
+export function nextToCall(visits: readonly QueueVisit[], doctorId: string) {
+  return uncalled(visits, doctorId).find(hasVitals);
 }
 
 export const cancelVisitSchema = z.object({
@@ -152,6 +172,8 @@ const QUEUE_ERRORS: Record<string, string> = {
   not_waiting: 'Pasien ini sudah tidak dalam antrean. Daftar diperbarui otomatis.',
   invalid_transition: 'Status kunjungan sudah berubah. Daftar diperbarui otomatis, coba lagi.',
   cancel_reason_required: 'Alasan pembatalan wajib diisi.',
+  vitals_required:
+    'Tanda vital pasien ini belum dicatat. Minta perawat mencatatnya dulu, atau catat sendiri lewat tombol Vital.',
 };
 
 /** Maps a guard error from private.visits_before_update() to a message. */

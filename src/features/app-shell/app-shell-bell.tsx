@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Elapsed } from '@/components/ui/elapsed';
+import { stationSince } from '@/features/visits/visits.lib';
 import { cn } from '@/lib/utils';
 import { ROLE_STATION } from './app-shell.lib';
 import { useAppShellLive } from './app-shell-live';
@@ -63,7 +64,7 @@ export function AppShellBell() {
                     {visit.poli?.name} · {visit.doctor?.full_name}
                   </span>
                 </span>
-                <Elapsed since={visit.updated_at} now={0} />
+                <Elapsed since={stationSince(visit)} now={0} />
               </DropdownMenuLinkItem>
             ))}
           </div>

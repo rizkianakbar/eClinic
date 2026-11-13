@@ -28,6 +28,7 @@ import {
   canSkip,
   canStartExam,
   doctorRoom,
+  hasVitals,
   polisOf,
   type QueueVisit,
 } from './queue.lib';
@@ -178,13 +179,22 @@ export function DoctorRoom(props: DoctorRoomProps) {
 
     actions = (
       <>
-        <Button
-          size="lg"
-          disabled={pending}
-          onClick={() => start.mutate(called.id, { onSuccess: () => router.push(`/exam/${called.id}`) })}>
-          <StethoscopeIcon />
-          Pasien masuk, mulai periksa
-        </Button>
+        {hasVitals(called) ? (
+          <Button
+            size="lg"
+            disabled={pending}
+            onClick={() => start.mutate(called.id, { onSuccess: () => router.push(`/exam/${called.id}`) })}>
+            <StethoscopeIcon />
+            Pasien masuk, mulai periksa
+          </Button>
+        ) : (
+          <ExamVitalsDialog
+            visitId={called.id}
+            patientName={called.patient?.full_name ?? ''}
+            size="lg"
+            label="Catat tanda vital dulu"
+          />
+        )}
         <Button size="lg" variant="outline" disabled={pending} onClick={() => callNumber(called)}>
           <MegaphoneIcon />
           Panggil ulang
@@ -205,6 +215,20 @@ export function DoctorRoom(props: DoctorRoomProps) {
         <MegaphoneIcon />
         Panggil nomor {next.queue_no}
       </Button>
+    );
+  } else if (room.awaitingVitals[0]) {
+    label = 'Menunggu tanda vital';
+    visit = room.awaitingVitals[0];
+
+    const first = visit;
+
+    actions = (
+      <ExamVitalsDialog
+        visitId={first.id}
+        patientName={first.patient?.full_name ?? ''}
+        size="lg"
+        label="Catat tanda vital"
+      />
     );
   } else {
     label = 'Ruang periksa Anda';
@@ -255,8 +279,16 @@ export function DoctorRoom(props: DoctorRoomProps) {
         {actions && <div className="flex w-full flex-wrap gap-2 sm:w-auto *:max-sm:flex-1">{actions}</div>}
       </div>
       {room.waitingCount > 0 && (
-        <p className="mt-4 border-t pt-3 text-sm text-muted-foreground">
-          <span className="tabular font-semibold text-foreground">{room.waitingCount}</span> pasien Anda di ruang tunggu
+        <p className="mt-4 flex flex-wrap gap-x-4 gap-y-1 border-t pt-3 text-sm text-muted-foreground">
+          <span>
+            <span className="tabular font-semibold text-foreground">{room.waitingCount}</span> pasien Anda di ruang
+            tunggu
+          </span>
+          {room.awaitingVitals.length > 0 && (
+            <span className="font-medium text-status-waiting">
+              {room.awaitingVitals.length} belum diperiksa tanda vital, belum bisa dipanggil
+            </span>
+          )}
         </p>
       )}
     </section>
@@ -383,7 +415,12 @@ export function WaitingTicket(props: WaitingTicketProps) {
         </Button>
       )}
       {canRecordVitals(actor, visit) && (
-        <ExamVitalsDialog visitId={visit.id} patientName={visit.patient?.full_name ?? ''} />
+        <ExamVitalsDialog
+          visitId={visit.id}
+          patientName={visit.patient?.full_name ?? ''}
+          label={hasVitals(visit) ? 'Vital' : 'Catat vital'}
+          primary={!hasVitals(visit)}
+        />
       )}
       {canCancel(actor, visit) && <QueueCancelDialog visit={visit} visitDate={visitDate} />}
     </>

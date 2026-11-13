@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  blockedByVitals,
   buildLanes,
   canCall,
   canCancel,
@@ -26,6 +27,8 @@ function visit(overrides: Partial<QueueVisit>): QueueVisit {
     called_at: null,
     skipped_at: null,
     updated_at: '2026-11-12T01:00:00Z',
+    // Triage done unless a test says otherwise.
+    vitals_recorded_at: '2026-11-12T00:55:00Z',
     payer_type: 'umum',
     patient: { full_name: 'Pasien', mrn: '000001', sex: 'female', birth_date: '1990-01-01' },
     poli: { name: 'Poli Umum' },
@@ -50,6 +53,20 @@ describe('permissions (mirror the database guard)', () => {
     expect(canCall(fd, waiting)).toBe(false);
     expect(canSkip(fd, waiting)).toBe(true);
     expect(canCancel(fd, waiting)).toBe(true);
+  });
+
+  it('locks call and exam until vitals are recorded, but still lets the doctor record them', () => {
+    const untriaged = visit({ vitals_recorded_at: null });
+    const doctor = { role: 'doctor' as const, userId: DOC };
+    const nurse = { role: 'nurse' as const, userId: 'n' };
+
+    expect(canCall(doctor, untriaged)).toBe(false);
+    expect(canCall(nurse, untriaged)).toBe(false);
+    expect(canStartExam(doctor, untriaged)).toBe(false);
+    expect(blockedByVitals(doctor, untriaged)).toBe(true);
+    expect(blockedByVitals({ role: 'front_desk', userId: 'fd' }, untriaged)).toBe(false);
+    expect(canRecordVitals(doctor, untriaged)).toBe(true);
+    expect(canRecordVitals(nurse, untriaged)).toBe(true);
   });
 
   it('allows nothing once the exam has started', () => {
@@ -115,6 +132,20 @@ describe('doctorRoom', () => {
     expect(room.next?.queue_no).toBe(3);
     expect(room.waitingCount).toBe(2);
   });
+
+  it('never offers a patient without vitals as next, and lists them apart', () => {
+    const room = doctorRoom(
+      [
+        visit({ queue_no: 1, vitals_recorded_at: null }),
+        visit({ queue_no: 2 }),
+        visit({ queue_no: 3, vitals_recorded_at: null }),
+      ],
+      DOC,
+    );
+
+    expect(room.next?.queue_no).toBe(2);
+    expect(room.awaitingVitals.map((item) => item.queue_no)).toEqual([1, 3]);
+  });
 });
 
 describe('nextToCall', () => {
@@ -129,12 +160,18 @@ describe('nextToCall', () => {
 
     expect(nextToCall(visits, DOC)?.queue_no).toBe(3);
     expect(nextToCall([], DOC)).toBeUndefined();
+    expect(nextToCall([visit({ queue_no: 1, vitals_recorded_at: null })], DOC)).toBeUndefined();
   });
 });
 
 describe('queueErrorMessage', () => {
   it('maps guard keys', () => {
     expect(queueErrorMessage({ code: 'P0001', message: 'not_your_patient' })).toMatch(/dokter yang menangani/);
+
+    expect(queueErrorMessage({ code: 'P0001', message: 'vitals_required' })).toMatch(
+      /Tanda vital pasien ini belum dicatat/,
+    );
+
     expect(queueErrorMessage({ code: 'XX' })).toMatch(/gagal diperbarui/);
   });
 });
