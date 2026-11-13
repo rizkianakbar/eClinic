@@ -1,8 +1,6 @@
-import type { Database } from '@/lib/supabase/database.types';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-import { VISIT_STATUS_LABELS } from './visits.constants';
-
-type VisitStatus = Database['public']['Enums']['visit_status'];
+import type { VisitStatus } from './visits.constants';
 
 /** Patient-journey colours: the same status looks the same everywhere. */
 const STATUS_STYLES: Record<VisitStatus, string> = {
@@ -21,6 +19,8 @@ type VisitsStatusBadgeProps = {
 };
 
 export function VisitsStatusBadge(props: VisitsStatusBadgeProps) {
+  const t = useTranslations('visitStatus');
+
   return (
     <span
       className={cn(
@@ -29,7 +29,7 @@ export function VisitsStatusBadge(props: VisitsStatusBadgeProps) {
         props.className,
       )}>
       <span className="size-2 rounded-full bg-current" aria-hidden />
-      {VISIT_STATUS_LABELS[props.status]}
+      {t(props.status)}
     </span>
   );
 }

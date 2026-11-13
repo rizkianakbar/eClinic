@@ -1,6 +1,7 @@
 'use client';
 
 import { ActivityIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -18,6 +19,7 @@ type ExamVitalsDialogProps = {
 
 /** Nurse triage from the queue board while the patient waits. */
 export function ExamVitalsDialog(props: ExamVitalsDialogProps) {
+  const t = useTranslations('exam.vitals');
   const [open, setOpen] = useState(false);
 
   return (
@@ -27,11 +29,11 @@ export function ExamVitalsDialog(props: ExamVitalsDialogProps) {
         variant={props.primary || props.size === 'lg' ? 'default' : 'outline'}
         onClick={() => setOpen(true)}>
         <ActivityIcon />
-        {props.label ?? (props.size === 'compact' || !props.size ? 'Vital' : 'Catat tanda vital')}
+        {props.label ?? (props.size === 'compact' || !props.size ? t('button') : t('record'))}
       </Button>
       <DialogContent variant="drawer">
         <DialogHeader>
-          <DialogTitle>Tanda vital</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>{props.patientName}</DialogDescription>
         </DialogHeader>
         <ExamVitalsForm visitId={props.visitId} onDone={() => setOpen(false)} />

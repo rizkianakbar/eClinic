@@ -36,11 +36,11 @@ import {
   signVisit,
 } from './exam.service';
 
-const NOT_FOUND: ActionResult<never> = { ok: false, error: 'Data tidak ditemukan. Muat ulang halaman.' };
+const NOT_FOUND: ActionResult<never> = { ok: false, error: 'exam.errors.notFound' };
 const isId = (value: string) => z.uuid().safeParse(value).success;
 
 function invalid(error: z.ZodError): ActionResult<never> {
-  return { ok: false, error: error.issues[0]?.message ?? 'Data tidak valid.' };
+  return { ok: false, error: error.issues[0]?.message ?? 'errors.invalid' };
 }
 
 export async function addVitalsAction(visitId: string, input: VitalsInput): Promise<ActionResult> {

@@ -1,11 +1,11 @@
-import type { Metadata } from 'next';
 import { parsePage } from '@/features/inventory/inventory.lib';
 import { listMedicines } from '@/features/inventory/inventory.service';
 import { InventoryMedicines } from '@/features/inventory/inventory-medicines';
+import { pageTitle } from '@/i18n/metadata';
 import { requireRole } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: 'Obat' };
+export const generateMetadata = pageTitle('settings.tabs.medicines');
 
 export default async function MedicinesPage(props: PageProps<'/settings/medicines'>) {
   await requireRole('owner', 'admin');

@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import { SkeletonPage } from '@/components/ui/skeleton';
 import { HomeHeader } from '@/features/home/home';
 import { HomeClinicTodaySkeleton, HomeDeskSkeleton } from '@/features/home/home-skeleton';
@@ -10,8 +11,10 @@ export default async function Loading() {
 
   if (!session) return null;
 
+  const t = await getTranslations('home');
+
   return (
-    <SkeletonPage route label="Memuat beranda">
+    <SkeletonPage route label={t('loading')}>
       <HomeHeader session={session} today={todayInJakarta()}>
         {(session.role === 'owner' || session.role === 'admin') && <HomeClinicTodaySkeleton />}
       </HomeHeader>

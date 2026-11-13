@@ -13,37 +13,39 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 import { markScrollEdges, revealInRow, SCROLL_EDGE_FADE } from '@/lib/scroll-edges';
 import { cn } from '@/lib/utils';
 
 const GROUPS = [
   {
-    label: 'Klinik',
+    label: 'groupClinic',
     tabs: [
-      { href: '/settings/clinic', label: 'Profil klinik', icon: BuildingIcon },
-      { href: '/settings/staff', label: 'Staf', icon: UsersIcon },
-      { href: '/settings/polis', label: 'Poli', icon: StethoscopeIcon },
-      { href: '/settings/schedules', label: 'Jadwal dokter', icon: CalendarClockIcon },
+      { href: '/settings/clinic', label: 'clinic', icon: BuildingIcon },
+      { href: '/settings/staff', label: 'staff', icon: UsersIcon },
+      { href: '/settings/polis', label: 'polis', icon: StethoscopeIcon },
+      { href: '/settings/schedules', label: 'schedules', icon: CalendarClockIcon },
     ],
   },
   {
-    label: 'Data master',
+    label: 'groupMaster',
     tabs: [
-      { href: '/settings/services', label: 'Tarif layanan', icon: TagIcon },
-      { href: '/settings/medicines', label: 'Obat', icon: PillIcon },
-      { href: '/settings/suppliers', label: 'Supplier', icon: TruckIcon },
-      { href: '/settings/icd10', label: 'ICD-10', icon: ListTreeIcon },
+      { href: '/settings/services', label: 'services', icon: TagIcon },
+      { href: '/settings/medicines', label: 'medicines', icon: PillIcon },
+      { href: '/settings/suppliers', label: 'suppliers', icon: TruckIcon },
+      { href: '/settings/icd10', label: 'icd10', icon: ListTreeIcon },
     ],
   },
   {
-    label: 'Keamanan',
-    tabs: [{ href: '/settings/activity', label: 'Log aktivitas', icon: HistoryIcon }],
+    label: 'groupSecurity',
+    tabs: [{ href: '/settings/activity', label: 'activity', icon: HistoryIcon }],
   },
 ] as const;
 
 /** Side menu on wide screens, a scrolling strip on phones. */
 export function SettingsTabs() {
+  const t = useTranslations('settings.tabs');
   const pathname = usePathname();
   const row = useRef<HTMLElement>(null);
 
@@ -63,7 +65,7 @@ export function SettingsTabs() {
   return (
     <nav
       ref={row}
-      aria-label="Bagian pengaturan"
+      aria-label={t('label')}
       onScroll={(event) => markScrollEdges(event.currentTarget)}
       className={cn(
         '-mx-1 flex scrollbar-none gap-1 overflow-x-auto px-1 lg:mx-0 lg:flex-col lg:gap-4 lg:overflow-visible lg:px-0',
@@ -71,7 +73,7 @@ export function SettingsTabs() {
       )}>
       {GROUPS.map((group) => (
         <div key={group.label} className="flex gap-1 lg:flex-col lg:gap-0.5">
-          <p className="mb-1 hidden px-2.5 text-xs font-medium text-muted-foreground lg:block">{group.label}</p>
+          <p className="mb-1 hidden px-2.5 text-xs font-medium text-muted-foreground lg:block">{t(group.label)}</p>
           {group.tabs.map((tab) => {
             const active = pathname.startsWith(tab.href);
 
@@ -93,7 +95,7 @@ export function SettingsTabs() {
                   )}>
                   <tab.icon className="size-3.5" aria-hidden />
                 </span>
-                {tab.label}
+                {t(tab.label)}
               </Link>
             );
           })}

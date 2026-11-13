@@ -1,4 +1,12 @@
 import type { NextConfig } from 'next';
+import createNextIntlPlugin from 'next-intl/plugin';
+
+// Screen language per staff member (i18n/request.ts). Messages are precompiled at build time: no ICU parser
+// in the browser bundle, and formatting is a plain function call.
+const withNextIntl = createNextIntlPlugin({
+  requestConfig: './src/i18n/request.ts',
+  experimental: { messages: { path: './messages', format: 'json', locales: ['id', 'en'], precompile: true } },
+});
 
 const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname : '';
 
@@ -29,4 +37,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -26,6 +27,7 @@ type BillingVoidDialogProps = {
 
 /** Owner/admin: voids a paid invoice; the visit returns to the cashier for a corrected one. */
 export function BillingVoidDialog(props: BillingVoidDialogProps) {
+  const t = useTranslations('billing.void');
   const [open, setOpen] = useState(false);
   const voidInvoice = useActionMutation((values: VoidValues) => voidInvoiceAction(props.invoiceId, values));
   const form = useForm<VoidValues>({ resolver: zodResolver(voidSchema), defaultValues: { reason: '' } });
@@ -43,15 +45,12 @@ export function BillingVoidDialog(props: BillingVoidDialogProps) {
         size="sm"
         className="text-destructive hover:text-destructive"
         onClick={() => setOpen(true)}>
-        Batalkan tagihan
+        {t('button')}
       </Button>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Batalkan {props.invoiceNo}?</DialogTitle>
-          <DialogDescription>
-            Tagihan tidak dihapus; statusnya menjadi Batal dengan alasan ini. Pasien kembali ke kasir untuk dibuatkan
-            tagihan baru. Obat yang sudah diserahkan tidak berubah.
-          </DialogDescription>
+          <DialogTitle>{t('title', { invoiceNo: props.invoiceNo })}</DialogTitle>
+          <DialogDescription>{t('description')}</DialogDescription>
         </DialogHeader>
         <form
           noValidate
@@ -59,17 +58,17 @@ export function BillingVoidDialog(props: BillingVoidDialogProps) {
           onSubmit={form.handleSubmit((values) =>
             voidInvoice.mutate(values, {
               onSuccess: () => {
-                toast.success('Tagihan dibatalkan. Buat tagihan pengganti.');
+                toast.success(t('done'));
                 setOpen(false);
               },
             }),
           )}>
-          <FormField label="Alasan" htmlFor="void_reason" error={errors.reason?.message}>
-            <Input id="void_reason" autoFocus placeholder="contoh: salah input tindakan" {...form.register('reason')} />
+          <FormField label={t('reason')} htmlFor="void_reason" error={errors.reason?.message}>
+            <Input id="void_reason" autoFocus placeholder={t('reasonPlaceholder')} {...form.register('reason')} />
           </FormField>
           <DialogFooter>
             <Button type="submit" variant="destructive" disabled={voidInvoice.isPending}>
-              {voidInvoice.isPending ? 'Membatalkan...' : 'Batalkan tagihan'}
+              {voidInvoice.isPending ? t('voiding') : t('button')}
             </Button>
           </DialogFooter>
         </form>

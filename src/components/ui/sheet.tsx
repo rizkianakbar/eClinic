@@ -2,6 +2,7 @@
 
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 import { XIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { ComponentProps } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -20,6 +21,8 @@ type SheetContentProps = DialogPrimitive.Popup.Props & {
 };
 
 function SheetContent({ className, children, size = 'md', ...props }: SheetContentProps) {
+  const t = useTranslations('common');
+
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-[#0b1714]/25 transition-opacity duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] data-ending-style:opacity-0 data-starting-style:opacity-0" />
@@ -34,7 +37,7 @@ function SheetContent({ className, children, size = 'md', ...props }: SheetConte
         <DialogPrimitive.Close
           render={<Button variant="ghost" size="icon-sm" className="absolute top-3.5 right-3.5" />}>
           <XIcon />
-          <span className="sr-only">Tutup</span>
+          <span className="sr-only">{t('close')}</span>
         </DialogPrimitive.Close>
       </DialogPrimitive.Popup>
     </DialogPrimitive.Portal>

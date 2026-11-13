@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { LiveIndicator } from '@/components/ui/live-indicator';
 import { PageHeader } from '@/components/ui/page-header';
 import { listLowStock, listPharmacyDesk } from '@/features/home/home.service';
@@ -7,16 +7,18 @@ import { nearExpiryCutoff } from '@/features/inventory/inventory.lib';
 import { countStockAlerts } from '@/features/inventory/inventory.service';
 import { listDispensedToday } from '@/features/pharmacy/pharmacy.service';
 import { VisitsLiveRefresh } from '@/features/visits/visits-live-refresh';
+import { pageTitle } from '@/i18n/metadata';
 import { requireRole } from '@/lib/auth';
 import { formatDate, todayInJakarta } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: 'Resep masuk' };
+export const generateMetadata = pageTitle('nav.pharmacy');
 
 export default async function PharmacyPage() {
   await requireRole('pharmacist');
 
   const today = todayInJakarta();
+  const [t, locale] = await Promise.all([getTranslations(), getLocale()]);
   const supabase = await createClient();
 
   const [waiting, lowStock, dispensed, alerts] = await Promise.all([
@@ -30,10 +32,10 @@ export default async function PharmacyPage() {
     <>
       <VisitsLiveRefresh visitDate={today} />
       <PageHeader
-        title="Resep masuk"
+        title={t('nav.pharmacy')}
         description={
           <span className="inline-flex flex-wrap items-center gap-x-2">
-            {formatDate(today)}
+            {formatDate(today, locale)}
             <LiveIndicator />
           </span>
         }

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { rupiahField } from '@/lib/money';
 
-/** Suggestions only; any short category is allowed. */
+/** Suggestions only; any short category is allowed. Stored as written (Bahasa), shown translated when known. */
 export const EXPENSE_CATEGORIES = [
   'Gaji',
   'Listrik',
@@ -18,17 +18,17 @@ export function expenseSchema(today: string) {
   return z.object({
     expense_date: z
       .string()
-      .min(1, 'Tanggal wajib diisi.')
-      .pipe(z.iso.date('Tanggal tidak valid.'))
-      .refine((value) => value <= today, 'Tanggal tidak boleh di masa depan.'),
-    category: z.string().trim().min(1, 'Kategori wajib diisi.').max(50, 'Kategori maksimal 50 karakter.'),
+      .min(1, 'expenses.errors.dateRequired')
+      .pipe(z.iso.date('expenses.errors.dateInvalid'))
+      .refine((value) => value <= today, 'expenses.errors.dateFuture'),
+    category: z.string().trim().min(1, 'expenses.errors.categoryRequired').max(50, 'expenses.errors.categoryTooLong'),
     description: z
       .string()
       .nullish()
       .transform((value) => (value ?? '').trim())
-      .refine((value) => value.length <= 200, 'Keterangan maksimal 200 karakter.')
+      .refine((value) => value.length <= 200, 'expenses.errors.descriptionTooLong')
       .transform((value) => value || null),
-    amount: rupiahField('Jumlah').refine((value) => value > 0, 'Jumlah harus lebih dari 0.'),
+    amount: rupiahField().refine((value) => value > 0, 'expenses.errors.amountPositive'),
   });
 }
 
@@ -36,17 +36,18 @@ export type ExpenseInput = z.input<ReturnType<typeof expenseSchema>>;
 export type ExpenseValues = z.output<ReturnType<typeof expenseSchema>>;
 
 export const voidExpenseSchema = z.object({
-  reason: z.string().trim().min(1, 'Alasan pembatalan wajib diisi.').max(200, 'Alasan maksimal 200 karakter.'),
+  reason: z.string().trim().min(1, 'expenses.errors.voidReasonRequired').max(200, 'expenses.errors.reasonTooLong'),
 });
 
 export type VoidExpenseValues = z.output<typeof voidExpenseSchema>;
 
+/** Maps an expense write error to a message key. */
 export function expenseErrorMessage(error: { code?: string; message?: string }) {
-  if (error.message === 'void_reason_required') return 'Alasan pembatalan wajib diisi.';
-  if (error.message === 'expense_locked') return 'Pengeluaran ini sudah dibatalkan.';
-  if (error.code === '42501') return 'Hanya pemilik klinik yang bisa mencatat pengeluaran.';
+  if (error.message === 'void_reason_required') return 'expenses.errors.voidReasonRequired';
+  if (error.message === 'expense_locked') return 'expenses.errors.locked';
+  if (error.code === '42501') return 'expenses.errors.ownerOnly';
 
-  return 'Pengeluaran gagal disimpan. Coba lagi, atau hubungi admin jika terus terjadi.';
+  return 'expenses.errors.saveFailed';
 }
 
 type ExpenseRow = { expense_date: string; category: string; amount: number; status: string };

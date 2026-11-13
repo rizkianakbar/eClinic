@@ -1,11 +1,11 @@
 import { ArrowDownLeftIcon, ArrowUpRightIcon, ChevronLeftIcon, PackageIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { PageLinks } from '@/components/ui/page-links';
 import { Tag } from '@/components/ui/tag';
 import { daysBetween, formatDate, formatDateTime } from '@/lib/dates';
 import { formatRupiah } from '@/lib/money';
 import { cn } from '@/lib/utils';
-import { STOCK_LEVEL_LABELS, STOCK_MOVEMENT_LABELS } from './inventory.constants';
 import { MEDICINES_PAGE_SIZE, stockLevel } from './inventory.lib';
 import type { getMedicineStock, listStockCard } from './inventory.service';
 
@@ -16,18 +16,25 @@ type InventoryStockCardProps = Awaited<ReturnType<typeof listStockCard>> & {
   page: number;
 };
 
-/** "12 hari lagi", "3 bulan lagi", or "sudah lewat". */
-function untilExpiry(expiry: string, today: string) {
+type CardText = ReturnType<typeof useTranslations<'inventory.card'>>;
+
+/** "in 12 days", "in 3 months", or "expired". */
+function untilExpiry(expiry: string, today: string, t: CardText) {
   const days = daysBetween(today, expiry);
 
-  if (days < 0) return 'sudah lewat';
-  if (days < 60) return `${days} hari lagi`;
+  if (days < 0) return t('expired');
+  if (days < 60) return t('days', { days });
 
-  return `${Math.floor(days / 30)} bulan lagi`;
+  return t('months', { months: Math.floor(days / 30) });
 }
+
+type MovementType = 'purchase' | 'dispense' | 'consumable' | 'opname';
 
 /** One medicine: how much is left against the minimum, which batches, and every movement (kartu stok). */
 export function InventoryStockCard(props: InventoryStockCardProps) {
+  const t = useTranslations('inventory.card');
+  const ti = useTranslations('inventory');
+  const locale = useLocale();
   const { medicine } = props;
   const qty = medicine.qty_on_hand ?? 0;
   const min = medicine.min_stock ?? 0;
@@ -43,7 +50,7 @@ export function InventoryStockCard(props: InventoryStockCardProps) {
           href="/inventory"
           className="-ml-1 -my-1.5 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
           <ChevronLeftIcon className="size-4" aria-hidden />
-          Semua obat
+          {t('allMedicines')}
         </Link>
         <div className="flex flex-wrap items-center gap-3">
           <span className="flex size-11 items-center justify-center rounded-xl bg-status-pharmacy-soft text-status-pharmacy">
@@ -52,15 +59,15 @@ export function InventoryStockCard(props: InventoryStockCardProps) {
           <div className="flex flex-col gap-1">
             <h2 className="text-[1.25rem] leading-tight font-semibold tracking-tight">{medicine.name}</h2>
             <div className="flex flex-wrap gap-1.5">
-              <Tag>Satuan {medicine.unit}</Tag>
-              <Tag>Minimum {min}</Tag>
+              <Tag>{t('unit', { unit: medicine.unit ?? '' })}</Tag>
+              <Tag>{t('minimum', { min })}</Tag>
               <Tag
                 className={
                   level === 'ok'
                     ? 'border-transparent bg-secondary text-secondary-foreground'
                     : 'border-transparent bg-status-cancelled-soft text-status-cancelled'
                 }>
-                {STOCK_LEVEL_LABELS[level]}
+                {ti(`level.${level}`)}
               </Tag>
             </div>
           </div>
@@ -69,14 +76,16 @@ export function InventoryStockCard(props: InventoryStockCardProps) {
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
         <aside className="flex flex-col gap-2.5 lg:sticky lg:top-20">
-          <h3 className="text-sm font-semibold">Stok sekarang</h3>
+          <h3 className="text-sm font-semibold">{t('stockNow')}</h3>
           <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
             <div className="flex flex-col gap-3 border-b p-4">
               <p className="flex items-baseline gap-1.5">
                 <span className={cn('numeral text-[2rem]', level !== 'ok' && 'text-status-cancelled')}>{qty}</span>
                 <span className="text-sm text-muted-foreground">{medicine.unit}</span>
               </p>
-              <div className="relative h-2 rounded-full bg-muted" title={`Minimum ${min} ${medicine.unit}`}>
+              <div
+                className="relative h-2 rounded-full bg-muted"
+                title={ti('stock.minimum', { min, unit: medicine.unit ?? '' })}>
                 <span
                   className={cn(
                     'absolute inset-y-0 left-0 rounded-full',
@@ -90,35 +99,31 @@ export function InventoryStockCard(props: InventoryStockCardProps) {
                   aria-hidden
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Garis tegak = batas minimum ({min}). Pesan ulang saat stok mendekatinya.
-              </p>
+              <p className="text-xs text-muted-foreground">{t('minNote', { min })}</p>
             </div>
             <dl className="grid grid-cols-2 gap-px border-b bg-border">
               <div className="flex flex-col gap-0.5 bg-card px-4 py-3">
-                <dt className="text-xs text-muted-foreground">Nilai stok</dt>
+                <dt className="text-xs text-muted-foreground">{t('value')}</dt>
                 <dd className="text-[0.9375rem] font-semibold">{formatRupiah(value)}</dd>
               </div>
               <div className="flex flex-col gap-0.5 bg-card px-4 py-3">
-                <dt className="text-xs text-muted-foreground">Kedaluwarsa terdekat</dt>
+                <dt className="text-xs text-muted-foreground">{t('nearest')}</dt>
                 <dd
                   className={cn(
                     'text-[0.9375rem] font-semibold',
                     nearest && nearest <= props.cutoff && 'text-status-cancelled',
                   )}>
-                  {nearest ? untilExpiry(nearest, props.today) : '–'}
+                  {nearest ? untilExpiry(nearest, props.today, t) : '–'}
                 </dd>
               </div>
             </dl>
             <div className="flex flex-col">
               <p className="flex items-center justify-between px-4 pt-3 pb-1 text-xs font-medium text-muted-foreground">
-                Batch tersedia
-                <span>Diambil dari atas</span>
+                {t('batches')}
+                <span>{t('fromTop')}</span>
               </p>
               {medicine.batches.length === 0 ? (
-                <p className="px-4 pt-1 pb-4 text-sm text-muted-foreground">
-                  Stok habis. Catat pembelian untuk menambah.
-                </p>
+                <p className="px-4 pt-1 pb-4 text-sm text-muted-foreground">{t('outOfStock')}</p>
               ) : (
                 <ul className="pb-1">
                   {medicine.batches.map((batch, index) => {
@@ -142,7 +147,8 @@ export function InventoryStockCard(props: InventoryStockCardProps) {
                               'block text-xs',
                               soon ? 'font-medium text-status-cancelled' : 'text-muted-foreground',
                             )}>
-                            ED {formatDate(batch.expiry_date)} · {untilExpiry(batch.expiry_date, props.today)}
+                            {ti('stock.ed', { date: formatDate(batch.expiry_date, locale) })} ·{' '}
+                            {untilExpiry(batch.expiry_date, props.today, t)}
                           </span>
                         </span>
                         <span className="text-right">
@@ -162,14 +168,14 @@ export function InventoryStockCard(props: InventoryStockCardProps) {
 
         <section className="flex min-w-0 flex-col gap-2.5">
           <h3 className="flex items-center gap-2 text-sm font-semibold">
-            Kartu stok
+            {t('title')}
             <span className="tabular rounded-md bg-muted px-1.5 text-xs leading-5 font-medium text-muted-foreground">
               {props.total}
             </span>
           </h3>
           <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
             {props.movements.length === 0 ? (
-              <p className="px-4 py-10 text-center text-sm text-muted-foreground">Belum ada mutasi stok.</p>
+              <p className="px-4 py-10 text-center text-sm text-muted-foreground">{t('noMovements')}</p>
             ) : (
               <ul>
                 {props.movements.map((movement) => {
@@ -191,12 +197,12 @@ export function InventoryStockCard(props: InventoryStockCardProps) {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block text-sm font-medium">
-                          {STOCK_MOVEMENT_LABELS[movement.type ?? ''] ?? movement.type}
+                          {movement.type ? ti(`movement.${movement.type as MovementType}`) : '–'}
                         </span>
                         <span className="block truncate text-xs text-muted-foreground">
-                          Batch <span className="tabular">{movement.batch_no}</span> ·{' '}
-                          {movement.created_by_name ?? 'Sistem'} ·{' '}
-                          {movement.created_at ? formatDateTime(movement.created_at) : '-'}
+                          {t('batch')} <span className="tabular">{movement.batch_no}</span> ·{' '}
+                          {movement.created_by_name ?? t('system')} ·{' '}
+                          {movement.created_at ? formatDateTime(movement.created_at, locale) : '-'}
                         </span>
                       </span>
                       <span className="text-right">
@@ -208,7 +214,9 @@ export function InventoryStockCard(props: InventoryStockCardProps) {
                           {incoming ? '+' : '−'}
                           {Math.abs(change)}
                         </span>
-                        <span className="tabular block text-xs text-muted-foreground">saldo {movement.balance}</span>
+                        <span className="tabular block text-xs text-muted-foreground">
+                          {t('balance', { balance: movement.balance ?? 0 })}
+                        </span>
                       </span>
                     </li>
                   );
@@ -216,7 +224,12 @@ export function InventoryStockCard(props: InventoryStockCardProps) {
               </ul>
             )}
           </div>
-          <PageLinks page={props.page} pageSize={MEDICINES_PAGE_SIZE} total={props.total} noun="mutasi" />
+          <PageLinks
+            page={props.page}
+            pageSize={MEDICINES_PAGE_SIZE}
+            total={props.total}
+            countLabel={t('movementCount', { count: props.total })}
+          />
         </section>
       </div>
     </div>

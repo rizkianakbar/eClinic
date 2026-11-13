@@ -1,10 +1,10 @@
-import type { Metadata } from 'next';
 import { getOwnProfile } from '@/features/auth/auth.service';
 import { AuthAccount } from '@/features/auth/auth-account';
+import { pageTitle } from '@/i18n/metadata';
 import { requireRole } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: 'Akun saya' };
+export const generateMetadata = pageTitle('nav.account');
 
 export default async function AccountPage() {
   const session = await requireRole();

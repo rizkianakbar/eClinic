@@ -1,10 +1,12 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { useMessage } from '@/i18n/message';
 import { formatDateTime } from '@/lib/dates';
 import { useActionMutation } from '@/lib/query';
 import { addAmendmentAction } from './exam.actions';
@@ -24,6 +26,9 @@ const EMPTY: SoapInput = { subjective: '', objective: '', assessment: '', plan: 
 
 /** Signed corrections, shown in order; the original note never changes. */
 export function ExamAmendments(props: ExamAmendmentsProps) {
+  const t = useTranslations();
+  const locale = useLocale();
+  const message = useMessage();
   const [adding, setAdding] = useState(false);
   const add = useActionMutation((values: SoapValues) => addAmendmentAction(props.visitId, values));
 
@@ -39,8 +44,11 @@ export function ExamAmendments(props: ExamAmendmentsProps) {
       {props.amendments.map((note) => (
         <div key={note.id} className="flex flex-col gap-2">
           <p className="text-[0.8125rem] text-muted-foreground">
-            Amandemen oleh <span className="font-medium text-foreground">{note.author?.full_name}</span>,{' '}
-            {formatDateTime(note.signed_at ?? note.created_at)}
+            {t.rich('exam.amend.by', {
+              name: note.author?.full_name ?? '',
+              when: formatDateTime(note.signed_at ?? note.created_at, locale),
+              b: (chunks) => <span className="font-medium text-foreground">{chunks}</span>,
+            })}
           </p>
           <SoapText note={note} />
         </div>
@@ -54,20 +62,18 @@ export function ExamAmendments(props: ExamAmendmentsProps) {
             onSubmit={form.handleSubmit((values) =>
               add.mutate(values, {
                 onSuccess: () => {
-                  toast.success('Amandemen ditambahkan.');
+                  toast.success(t('exam.amend.added'));
                   form.reset(EMPTY);
                   setAdding(false);
                 },
               }),
             )}>
-            <p className="text-[0.8125rem] text-muted-foreground">
-              Tulis hanya bagian yang dikoreksi. Catatan asli tetap tersimpan.
-            </p>
+            <p className="text-[0.8125rem] text-muted-foreground">{t('exam.amend.hint')}</p>
             <ExamSoapSheet
               render={(field) => (
                 <>
                   <label htmlFor={`amend_${field.name}`} className="text-xs font-semibold">
-                    {field.label}
+                    {t(`exam.soap.${field.name}.label`)}
                   </label>
                   <textarea
                     id={`amend_${field.name}`}
@@ -76,24 +82,24 @@ export function ExamAmendments(props: ExamAmendmentsProps) {
                     {...form.register(field.name)}
                   />
                   {errors[field.name] && (
-                    <p className="text-[0.8125rem] text-destructive">{errors[field.name]?.message}</p>
+                    <p className="text-[0.8125rem] text-destructive">{message(errors[field.name]?.message ?? '')}</p>
                   )}
                 </>
               )}
             />
             <div className="flex gap-2">
               <Button type="submit" disabled={add.isPending}>
-                {add.isPending ? 'Menyimpan...' : 'Tanda tangani amandemen'}
+                {add.isPending ? t('common.saving') : t('exam.amend.sign')}
               </Button>
               <Button type="button" variant="ghost" onClick={() => setAdding(false)}>
-                Batal
+                {t('common.cancel')}
               </Button>
             </div>
           </form>
         ) : (
           <div>
             <Button variant="outline" size="sm" onClick={() => setAdding(true)}>
-              Tambah amandemen
+              {t('exam.amend.add')}
             </Button>
           </div>
         ))}

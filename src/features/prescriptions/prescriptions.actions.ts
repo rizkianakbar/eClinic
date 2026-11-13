@@ -20,12 +20,12 @@ import {
   setNoMedicine,
 } from './prescriptions.service';
 
-const NOT_FOUND: ActionResult<never> = { ok: false, error: 'Data tidak ditemukan. Muat ulang halaman.' };
+const NOT_FOUND: ActionResult<never> = { ok: false, error: 'exam.errors.notFound' };
 const isId = (value: string) => z.uuid().safeParse(value).success;
 
 const invalid = (error: z.ZodError): ActionResult<never> => ({
   ok: false,
-  error: error.issues[0]?.message ?? 'Data resep tidak valid.',
+  error: error.issues[0]?.message ?? 'rx.errors.invalid',
 });
 
 export async function addPrescriptionItemAction(visitId: string, input: PrescriptionItemInput): Promise<ActionResult> {

@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { placeholders, Skeleton, SkeletonLine } from '@/components/ui/skeleton';
 
 /** Catatan pengeluaran while it loads: a day group of expense rows. */
@@ -29,10 +30,12 @@ export function ExpensesListSkeleton() {
 
 /** Per kategori while it loads. */
 export function ExpensesCategoriesSkeleton() {
+  const t = useTranslations('expenses');
+
   return (
     <section className="flex flex-col gap-2.5">
       <h2 className="flex items-baseline justify-between gap-3 text-sm font-semibold">
-        Per kategori
+        {t('byCategory')}
         <SkeletonLine size="xs" className="w-24" />
       </h2>
       <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">

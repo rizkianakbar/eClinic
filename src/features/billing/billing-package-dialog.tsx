@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon, XIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -9,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { useMessage } from '@/i18n/message';
 import { formatRupiah } from '@/lib/money';
 import { useActionMutation } from '@/lib/query';
 import { setPackageItemsAction } from './billing.actions';
@@ -24,6 +26,9 @@ type BillingPackageDialogProps = {
 
 /** Which services a package includes (shown on the invoice line). */
 export function BillingPackageDialog(props: BillingPackageDialogProps) {
+  const t = useTranslations('billing.package');
+  const tc = useTranslations('common');
+  const message = useMessage();
   const [open, setOpen] = useState(false);
   const save = useActionMutation((values: PackageItemsValues) => setPackageItemsAction(props.packageId, values));
 
@@ -48,11 +53,11 @@ export function BillingPackageDialog(props: BillingPackageDialogProps) {
         if (next) form.reset(defaults);
       }}>
       <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-        Isi paket
+        {t('button')}
       </Button>
       <DialogContent variant="drawer" className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Isi {props.packageName}</DialogTitle>
+          <DialogTitle>{t('title', { name: props.packageName })}</DialogTitle>
         </DialogHeader>
         <form
           noValidate
@@ -60,7 +65,7 @@ export function BillingPackageDialog(props: BillingPackageDialogProps) {
           onSubmit={form.handleSubmit((values) =>
             save.mutate(values, {
               onSuccess: () => {
-                toast.success('Isi paket tersimpan.');
+                toast.success(t('saved'));
                 setOpen(false);
               },
             }),
@@ -68,11 +73,11 @@ export function BillingPackageDialog(props: BillingPackageDialogProps) {
           {rows.fields.map((field, index) => (
             <div key={field.id} className="flex items-center gap-2">
               <NativeSelect
-                aria-label="Layanan"
+                aria-label={t('service')}
                 className="flex-1"
                 aria-invalid={Boolean(errors.items?.[index]?.service_id)}
                 {...form.register(`items.${index}.service_id`)}>
-                <NativeSelectOption value="">Pilih layanan...</NativeSelectOption>
+                <NativeSelectOption value="">{t('pickService')}</NativeSelectOption>
                 {props.services.map((service) => (
                   <NativeSelectOption key={service.id} value={service.id}>
                     {service.name} · {formatRupiah(service.price)}
@@ -80,7 +85,7 @@ export function BillingPackageDialog(props: BillingPackageDialogProps) {
                 ))}
               </NativeSelect>
               <Input
-                aria-label="Jumlah"
+                aria-label={t('qty')}
                 inputMode="numeric"
                 className="w-20"
                 {...form.register(`items.${index}.qty`)}
@@ -89,23 +94,23 @@ export function BillingPackageDialog(props: BillingPackageDialogProps) {
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Hapus"
+                aria-label={t('remove')}
                 disabled={rows.fields.length === 1}
                 onClick={() => rows.remove(index)}>
                 <XIcon />
               </Button>
             </div>
           ))}
-          {listError && <p className="text-sm text-destructive">{listError}</p>}
+          {listError && <p className="text-sm text-destructive">{message(listError)}</p>}
           <div>
             <Button type="button" variant="ghost" size="sm" onClick={() => rows.append({ service_id: '', qty: '1' })}>
               <PlusIcon />
-              Layanan
+              {t('add')}
             </Button>
           </div>
           <DialogFooter>
             <Button type="submit" disabled={save.isPending}>
-              {save.isPending ? 'Menyimpan...' : 'Simpan isi paket'}
+              {save.isPending ? tc('saving') : t('save')}
             </Button>
           </DialogFooter>
         </form>

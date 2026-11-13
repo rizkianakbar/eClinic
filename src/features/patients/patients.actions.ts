@@ -9,7 +9,7 @@ import { type PatientInput, patientSchema } from './patients.lib';
 import { createPatient, updatePatient } from './patients.service';
 
 function invalid(error: z.ZodError): ActionResult<never> {
-  return { ok: false, error: error.issues[0]?.message ?? 'Data pasien tidak valid.' };
+  return { ok: false, error: error.issues[0]?.message ?? 'patients.errors.invalid' };
 }
 
 export async function createPatientAction(input: PatientInput): Promise<ActionResult<{ id: string }>> {
@@ -26,7 +26,7 @@ export async function updatePatientAction(patientId: string, input: PatientInput
 
   const id = z.uuid().safeParse(patientId);
 
-  if (!id.success) return { ok: false, error: 'Pasien tidak ditemukan.' };
+  if (!id.success) return { ok: false, error: 'patients.errors.notFound' };
 
   const parsed = patientSchema.safeParse(input);
 

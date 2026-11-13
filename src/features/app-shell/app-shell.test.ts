@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { isActivePath, myStationVisits, type NavItem, navItemsFor, newArrivals, parseTextSize } from './app-shell.lib';
 
 const items: NavItem[] = [
-  { href: '/dashboard', label: 'Beranda', icon: 'home', group: 'service', roles: 'all' },
-  { href: '/exam', label: 'Pemeriksaan', icon: 'queue', group: 'service', roles: ['doctor', 'nurse'] },
-  { href: '/cashier', label: 'Kasir', icon: 'cashier', group: 'service', roles: ['cashier', 'owner'] },
+  { href: '/dashboard', label: 'dashboard', icon: 'home', group: 'service', roles: 'all' },
+  { href: '/exam', label: 'queue', icon: 'queue', group: 'service', roles: ['doctor', 'nurse'] },
+  { href: '/cashier', label: 'cashier', icon: 'cashier', group: 'service', roles: ['cashier', 'owner'] },
 ];
 
 describe('navItemsFor', () => {

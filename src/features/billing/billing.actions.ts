@@ -33,7 +33,7 @@ import {
 } from './billing.service';
 
 const MANAGERS = ['owner', 'admin'] as const;
-const NOT_FOUND: ActionResult<never> = { ok: false, error: 'Layanan tidak ditemukan. Muat ulang halaman.' };
+const NOT_FOUND: ActionResult<never> = { ok: false, error: 'billing.errors.serviceNotFound' };
 const isId = (value: string) => z.uuid().safeParse(value).success;
 
 export async function createServiceAction(input: ServiceInput): Promise<ActionResult> {
@@ -41,7 +41,7 @@ export async function createServiceAction(input: ServiceInput): Promise<ActionRe
 
   const parsed = serviceSchema.safeParse(input);
 
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Data tidak valid.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'errors.invalid' };
 
   return createService(await createClient(), parsed.data);
 }
@@ -52,7 +52,7 @@ export async function updateServiceAction(serviceId: string, input: ServiceInput
 
   const parsed = serviceSchema.safeParse(input);
 
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Data tidak valid.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'errors.invalid' };
 
   return updateService(await createClient(), serviceId, parsed.data);
 }
@@ -68,7 +68,7 @@ export async function setServiceActiveAction(serviceId: string, isActive: boolea
 
 export async function createInvoiceAction(visitId: string): Promise<ActionResult> {
   await requireRole(...CASHIER_ROLES);
-  if (!isId(visitId)) return { ok: false, error: 'Kunjungan tidak ditemukan. Muat ulang halaman.' };
+  if (!isId(visitId)) return { ok: false, error: 'billing.errors.visitNotFound' };
 
   return createInvoice(await createClient(), visitId);
 }
@@ -79,7 +79,7 @@ export async function addInvoiceServiceAction(invoiceId: string, input: InvoiceS
 
   const parsed = invoiceServiceSchema.safeParse(input);
 
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Layanan tidak valid.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'errors.invalid' };
 
   return addInvoiceService(await createClient(), invoiceId, parsed.data.service_id, parsed.data.qty);
 }
@@ -97,7 +97,7 @@ export async function setItemDiscountAction(itemId: string, input: DiscountInput
 
   const parsed = discountSchema.safeParse(input);
 
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Diskon tidak valid.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'errors.invalid' };
 
   return setItemDiscount(await createClient(), itemId, parsed.data);
 }
@@ -108,7 +108,7 @@ export async function setInvoiceDiscountAction(invoiceId: string, input: Discoun
 
   const parsed = discountSchema.safeParse(input);
 
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Diskon tidak valid.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'errors.invalid' };
 
   return setInvoiceDiscount(await createClient(), invoiceId, parsed.data);
 }
@@ -125,7 +125,7 @@ export async function payInvoiceAction(
 
   const parsed = paymentSchema(total).safeParse(input);
 
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Pembayaran tidak valid.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'errors.invalid' };
 
   return payInvoice(await createClient(), invoiceId, parsed.data);
 }
@@ -136,7 +136,7 @@ export async function setPackageItemsAction(packageId: string, input: PackageIte
 
   const parsed = packageItemsSchema.safeParse(input);
 
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Isi paket tidak valid.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'errors.invalid' };
 
   return setPackageItems(await createClient(), packageId, parsed.data);
 }
@@ -147,7 +147,7 @@ export async function voidInvoiceAction(invoiceId: string, input: VoidValues): P
 
   const parsed = voidSchema.safeParse(input);
 
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Alasan tidak valid.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'errors.invalid' };
 
   return voidInvoice(await createClient(), invoiceId, parsed.data);
 }

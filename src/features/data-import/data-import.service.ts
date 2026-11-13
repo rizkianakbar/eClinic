@@ -1,5 +1,6 @@
 import 'server-only';
 import ExcelJS from 'exceljs';
+import { keyed } from '@/i18n/keyed';
 import type { ActionResult } from '@/lib/query';
 import { readSpreadsheet } from '@/lib/spreadsheet';
 import { fetchAll } from '@/lib/supabase/fetch-all';
@@ -145,18 +146,16 @@ async function readAndParse(kind: ImportKind, file: File) {
   try {
     sheet = await readSpreadsheet(file);
   } catch {
-    return { error: 'File tidak bisa dibaca. Simpan ulang sebagai Excel (.xlsx) lalu coba lagi.' };
+    return { error: 'dataImport.errors.unreadable' };
   }
 
   const parsed = parseImportRows(kind, sheet);
 
   if ('error' in parsed) return parsed;
-  if (parsed.rows.length === 0) return { error: 'File tidak berisi data. Isi sheet Data mulai baris 2.' };
+  if (parsed.rows.length === 0) return { error: 'dataImport.errors.empty' };
 
   if (parsed.rows.length > IMPORT_MAX_ROWS) {
-    return {
-      error: `Maksimal ${IMPORT_MAX_ROWS.toLocaleString('id-ID')} baris per impor. Bagi menjadi beberapa file.`,
-    };
+    return { error: keyed('dataImport.errors.tooManyRows', { max: IMPORT_MAX_ROWS }) };
   }
 
   return parsed;
@@ -250,7 +249,7 @@ export async function commitImport(
 
       return {
         ok: false,
-        error: `Impor berhenti setelah ${created} ${IMPORT_CONFIG[kind].noun} baru tersimpan. Unggah file yang sama lagi untuk melanjutkan.`,
+        error: keyed('dataImport.errors.stoppedCreated', { created }),
       };
     }
 
@@ -269,7 +268,7 @@ export async function commitImport(
 
       return {
         ok: false,
-        error: `Impor berhenti setelah ${created} baru dan ${updated} diperbarui. Unggah file yang sama lagi untuk melanjutkan.`,
+        error: keyed('dataImport.errors.stoppedUpdated', { created, updated }),
       };
     }
 

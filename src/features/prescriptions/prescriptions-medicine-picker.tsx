@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { type KeyboardEvent, useRef, useState } from 'react';
 import { Floating } from '@/components/ui/floating';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,7 @@ type PrescriptionsMedicinePickerProps = {
 
 /** Type to search active medicines; arrows + Enter to pick. Shows the pick with a "change" link. */
 export function PrescriptionsMedicinePicker(props: PrescriptionsMedicinePickerProps) {
+  const t = useTranslations('rx.picker');
   const anchor = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [highlighted, setHighlighted] = useState(0);
@@ -62,7 +64,7 @@ export function PrescriptionsMedicinePicker(props: PrescriptionsMedicinePickerPr
         id={props.id}
         type="search"
         autoComplete="off"
-        placeholder="Ketik nama obat"
+        placeholder={t('placeholder')}
         aria-invalid={props.invalid}
         value={query}
         onChange={(event) => {
@@ -76,7 +78,7 @@ export function PrescriptionsMedicinePicker(props: PrescriptionsMedicinePickerPr
           <ul className="min-h-0 divide-y overflow-y-auto">
             {results.length === 0 ? (
               <li className="px-3 py-2 text-sm text-muted-foreground">
-                {search.isPending ? 'Mencari...' : 'Obat tidak ditemukan atau tidak aktif.'}
+                {search.isPending ? t('searching') : t('notFound')}
               </li>
             ) : (
               results.map((medicine, index) => (

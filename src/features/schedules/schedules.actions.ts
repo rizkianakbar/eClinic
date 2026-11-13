@@ -8,10 +8,10 @@ import { type ScheduleInput, scheduleSchema, toScheduleRows } from './schedules.
 import { createSchedules, updateSchedule } from './schedules.service';
 
 const MANAGERS = ['owner', 'admin'] as const;
-const NOT_FOUND: ActionResult<never> = { ok: false, error: 'Jadwal tidak ditemukan. Muat ulang halaman.' };
+const NOT_FOUND: ActionResult<never> = { ok: false, error: 'schedules.errors.notFound' };
 
 function invalid(error: z.ZodError): ActionResult<never> {
-  return { ok: false, error: error.issues[0]?.message ?? 'Data jadwal tidak valid.' };
+  return { ok: false, error: error.issues[0]?.message ?? 'errors.invalid' };
 }
 
 export async function createScheduleAction(input: ScheduleInput): Promise<ActionResult> {
@@ -33,8 +33,7 @@ export async function updateScheduleAction(scheduleId: string, input: ScheduleIn
 
   const [row, ...extra] = toScheduleRows(parsed.data);
 
-  if (extra.length > 0)
-    return { ok: false, error: 'Ubah jadwal hanya untuk satu hari. Tambah hari lain lewat Tambah jadwal.' };
+  if (extra.length > 0) return { ok: false, error: 'schedules.errors.oneDayEdit' };
 
   return updateSchedule(await createClient(), scheduleId, row);
 }

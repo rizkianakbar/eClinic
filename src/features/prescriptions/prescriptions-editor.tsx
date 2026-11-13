@@ -2,15 +2,16 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FlaskConicalIcon, PillIcon, PlusIcon, XIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useExamDrafts } from '@/features/exam/exam-drafts';
+import { useMessage } from '@/i18n/message';
 import { useActionMutation } from '@/lib/query';
 import { addPrescriptionItemAction, removeCompoundAction, removePrescriptionItemAction } from './prescriptions.actions';
 import {
-  COMPOUND_FORM_LABELS,
   type PrescriptionItemFormInput,
   type PrescriptionItemValues,
   prescriptionItemFormSchema,
@@ -35,6 +36,7 @@ const EMPTY: PrescriptionItemFormInput = { medicine: null, qty: '', signa: '' };
 
 export function PrescriptionsEditor(props: PrescriptionsEditorProps) {
   const { items, compounds } = props.prescription;
+  const t = useTranslations();
   const removeItem = useActionMutation(removePrescriptionItemAction);
   const removeCompound = useActionMutation(removeCompoundAction);
   const busy = removeItem.isPending || removeCompound.isPending;
@@ -43,11 +45,7 @@ export function PrescriptionsEditor(props: PrescriptionsEditorProps) {
     <div className="flex flex-col gap-2">
       {items.length === 0 && compounds.length === 0 ? (
         !props.noMedicineReason && (
-          <p className="text-sm text-muted-foreground">
-            {props.editable
-              ? 'Belum ada obat. Tambahkan obat, atau pilih "Tidak perlu obat" dengan alasannya.'
-              : 'Tidak ada resep.'}
-          </p>
+          <p className="text-sm text-muted-foreground">{props.editable ? t('rx.editor.empty') : t('rx.editor.none')}</p>
         )
       ) : (
         <ul className="overflow-hidden rounded-lg border text-sm">
@@ -69,7 +67,7 @@ export function PrescriptionsEditor(props: PrescriptionsEditorProps) {
                 <Button
                   size="icon-xs"
                   variant="ghost"
-                  aria-label="Hapus obat"
+                  aria-label={t('rx.editor.removeItem')}
                   disabled={busy}
                   onClick={() => removeItem.mutate(item.id)}>
                   <XIcon />
@@ -84,7 +82,7 @@ export function PrescriptionsEditor(props: PrescriptionsEditorProps) {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="font-medium">
-                  Racikan {COMPOUND_FORM_LABELS[compound.form as keyof typeof COMPOUND_FORM_LABELS]}
+                  {t('rx.editor.compound', { form: t(`compoundForm.${compound.form as 'puyer' | 'kapsul'}`) })}
                   <span className="tabular ml-2 font-normal text-muted-foreground">
                     {compound.quantity} {compound.form}
                   </span>
@@ -102,7 +100,7 @@ export function PrescriptionsEditor(props: PrescriptionsEditorProps) {
                 <Button
                   size="icon-xs"
                   variant="ghost"
-                  aria-label="Hapus racikan"
+                  aria-label={t('rx.editor.removeCompound')}
                   disabled={busy}
                   onClick={() => removeCompound.mutate(compound.id)}>
                   <XIcon />
@@ -126,6 +124,8 @@ type ItemFormProps = {
 };
 
 function ItemForm(props: ItemFormProps) {
+  const t = useTranslations();
+  const message = useMessage();
   const add = useActionMutation((values: PrescriptionItemValues) => addPrescriptionItemAction(props.visitId, values));
 
   const form = useForm<PrescriptionItemFormInput, unknown, PrescriptionItemValues>({
@@ -138,7 +138,7 @@ function ItemForm(props: ItemFormProps) {
   const drafts = useExamDrafts();
   const [medicine, qty, signa] = useWatch({ control: form.control, name: ['medicine', 'qty', 'signa'] });
   const hasInput = Boolean(medicine) || Boolean(qty?.toString().trim()) || Boolean(signa?.trim());
-  const draftLabel = medicine?.name ?? 'Obat';
+  const draftLabel = medicine?.name ?? t('rx.editor.medicine');
 
   // Saves the row as if "Tambah" were pressed; false (with the errors shown) when it is incomplete.
   const commit = useRef<() => Promise<boolean>>(async () => true);
@@ -190,23 +190,23 @@ function ItemForm(props: ItemFormProps) {
         </div>
         <Input
           className="w-20"
-          aria-label="Jumlah"
-          placeholder="Jumlah"
+          aria-label={t('rx.editor.qty')}
+          placeholder={t('rx.editor.qty')}
           inputMode="numeric"
           aria-invalid={Boolean(errors.qty)}
           {...form.register('qty')}
         />
         <Input
           className="min-w-48 flex-1"
-          aria-label="Aturan pakai"
-          placeholder="Aturan pakai, contoh: 3 x 1 sesudah makan"
+          aria-label={t('rx.editor.signa')}
+          placeholder={t('rx.editor.signaPlaceholder')}
           list="rx_signa_suggestions"
           aria-invalid={Boolean(errors.signa)}
           {...form.register('signa')}
         />
         <Button type="submit" variant="outline" disabled={add.isPending}>
           <PlusIcon />
-          Tambah
+          {t('common.add')}
         </Button>
         <PrescriptionsCompoundDialog visitId={props.visitId} />
       </div>
@@ -216,13 +216,9 @@ function ItemForm(props: ItemFormProps) {
         ))}
       </datalist>
       {firstError ? (
-        <p className="text-[0.8125rem] text-destructive">{firstError}</p>
+        <p className="text-[0.8125rem] text-destructive">{message(firstError)}</p>
       ) : (
-        hasInput && (
-          <p className="text-[0.8125rem] text-status-waiting">
-            Belum masuk resep. Tekan Tambah (atau Enter); kalau lupa, obat ini ditambahkan saat tanda tangan.
-          </p>
-        )
+        hasInput && <p className="text-[0.8125rem] text-status-waiting">{t('rx.editor.notAdded')}</p>
       )}
     </form>
   );

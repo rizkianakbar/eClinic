@@ -2,6 +2,7 @@
 
 import { UserRoundSearchIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { formatTime } from '@/lib/dates';
@@ -26,7 +27,9 @@ type TodayVisit = {
   doctor: { full_name: string } | null;
 };
 
-type Filter = 'all' | 'waiting' | 'served' | 'done' | 'cancelled';
+const FILTERS = ['all', 'waiting', 'served', 'done', 'cancelled'] as const;
+
+type Filter = (typeof FILTERS)[number];
 
 const MATCH: Record<Filter, (status: VisitStatus) => boolean> = {
   all: () => true,
@@ -42,6 +45,8 @@ type VisitsTodayListProps = {
 
 /** Everyone registered today, newest first, filterable by where they are. */
 export function VisitsTodayList(props: VisitsTodayListProps) {
+  const t = useTranslations();
+  const locale = useLocale();
   const [filter, setFilter] = useState<Filter>('all');
   const count = (key: Filter) => props.visits.filter((visit) => MATCH[key](visit.status)).length;
 
@@ -50,25 +55,19 @@ export function VisitsTodayList(props: VisitsTodayListProps) {
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
 
   return (
-    <section aria-label="Terdaftar hari ini" className="flex flex-col gap-3">
+    <section aria-label={t('visits.today.title')} className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
-          Terdaftar hari ini
+          {t('visits.today.title')}
           <span className="tabular rounded-md bg-muted px-1.5 text-xs leading-5 font-medium text-muted-foreground">
             {props.visits.length}
           </span>
         </h2>
         <SegmentedControl
-          label="Saring"
+          label={t('visits.today.filter')}
           value={filter}
           onChange={setFilter}
-          options={[
-            { value: 'all', label: `Semua ${count('all')}` },
-            { value: 'waiting', label: `Menunggu ${count('waiting')}` },
-            { value: 'served', label: `Dilayani ${count('served')}` },
-            { value: 'done', label: `Pulang ${count('done')}` },
-            { value: 'cancelled', label: `Batal ${count('cancelled')}` },
-          ]}
+          options={FILTERS.map((value) => ({ value, label: `${t(`visits.today.${value}`)} ${count(value)}` }))}
         />
       </div>
 
@@ -77,7 +76,7 @@ export function VisitsTodayList(props: VisitsTodayListProps) {
           <div className="flex flex-col items-center gap-1 px-6 py-10 text-center">
             <UserRoundSearchIcon className="size-6 text-muted-foreground" aria-hidden />
             <p className="text-sm font-medium">
-              {props.visits.length === 0 ? 'Belum ada pendaftaran hari ini' : 'Tidak ada di kelompok ini'}
+              {props.visits.length === 0 ? t('visits.today.empty') : t('visits.today.emptyFilter')}
             </p>
           </div>
         ) : (
@@ -95,7 +94,7 @@ export function VisitsTodayList(props: VisitsTodayListProps) {
                       visit.status === 'cancelled' && 'opacity-60',
                     )}>
                     <span className="tabular text-[0.8125rem] text-muted-foreground">
-                      {formatTime(visit.created_at)}
+                      {formatTime(visit.created_at, locale)}
                     </span>
                     <span
                       className={cn(
@@ -106,7 +105,9 @@ export function VisitsTodayList(props: VisitsTodayListProps) {
                     </span>
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium">{visit.patient?.full_name}</span>
-                      <span className="tabular block text-xs text-muted-foreground">RM {visit.patient?.mrn}</span>
+                      <span className="tabular block text-xs text-muted-foreground">
+                        {t('patients.mrn')} {visit.patient?.mrn}
+                      </span>
                     </span>
                     <span className="hidden min-w-0 md:block">
                       <span className="block truncate text-sm">{visit.poli?.name}</span>
@@ -118,12 +119,12 @@ export function VisitsTodayList(props: VisitsTodayListProps) {
                           BPJS
                         </span>
                       ) : (
-                        <span className="text-[0.8125rem] text-muted-foreground">Umum</span>
+                        <span className="text-[0.8125rem] text-muted-foreground">{t('payer.umum')}</span>
                       )}
                     </span>
                     <span className="flex items-center justify-end gap-2">
                       {visit.skipped_at && visit.status === 'waiting' && (
-                        <span className="text-xs font-medium text-status-cancelled">Dilewati</span>
+                        <span className="text-xs font-medium text-status-cancelled">{t('visits.today.skipped')}</span>
                       )}
                       <VisitsStatusBadge status={visit.status} />
                     </span>

@@ -1,5 +1,7 @@
 import { HistoryIcon } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { formatDate } from '@/lib/dates';
+import { icd10Name } from './exam.lib';
 import type { listPreviousVisits } from './exam.service';
 
 type ExamHistoryProps = {
@@ -8,11 +10,14 @@ type ExamHistoryProps = {
 
 /** Previous visits as a timeline: diagnoses, medicines, and the signed assessment/plan. */
 export function ExamHistory(props: ExamHistoryProps) {
+  const t = useTranslations('exam.history');
+  const locale = useLocale();
+
   if (props.visits.length === 0) {
     return (
       <div className="flex items-center gap-3 rounded-xl border border-dashed px-4 py-4 text-sm text-muted-foreground">
         <HistoryIcon className="size-4 shrink-0" aria-hidden />
-        Kunjungan pertama pasien di klinik ini.
+        {t('first')}
       </div>
     );
   }
@@ -34,7 +39,7 @@ export function ExamHistory(props: ExamHistoryProps) {
               className="absolute top-1.5 -left-6.75 size-2.5 rounded-full border-2 border-card bg-input"
               aria-hidden
             />
-            <p className="font-semibold">{formatDate(visit.visit_date)}</p>
+            <p className="font-semibold">{formatDate(visit.visit_date, locale)}</p>
             <p className="mb-2 text-[0.8125rem] text-muted-foreground">
               {visit.poli?.name} · {visit.doctor?.full_name}
             </p>
@@ -43,14 +48,14 @@ export function ExamHistory(props: ExamHistoryProps) {
                 <p key={diagnosis.icd10_code} className="flex gap-2">
                   <span className="tabular shrink-0 text-xs leading-5 font-semibold">{diagnosis.icd10_code}</span>
                   <span>
-                    {diagnosis.icd10?.name_id ?? diagnosis.icd10?.name}
-                    {diagnosis.is_primary && <span className="text-muted-foreground"> (utama)</span>}
+                    {icd10Name(diagnosis.icd10, locale)}
+                    {diagnosis.is_primary && <span className="text-muted-foreground">{t('primary')}</span>}
                   </span>
                 </p>
               ))}
               {medicines.length > 0 && (
                 <p>
-                  <span className="text-muted-foreground">Obat: </span>
+                  <span className="text-muted-foreground">{t('medicines')}</span>
                   {medicines.join(', ')}
                 </p>
               )}
@@ -69,7 +74,7 @@ export function ExamHistory(props: ExamHistoryProps) {
                 </div>
               ))}
               {diagnoses.length === 0 && notes.length === 0 && medicines.length === 0 && (
-                <p className="text-muted-foreground">Tidak ada catatan pemeriksaan.</p>
+                <p className="text-muted-foreground">{t('none')}</p>
               )}
             </div>
           </li>

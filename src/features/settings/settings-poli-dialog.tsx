@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -25,6 +26,8 @@ type SettingsPoliDialogProps = { consultationServices: ConsultationService[] } &
 );
 
 export function SettingsPoliDialog(props: SettingsPoliDialogProps) {
+  const t = useTranslations('settings.poliForm');
+  const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
 
   return (
@@ -32,16 +35,16 @@ export function SettingsPoliDialog(props: SettingsPoliDialogProps) {
       {props.mode === 'create' ? (
         <Button onClick={() => setOpen(true)}>
           <PlusIcon />
-          Tambah poli
+          {t('add')}
         </Button>
       ) : (
         <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-          Ubah
+          {tc('edit')}
         </Button>
       )}
       <DialogContent variant="drawer">
         <DialogHeader>
-          <DialogTitle>{props.mode === 'create' ? 'Tambah poli' : `Ubah ${props.poli.name}`}</DialogTitle>
+          <DialogTitle>{props.mode === 'create' ? t('add') : t('editTitle', { name: props.poli.name })}</DialogTitle>
         </DialogHeader>
         <PoliForm {...props} onDone={() => setOpen(false)} />
       </DialogContent>
@@ -50,6 +53,9 @@ export function SettingsPoliDialog(props: SettingsPoliDialogProps) {
 }
 
 function PoliForm(props: SettingsPoliDialogProps & { onDone: () => void }) {
+  const t = useTranslations('settings.poliForm');
+  const tc = useTranslations('common');
+
   const save = useActionMutation((values: PoliValues) =>
     props.mode === 'create' ? createPoliAction(values) : updatePoliAction(props.poli.id, values),
   );
@@ -75,28 +81,28 @@ function PoliForm(props: SettingsPoliDialogProps & { onDone: () => void }) {
       onSubmit={form.handleSubmit((values) =>
         save.mutate(values, {
           onSuccess: () => {
-            toast.success('Poli tersimpan.');
+            toast.success(t('saved'));
             props.onDone();
           },
         }),
       )}>
-      <FormField label="Nama poli" htmlFor="poli_name" error={errors.name?.message} hint="contoh: Poli Umum">
+      <FormField label={t('name')} htmlFor="poli_name" error={errors.name?.message} hint={t('nameHint')}>
         <Input id="poli_name" autoFocus aria-invalid={Boolean(errors.name)} {...form.register('name')} />
       </FormField>
       <FormField
-        label="Kode poli BPJS"
+        label={t('bpjsCode')}
         htmlFor="bpjs_poli_code"
         error={errors.bpjs_poli_code?.message}
-        hint="opsional, untuk PCare">
+        hint={t('bpjsHint')}>
         <Input id="bpjs_poli_code" aria-invalid={Boolean(errors.bpjs_poli_code)} {...form.register('bpjs_poli_code')} />
       </FormField>
       <FormField
-        label="Tarif konsultasi"
+        label={t('consultation')}
         htmlFor="consultation_service_id"
         error={errors.consultation_service_id?.message}
-        hint="ditagih otomatis di kasir">
+        hint={t('consultationHint')}>
         <NativeSelect id="consultation_service_id" className="w-full" {...form.register('consultation_service_id')}>
-          <NativeSelectOption value="">Tidak ada</NativeSelectOption>
+          <NativeSelectOption value="">{t('none')}</NativeSelectOption>
           {props.consultationServices.map((service) => (
             <NativeSelectOption key={service.id} value={service.id}>
               {service.name} · {formatRupiah(service.price)}
@@ -106,7 +112,7 @@ function PoliForm(props: SettingsPoliDialogProps & { onDone: () => void }) {
       </FormField>
       <DialogFooter>
         <Button type="submit" disabled={save.isPending}>
-          {save.isPending ? 'Menyimpan...' : 'Simpan'}
+          {save.isPending ? tc('saving') : tc('save')}
         </Button>
       </DialogFooter>
     </form>

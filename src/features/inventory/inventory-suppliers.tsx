@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DataImportDialog } from '@/features/data-import/data-import-dialog';
@@ -12,26 +13,29 @@ type InventorySuppliersProps = {
 };
 
 export function InventorySuppliers(props: InventorySuppliersProps) {
+  const t = useTranslations('inventory.suppliers');
+  const tc = useTranslations('common');
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">Supplier dipakai saat mencatat pembelian obat.</p>
+        <p className="text-sm text-muted-foreground">{t('intro')}</p>
         <div className="flex gap-2">
           <DataImportDialog kind="suppliers" />
           <InventorySupplierDialog mode="create" />
         </div>
       </div>
       {props.suppliers.length === 0 ? (
-        <p className="rounded-lg border p-4 text-sm text-muted-foreground">Belum ada supplier.</p>
+        <p className="rounded-lg border p-4 text-sm text-muted-foreground">{t('empty')}</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nama</TableHead>
-              <TableHead className="hidden md:table-cell">Telepon</TableHead>
-              <TableHead className="hidden md:table-cell">Alamat</TableHead>
-              <TableHead className="hidden md:table-cell">Status</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
+              <TableHead>{t('colName')}</TableHead>
+              <TableHead className="hidden md:table-cell">{t('colPhone')}</TableHead>
+              <TableHead className="hidden md:table-cell">{t('colAddress')}</TableHead>
+              <TableHead className="hidden md:table-cell">{t('colStatus')}</TableHead>
+              <TableHead className="text-right">{t('colActions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -44,10 +48,10 @@ export function InventorySuppliers(props: InventorySuppliersProps) {
                     {[
                       supplier.phone && formatPhone(supplier.phone),
                       supplier.address,
-                      !supplier.is_active && 'nonaktif',
+                      !supplier.is_active && t('inactiveShort'),
                     ]
                       .filter(Boolean)
-                      .join(' · ') || 'Belum ada kontak'}
+                      .join(' · ') || t('noContact')}
                   </span>
                 </TableCell>
                 <TableCell className="tabular hidden md:table-cell">
@@ -56,7 +60,7 @@ export function InventorySuppliers(props: InventorySuppliersProps) {
                 <TableCell className="hidden max-w-xs truncate md:table-cell">{supplier.address ?? '-'}</TableCell>
                 <TableCell className="hidden md:table-cell">
                   <Badge variant={supplier.is_active ? 'secondary' : 'outline'}>
-                    {supplier.is_active ? 'Aktif' : 'Nonaktif'}
+                    {supplier.is_active ? tc('active') : tc('inactive')}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
@@ -67,7 +71,7 @@ export function InventorySuppliers(props: InventorySuppliersProps) {
                       isActive={supplier.is_active}
                       action={setSupplierActiveAction}
                       name={supplier.name}
-                      consequence="Supplier ini tidak bisa dipilih untuk pembelian baru."
+                      consequence={t('deactivateConsequence')}
                     />
                   </div>
                 </TableCell>

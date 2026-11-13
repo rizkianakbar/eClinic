@@ -2,12 +2,17 @@ import { MutationCache, QueryClient, useMutation, useQueryClient } from '@tansta
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import type { MessageValues } from '@/i18n/keyed';
 import { queryKeys } from './query-keys';
 
-const FALLBACK_ERROR = 'Terjadi kesalahan. Coba lagi, atau hubungi admin jika terus terjadi.';
+/** Turns an error's message key into text in the current language (see i18n/message). */
+export type ErrorText = (message: string, values?: MessageValues) => string;
 
-/** One QueryClient per browser session. Mutation errors are toasted here, once, not at each call site. */
-export function makeQueryClient() {
+/**
+ * One QueryClient per browser session. Mutation errors are toasted here, once, not at each call site.
+ * `text` is read at toast time, so a language switch applies without rebuilding the client.
+ */
+export function makeQueryClient(text: { current: ErrorText }) {
   return new QueryClient({
     defaultOptions: {
       queries: { staleTime: 30_000 },
@@ -17,7 +22,9 @@ export function makeQueryClient() {
         // A Server Action that redirects (e.g. an expired session) is navigation, not a failure.
         if (isNavigationSignal(error)) return;
 
-        toast.error(error.message || FALLBACK_ERROR);
+        const values = error instanceof ActionError ? error.values : undefined;
+
+        toast.error(text.current(error.message || 'errors.generic', values));
       },
     }),
   });
@@ -32,12 +39,25 @@ export function isNavigationSignal(error: unknown) {
   );
 }
 
-/** Result shape for Server Actions called from useMutation. */
-export type ActionResult<T = void> = { ok: true; data: T } | { ok: false; error: string };
+/**
+ * Result shape for Server Actions called from useMutation. `error` is a message key (translated in the browser,
+ * in the user's language), with `values` for its placeholders.
+ */
+export type ActionResult<T = void> = { ok: true; data: T } | { ok: false; error: string; values?: MessageValues };
+
+/** A failed action, carried to the MutationCache with its placeholder values. */
+export class ActionError extends Error {
+  constructor(
+    message: string,
+    readonly values?: MessageValues,
+  ) {
+    super(message);
+  }
+}
 
 /** Turns a failed ActionResult into a thrown Error so the MutationCache toasts it. */
 export function unwrap<T>(result: ActionResult<T>) {
-  if (!result.ok) throw new Error(result.error);
+  if (!result.ok) throw new ActionError(result.error, result.values);
 
   return result.data;
 }

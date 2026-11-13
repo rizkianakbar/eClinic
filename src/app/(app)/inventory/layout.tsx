@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { PHARMACY_ROLES } from '@/features/inventory/inventory.constants';
 import { nearExpiryCutoff } from '@/features/inventory/inventory.lib';
@@ -14,12 +15,14 @@ import { cn } from '@/lib/utils';
 export default async function InventoryLayout(props: LayoutProps<'/inventory'>) {
   await requireRole(...PHARMACY_ROLES);
 
+  const t = await getTranslations();
+
   return (
     <>
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="flex flex-col gap-0.5">
-          <h1 className="text-[1.5rem] leading-tight font-semibold tracking-tight">Stok obat</h1>
-          <p className="text-sm text-muted-foreground">Stok per batch, pembelian dari supplier, dan stok opname.</p>
+          <h1 className="text-[1.5rem] leading-tight font-semibold tracking-tight">{t('nav.inventory')}</h1>
+          <p className="text-sm text-muted-foreground">{t('inventory.intro')}</p>
         </div>
         {/* The summary reads every batch: it streams in beside the list instead of holding the page. */}
         <Suspense fallback={<InventorySummarySkeleton />}>
@@ -35,32 +38,36 @@ export default async function InventoryLayout(props: LayoutProps<'/inventory'>) 
 }
 
 async function StockSummary() {
-  const summary = await getStockSummary(await createClient(), nearExpiryCutoff(todayInJakarta()));
+  const [summary, t, locale] = await Promise.all([
+    createClient().then((supabase) => getStockSummary(supabase, nearExpiryCutoff(todayInJakarta()))),
+    getTranslations('inventory.summary'),
+    getLocale(),
+  ]);
 
   const stats = [
     {
-      label: 'Obat aktif',
+      label: t('active'),
       value: String(summary.medicines),
-      hint: 'jenis',
+      hint: t('activeHint'),
       href: '/inventory',
     },
     {
-      label: 'Nilai stok',
-      value: formatRupiahCompact(summary.value),
-      hint: 'harga beli',
+      label: t('value'),
+      value: formatRupiahCompact(summary.value, locale),
+      hint: t('valueHint'),
       href: '/inventory',
     },
     {
-      label: 'Perlu dipesan',
+      label: t('low'),
       value: String(summary.low),
-      hint: 'di bawah minimum',
+      hint: t('lowHint'),
       href: '/inventory?filter=low',
       alert: summary.low > 0,
     },
     {
-      label: 'Hampir kedaluwarsa',
+      label: t('expiring'),
       value: String(summary.expiring),
-      hint: '≤ 3 bulan',
+      hint: t('expiringHint'),
       href: '/inventory?filter=expiring',
       alert: summary.expiring > 0,
     },
@@ -68,7 +75,7 @@ async function StockSummary() {
 
   return (
     <nav
-      aria-label="Ringkasan stok"
+      aria-label={t('label')}
       className="grid grid-cols-2 divide-x divide-y rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)] sm:flex sm:divide-y-0">
       {stats.map((stat) => (
         <Link

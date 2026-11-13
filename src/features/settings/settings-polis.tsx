@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatRupiah } from '@/lib/money';
@@ -12,26 +13,27 @@ type SettingsPolisProps = {
 };
 
 export function SettingsPolis(props: SettingsPolisProps) {
+  const t = useTranslations('settings.polis');
+  const tc = useTranslations('common');
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">Poli dipakai untuk antrean, jadwal dokter, dan laporan.</p>
+        <p className="text-sm text-muted-foreground">{t('intro')}</p>
         <SettingsPoliDialog mode="create" consultationServices={props.consultationServices} />
       </div>
 
       {props.polis.length === 0 ? (
-        <p className="rounded-lg border p-4 text-sm text-muted-foreground">
-          Belum ada poli. Tambahkan poli pertama, contoh: Poli Umum.
-        </p>
+        <p className="rounded-lg border p-4 text-sm text-muted-foreground">{t('empty')}</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nama</TableHead>
-              <TableHead>Kode BPJS</TableHead>
-              <TableHead>Tarif konsultasi</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
+              <TableHead>{t('colName')}</TableHead>
+              <TableHead>{t('colBpjs')}</TableHead>
+              <TableHead>{t('colConsultation')}</TableHead>
+              <TableHead>{t('colStatus')}</TableHead>
+              <TableHead className="text-right">{t('colActions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -44,7 +46,7 @@ export function SettingsPolis(props: SettingsPolisProps) {
                 </TableCell>
                 <TableCell>
                   <Badge variant={poli.is_active ? 'secondary' : 'outline'}>
-                    {poli.is_active ? 'Aktif' : 'Nonaktif'}
+                    {poli.is_active ? tc('active') : tc('inactive')}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
@@ -55,7 +57,7 @@ export function SettingsPolis(props: SettingsPolisProps) {
                       isActive={poli.is_active}
                       action={setPoliActiveAction}
                       name={poli.name}
-                      consequence="Poli ini tidak bisa dipilih untuk kunjungan dan jadwal baru."
+                      consequence={t('deactivateConsequence')}
                     />
                   </div>
                 </TableCell>

@@ -2,6 +2,7 @@
 
 import { BellIcon, CheckCheckIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,7 @@ import { useAppShellLive } from './app-shell-live';
 
 /** Who is waiting at my station, from any page: count on the bell, names and wait times inside. */
 export function AppShellBell() {
+  const t = useTranslations('shell');
   const live = useAppShellLive();
   const station = ROLE_STATION[live.role];
 
@@ -26,7 +28,7 @@ export function AppShellBell() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label={`${station.label}: ${count}`}
+        aria-label={`${t(`station.${station.label}`)}: ${count}`}
         className="relative flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground data-popup-open:bg-black/5">
         <BellIcon className="size-4.5" aria-hidden />
         {count > 0 && (
@@ -37,16 +39,16 @@ export function AppShellBell() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80 p-0">
         <div className="flex items-center justify-between border-b px-3 py-2.5">
-          <p className="text-sm font-semibold">{station.label}</p>
+          <p className="text-sm font-semibold">{t(`station.${station.label}`)}</p>
           <Link href={station.href} className="text-xs font-medium text-muted-foreground hover:text-foreground">
-            Lihat semua
+            {t('bell.seeAll')}
           </Link>
         </div>
         {count === 0 ? (
           <div className="flex flex-col items-center gap-1 px-4 py-8 text-center">
             <CheckCheckIcon className="size-5 text-muted-foreground" aria-hidden />
-            <p className="text-sm font-medium">Tidak ada yang menunggu</p>
-            <p className="text-xs text-muted-foreground">Anda diberi tahu saat pasien baru tiba.</p>
+            <p className="text-sm font-medium">{t('bell.emptyTitle')}</p>
+            <p className="text-xs text-muted-foreground">{t('bell.emptyHint')}</p>
           </div>
         ) : (
           <div className="max-h-80 overflow-y-auto p-1">

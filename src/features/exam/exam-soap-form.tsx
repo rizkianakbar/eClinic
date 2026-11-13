@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckIcon, CircleIcon, PenLineIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -16,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useMessage } from '@/i18n/message';
 import { useActionMutation } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { saveSoapDraftAction, signVisitAction } from './exam.actions';
@@ -38,6 +40,8 @@ type ExamSoapFormProps = {
  * done, save draft (Ctrl/⌘+S), and sign. Signing saves the latest text first.
  */
 export function ExamSoapForm(props: ExamSoapFormProps) {
+  const t = useTranslations();
+  const message = useMessage();
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const save = useActionMutation((values: SoapValues) => saveSoapDraftAction(props.visitId, values));
@@ -59,7 +63,7 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
   const onSave = form.handleSubmit((submitted) =>
     save.mutate(submitted, {
       onSuccess: () => {
-        toast.success('Draf tersimpan.');
+        toast.success(t('exam.soapForm.draftSaved'));
         form.reset(submitted);
       },
     }),
@@ -69,7 +73,7 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
     // A medicine typed in but not added is added now, not silently dropped; an incomplete one stops signing.
     if (!(await drafts.commitAll())) {
       setConfirming(false);
-      toast.error('Obat di bagian Resep belum lengkap. Lengkapi jumlah dan aturan pakainya, lalu tanda tangani lagi.');
+      toast.error(t('exam.soapForm.draftIncomplete'));
       document.getElementById('resep')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
       return;
@@ -80,7 +84,9 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
         form.reset(submitted);
 
         toast.success(
-          `Rekam medis ditandatangani. Pasien diteruskan ke ${result.status === 'to_pharmacy' ? 'farmasi' : 'kasir'}.`,
+          t('exam.soapForm.signed', {
+            station: t(`exam.soapForm.station.${result.status === 'to_pharmacy' ? 'pharmacy' : 'cashier'}`),
+          }),
         );
 
         router.push('/queue');
@@ -110,7 +116,7 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
     };
   }, [isDirty, onSave]);
 
-  const nextStation = willHaveMedicine ? 'farmasi' : 'kasir';
+  const nextStation = t(`exam.soapForm.station.${willHaveMedicine ? 'pharmacy' : 'cashier'}`);
 
   return (
     <form noValidate onSubmit={onSave}>
@@ -118,18 +124,20 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
         render={(field) => (
           <>
             <label htmlFor={`soap_${field.name}`} className="flex items-baseline gap-2 text-xs">
-              <span className="font-semibold text-foreground">{field.label}</span>
-              <span className="text-muted-foreground">{field.hint}</span>
+              <span className="font-semibold text-foreground">{t(`exam.soap.${field.name}.label`)}</span>
+              <span className="text-muted-foreground">{t(`exam.soap.${field.name}.hint`)}</span>
             </label>
             <textarea
               id={`soap_${field.name}`}
               rows={2}
               aria-invalid={Boolean(errors[field.name])}
               className="field-sizing-content min-h-14 w-full resize-none bg-transparent py-1 text-base leading-relaxed outline-none placeholder:text-muted-foreground/60 sm:text-sm"
-              placeholder="Tulis di sini…"
+              placeholder={t('exam.soapForm.placeholder')}
               {...form.register(field.name)}
             />
-            {errors[field.name] && <p className="text-[0.8125rem] text-destructive">{errors[field.name]?.message}</p>}
+            {errors[field.name] && (
+              <p className="text-[0.8125rem] text-destructive">{message(errors[field.name]?.message ?? '')}</p>
+            )}
           </>
         )}
       />
@@ -138,19 +146,22 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
       <div className="pointer-events-none fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30">
         <div className="pointer-events-auto mx-auto flex max-w-3xl flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border bg-card/95 py-2 pr-2 pl-4 shadow-[0_12px_40px_-12px_rgb(15_31_27/0.3),0_0_0_1px_rgb(20_32_29/0.02)] backdrop-blur-md">
           <ol className="flex flex-1 flex-wrap items-center gap-x-4 gap-y-1 text-[0.8125rem]">
-            <Step done={hasNotes} href="#soap" short="SOAP">
-              Catatan SOAP
+            <Step done={hasNotes} href="#soap" short={t('exam.soapForm.stepSoapShort')}>
+              {t('exam.soapForm.stepSoap')}
             </Step>
-            <Step done={props.hasPrimaryDiagnosis} href="#diagnosis" short="Diagnosis">
-              Diagnosis utama
+            <Step done={props.hasPrimaryDiagnosis} href="#diagnosis" short={t('exam.soapForm.stepDiagnosisShort')}>
+              {t('exam.soapForm.stepDiagnosis')}
             </Step>
-            <Step done={medicineDecided} href="#resep" short="Resep">
-              Resep atau tanpa obat
+            <Step done={medicineDecided} href="#resep" short={t('exam.soapForm.stepRxShort')}>
+              {t('exam.soapForm.stepRx')}
             </Step>
             <li className="hidden text-muted-foreground sm:list-item">
-              Lanjut ke <span className="font-medium text-foreground">{nextStation}</span>
+              {t.rich('exam.soapForm.next', {
+                station: nextStation,
+                b: (chunks) => <span className="font-medium text-foreground">{chunks}</span>,
+              })}
             </li>
-            {isDirty && <li className="font-medium text-status-waiting">Belum disimpan</li>}
+            {isDirty && <li className="font-medium text-status-waiting">{t('exam.soapForm.unsaved')}</li>}
           </ol>
           {/* Phones: the buttons take their own row, full width. */}
           <div className="flex w-full gap-2 sm:w-auto">
@@ -160,12 +171,13 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
               size="sm"
               className="max-sm:flex-1"
               disabled={save.isPending || !isDirty}
-              title="Simpan draf (Ctrl+S)">
+              title={t('exam.soapForm.saveTitle')}>
               {save.isPending ? (
-                'Menyimpan…'
+                t('common.saving')
               ) : (
                 <>
-                  Simpan<span className="max-sm:hidden"> draf</span>
+                  <span className="sm:hidden">{t('exam.soapForm.saveShort')}</span>
+                  <span className="max-sm:hidden">{t('exam.soapForm.save')}</span>
                 </>
               )}
             </Button>
@@ -178,28 +190,28 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
                 disabled={!canSign}
                 title={
                   !props.hasPrimaryDiagnosis
-                    ? 'Pilih diagnosis utama dulu'
+                    ? t('exam.soapForm.needDiagnosis')
                     : !medicineDecided
-                      ? 'Tambahkan obat, atau pilih "Tidak perlu obat"'
+                      ? t('exam.soapForm.needMedicine')
                       : undefined
                 }>
                 <PenLineIcon />
-                Tanda tangani<span className="max-sm:hidden"> & selesai</span>
+                <span className="sm:hidden">{t('exam.soapForm.signShort')}</span>
+                <span className="max-sm:hidden">{t('exam.soapForm.sign')}</span>
               </Button>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Tanda tangani rekam medis?</DialogTitle>
+                  <DialogTitle>{t('exam.soapForm.confirmTitle')}</DialogTitle>
                   <DialogDescription>
-                    Catatan SOAP dan diagnosis akan dikunci; koreksi setelahnya lewat amandemen. Pasien diteruskan ke{' '}
-                    {nextStation}.
+                    {t('exam.soapForm.confirmBody', { station: nextStation })}
                     {drafts.pending.length > 0 &&
-                      ` ${drafts.pending.join(', ')} belum ditambahkan ke resep; akan ditambahkan dulu.`}
+                      t('exam.soapForm.pendingDrafts', { items: drafts.pending.join(', ') })}
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                  <DialogClose render={<Button variant="outline" />}>Batal</DialogClose>
+                  <DialogClose render={<Button variant="outline" />}>{t('common.cancel')}</DialogClose>
                   <Button onClick={() => onSign()} disabled={sign.isPending}>
-                    {sign.isPending ? 'Menandatangani…' : 'Tanda tangani'}
+                    {sign.isPending ? t('exam.soapForm.signing') : t('exam.soapForm.confirm')}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -220,6 +232,8 @@ type StepProps = {
 };
 
 function Step(props: StepProps) {
+  const t = useTranslations('exam.soapForm');
+
   return (
     <li>
       <a
@@ -237,7 +251,7 @@ function Step(props: StepProps) {
         )}
         <span className="sm:hidden">{props.short}</span>
         <span className="max-sm:hidden">{props.children}</span>
-        <span className="sr-only">{props.done ? '(sudah)' : '(belum)'}</span>
+        <span className="sr-only">{props.done ? t('stepDone') : t('stepTodo')}</span>
       </a>
     </li>
   );

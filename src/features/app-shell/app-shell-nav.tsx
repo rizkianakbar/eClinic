@@ -3,6 +3,7 @@
 import { HeartPulseIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { type MouseEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { markScrollEdges, revealInRow, SCROLL_EDGE_FADE } from '@/lib/scroll-edges';
 import { cn } from '@/lib/utils';
@@ -21,6 +22,7 @@ type Highlight = { left: number; width: number } | null;
  * the station tabs carry live counts. Sticks on scroll; the logo slides in.
  */
 export function AppShellTabs(props: AppShellTabsProps) {
+  const t = useTranslations();
   const pathname = usePathname();
   const live = useAppShellLive();
   const [highlight, setHighlight] = useState<Highlight>(null);
@@ -168,7 +170,7 @@ export function AppShellTabs(props: AppShellTabsProps) {
         <Link
           ref={logo}
           href="/dashboard"
-          aria-label="Beranda"
+          aria-label={t('nav.dashboard')}
           className="absolute top-[calc(-3rem-1px)] left-4 z-10 flex sm:left-6 lg:left-8"
           style={{ translate: '0 calc(var(--dock, 0) * (3.625rem + 1px))' }}>
           <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.15),0_1px_2px_rgb(10_60_45/0.3)]">
@@ -180,7 +182,7 @@ export function AppShellTabs(props: AppShellTabsProps) {
           <span ref={spacer} aria-hidden className="shrink-0" style={{ width: 'calc(var(--dock, 0) * 3.25rem)' }} />
           <nav
             ref={nav}
-            aria-label="Menu utama"
+            aria-label={t('nav.main')}
             className={cn(
               'relative -mb-px flex min-w-0 flex-1 items-stretch overflow-x-auto scrollbar-none',
               SCROLL_EDGE_FADE,
@@ -223,7 +225,7 @@ export function AppShellTabs(props: AppShellTabsProps) {
                     'relative flex h-13 shrink-0 items-center gap-1.5 px-3 text-sm whitespace-nowrap transition-colors duration-150',
                     active ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
                   )}>
-                  {item.label}
+                  {t(`nav.${item.label}`)}
                   {count > 0 && (
                     <span
                       className={cn(
@@ -231,7 +233,7 @@ export function AppShellTabs(props: AppShellTabsProps) {
                         own ? 'bg-primary text-primary-foreground' : 'bg-black/7 text-foreground',
                       )}>
                       {count}
-                      <span className="sr-only"> menunggu</span>
+                      <span className="sr-only">{t('shell.waitingSr')}</span>
                     </span>
                   )}
                 </Link>

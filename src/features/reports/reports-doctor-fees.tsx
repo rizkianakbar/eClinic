@@ -1,4 +1,5 @@
 import { HandCoinsIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { ROLE_LABELS } from '@/features/auth/auth.constants';
 import { initials } from '@/features/patients/patients.lib';
 import type { Role } from '@/lib/auth';
@@ -6,20 +7,22 @@ import { formatRupiah } from '@/lib/money';
 import type { getDoctorFees } from './reports.service';
 import { ReportsKpis } from './reports-kpis';
 
+const isRole = (role: string): role is Role => Object.hasOwn(ROLE_LABELS, role);
+
 type ReportsDoctorFeesProps = {
   fees: Awaited<ReturnType<typeof getDoctorFees>>;
 };
 
 /** Jasa medis per doctor/nurse from the fee stored on each paid invoice line (umum and BPJS). */
 export function ReportsDoctorFees(props: ReportsDoctorFeesProps) {
+  const t = useTranslations();
+
   if (props.fees.length === 0) {
     return (
       <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed px-6 py-12 text-center">
         <HandCoinsIcon className="mb-1 size-6 text-muted-foreground" aria-hidden />
-        <p className="text-sm font-medium">Tidak ada jasa medis pada periode ini</p>
-        <p className="text-[0.8125rem] text-muted-foreground">
-          Jasa medis muncul dari tagihan yang sudah lunas, sesuai aturan tarif tiap layanan.
-        </p>
+        <p className="text-sm font-medium">{t('reports.fees.empty')}</p>
+        <p className="text-[0.8125rem] text-muted-foreground">{t('reports.fees.emptyHint')}</p>
       </div>
     );
   }
@@ -33,18 +36,18 @@ export function ReportsDoctorFees(props: ReportsDoctorFeesProps) {
     <div className="flex flex-col gap-6">
       <ReportsKpis
         items={[
-          { label: 'Total jasa medis', value: formatRupiah(total), hint: 'Yang perlu dibayarkan' },
-          { label: 'Nilai layanan', value: formatRupiah(billed), hint: 'Tarif layanan yang dikerjakan' },
+          { label: t('reports.fees.total'), value: formatRupiah(total), hint: t('reports.fees.totalHint') },
+          { label: t('reports.fees.billed'), value: formatRupiah(billed), hint: t('reports.fees.billedHint') },
           {
-            label: 'Porsi jasa medis',
+            label: t('reports.fees.share'),
             value: `${billed > 0 ? Math.round((total / billed) * 100) : 0}%`,
-            hint: 'Dari nilai layanan',
+            hint: t('reports.fees.shareHint'),
           },
         ]}
       />
 
       <section className="flex flex-col gap-2.5">
-        <h3 className="text-sm font-semibold">Per tenaga medis</h3>
+        <h3 className="text-sm font-semibold">{t('reports.fees.perPerson')}</h3>
         <ul className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           {rows.map((row) => (
             <li
@@ -56,7 +59,8 @@ export function ReportsDoctorFees(props: ReportsDoctorFeesProps) {
               <span className="min-w-0">
                 <span className="block truncate text-sm font-medium">{row.recipient_name}</span>
                 <span className="block text-xs text-muted-foreground">
-                  {ROLE_LABELS[row.recipient_role as Role] ?? row.recipient_role} · {row.lines} layanan
+                  {isRole(row.recipient_role) ? t(`roles.${row.recipient_role}`) : row.recipient_role} ·{' '}
+                  {t('reports.fees.lines', { count: row.lines })}
                 </span>
               </span>
               <span className="col-span-3 row-start-2 flex items-center gap-2 md:col-span-1 md:row-start-auto">
@@ -71,7 +75,7 @@ export function ReportsDoctorFees(props: ReportsDoctorFeesProps) {
                 </span>
               </span>
               <span className="tabular hidden text-right text-[0.8125rem] text-muted-foreground md:block">
-                <span className="block text-xs">nilai layanan</span>
+                <span className="block text-xs">{t('reports.fees.billedShort')}</span>
                 {formatRupiah(row.billed)}
               </span>
               <span className="tabular text-right text-sm font-semibold">{formatRupiah(row.fee)}</span>

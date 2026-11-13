@@ -1,10 +1,17 @@
 import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
+import { PRINT_HEADER } from '@/i18n/locales';
 
 const PUBLIC_PATHS = ['/login', '/display'];
 
 /** Refreshes the Supabase session cookie on every request and redirects optimistically by sign-in state. */
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Printouts render in Bahasa whatever the screen language; only the proxy may say a request is one.
+  if (pathname.startsWith('/print/')) request.headers.set(PRINT_HEADER, '1');
+  else request.headers.delete(PRINT_HEADER);
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -29,7 +36,6 @@ export async function proxy(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const isSignedIn = Boolean(data?.claims);
 
-  const { pathname } = request.nextUrl;
   const isPublic = PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
   if (!isSignedIn && !isPublic) {

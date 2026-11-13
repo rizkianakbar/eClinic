@@ -1382,6 +1382,7 @@ export type Database = {
           full_name: string
           id: string
           is_active: boolean
+          locale: string
           nik: string | null
           role: Database["public"]["Enums"]["user_role"]
           satusehat_practitioner_id: string | null
@@ -1395,6 +1396,7 @@ export type Database = {
           full_name: string
           id: string
           is_active?: boolean
+          locale?: string
           nik?: string | null
           role: Database["public"]["Enums"]["user_role"]
           satusehat_practitioner_id?: string | null
@@ -1408,6 +1410,7 @@ export type Database = {
           full_name?: string
           id?: string
           is_active?: boolean
+          locale?: string
           nik?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           satusehat_practitioner_id?: string | null
@@ -2565,6 +2568,7 @@ export type Database = {
         Args: { p_discount: number; p_item_id: string; p_reason: string }
         Returns: undefined
       }
+      set_my_locale: { Args: { p_locale: string }; Returns: undefined }
       set_package_items: {
         Args: { p_items: Json; p_package_id: string }
         Returns: undefined

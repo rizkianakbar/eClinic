@@ -1,14 +1,17 @@
 import { SearchIcon, UserRoundSearchIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { SegmentedSkeleton } from '@/components/ui/segmented-skeleton';
 import { placeholders, Skeleton, SkeletonLine } from '@/components/ui/skeleton';
 
 /** Pendaftaran while it loads: the search box, today's list, and the doctors' quota panel, in their real frames. */
 export function VisitsRegistrationSkeleton() {
+  const t = useTranslations();
+
   return (
     <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_26rem]">
       <div className="flex min-w-0 flex-col gap-8">
         <section className="flex flex-col gap-2.5">
-          <h2 className="text-sm font-semibold">1. Cari pasien</h2>
+          <h2 className="text-sm font-semibold">{t('visits.desk.step1')}</h2>
           <div className="rounded-xl border bg-card p-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
             <div className="flex flex-col gap-3">
               <div className="relative flex h-12 items-center rounded-xl border border-input bg-card pl-11 shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
@@ -16,7 +19,7 @@ export function VisitsRegistrationSkeleton() {
                   className="absolute top-1/2 left-3.5 size-4.5 -translate-y-1/2 text-muted-foreground"
                   aria-hidden
                 />
-                <span className="text-base text-muted-foreground/70">Nama, NIK, nomor HP, atau no. RM</span>
+                <span className="text-base text-muted-foreground/70">{t('patients.search.placeholder')}</span>
               </div>
               <SkeletonLine className="w-80" />
             </div>
@@ -25,10 +28,14 @@ export function VisitsRegistrationSkeleton() {
         <section className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-sm font-semibold">
-              Terdaftar hari ini
+              {t('visits.today.title')}
               <Skeleton className="h-5 w-6 rounded-md" />
             </h2>
-            <SegmentedSkeleton options={['Semua', 'Menunggu', 'Dilayani', 'Pulang', 'Batal']} />
+            <SegmentedSkeleton
+              options={['all', 'waiting', 'served', 'done', 'cancelled'].map((key) =>
+                t(`visits.today.${key as 'all'}`),
+              )}
+            />
           </div>
           <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
             <ul>
@@ -58,13 +65,11 @@ export function VisitsRegistrationSkeleton() {
       </div>
 
       <aside className="flex flex-col gap-2.5 lg:sticky lg:top-20">
-        <h2 className="text-sm font-semibold">2. Pilih dokter dan daftarkan</h2>
+        <h2 className="text-sm font-semibold">{t('visits.desk.step2')}</h2>
         <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           <div className="flex items-center gap-3 border-b bg-muted/30 px-4 py-3">
             <UserRoundSearchIcon className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-            <p className="text-[0.8125rem] text-muted-foreground">
-              Cari dan pilih pasien di kiri. Dokter dan kuota hari ini:
-            </p>
+            <p className="text-[0.8125rem] text-muted-foreground">{t('visits.sessions.intro')}</p>
           </div>
           <ul>
             {placeholders(2).map((key) => (

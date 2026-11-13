@@ -1,10 +1,11 @@
 import { FileSpreadsheetIcon, PlusIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { placeholders, Skeleton, SkeletonAction, SkeletonButton, SkeletonLine } from '@/components/ui/skeleton';
 import { TableSkeleton } from '@/components/ui/table-skeleton';
 import { FieldSkeleton, InputFrame } from '@/features/inventory/inventory-skeleton';
 import { ReportsRangeFilterSkeleton } from '@/features/reports/reports-skeleton';
-import { DAY_LABELS } from '@/features/schedules/schedules.constants';
+import { weekdayKey } from '@/features/schedules/schedules.constants';
 import { cn } from '@/lib/utils';
 
 type MasterListSkeletonProps = {
@@ -21,6 +22,8 @@ type MasterListSkeletonProps = {
 
 /** A master-data list (polis, services, medicines, suppliers): intro, actions, and the table. */
 export function SettingsMasterListSkeleton(props: MasterListSkeletonProps) {
+  const t = useTranslations('settings');
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -28,7 +31,7 @@ export function SettingsMasterListSkeleton(props: MasterListSkeletonProps) {
         <div className="flex gap-2">
           {props.importable && (
             <SkeletonAction variant="outline" icon={<FileSpreadsheetIcon />}>
-              Impor Excel
+              {t('importExcel')}
             </SkeletonAction>
           )}
           <SkeletonAction icon={<PlusIcon />}>{props.create}</SkeletonAction>
@@ -41,22 +44,24 @@ export function SettingsMasterListSkeleton(props: MasterListSkeletonProps) {
 
 /** Staf: heading, the count line, the button, and the people. */
 export function SettingsStaffSkeleton() {
+  const t = useTranslations('settings');
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold">Staf</h2>
+          <h2 className="text-base font-semibold">{t('staff.title')}</h2>
           <SkeletonLine className="w-80" />
         </div>
-        <SkeletonAction icon={<PlusIcon />}>Tambah staf</SkeletonAction>
+        <SkeletonAction icon={<PlusIcon />}>{t('staffForm.add')}</SkeletonAction>
       </div>
       <TableSkeleton
         rows={8}
         lines={2}
         columns={[
-          { label: 'Nama', bar: 'w-44' },
-          { label: 'Peran', className: 'hidden sm:table-cell', bar: 'w-20' },
-          { label: 'Status', className: 'hidden md:table-cell', bar: 'w-14' },
+          { label: t('staff.colName'), bar: 'w-44' },
+          { label: t('staff.colRole'), className: 'hidden sm:table-cell', bar: 'w-20' },
+          { label: t('staff.colStatus'), className: 'hidden md:table-cell', bar: 'w-14' },
           { label: '', className: 'w-24' },
         ]}
       />
@@ -71,14 +76,16 @@ type SettingsSchedulesSkeletonProps = {
 
 /** Jadwal dokter: heading, summary, filter and the week board with every day's column. */
 export function SettingsSchedulesSkeleton(props: SettingsSchedulesSkeletonProps) {
+  const t = useTranslations('schedules');
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-base font-semibold">Jadwal dokter</h2>
+          <h2 className="text-base font-semibold">{t('title')}</h2>
           <SkeletonLine className="w-96" />
         </div>
-        <SkeletonAction icon={<PlusIcon />}>Tambah jadwal</SkeletonAction>
+        <SkeletonAction icon={<PlusIcon />}>{t('add')}</SkeletonAction>
       </div>
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -115,10 +122,10 @@ export function SettingsSchedulesSkeleton(props: SettingsSchedulesSkeletonProps)
                     isToday ? 'border-primary/30 bg-primary text-primary-foreground' : 'bg-card',
                   )}>
                   <span className="flex items-center gap-2 text-sm font-semibold">
-                    {DAY_LABELS[day]}
+                    {t(`days.${weekdayKey(day)}`)}
                     {isToday && (
                       <span className="rounded-md bg-white/20 px-1.5 text-[0.6875rem] leading-5 font-medium">
-                        Hari ini
+                        {t('today')}
                       </span>
                     )}
                   </span>
@@ -176,45 +183,41 @@ function SectionSkeleton(props: SectionSkeletonProps) {
 
 /** Profil klinik: the three sections with their real titles and fields, and the letterhead preview. */
 export function SettingsClinicSkeleton() {
+  const t = useTranslations('settings.clinic');
+  const tc = useTranslations('common');
+
   return (
     <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
       <div className="flex min-w-0 flex-col gap-4">
         <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
-          <SectionSkeleton
-            title="Identitas"
-            description="Nama dan logo yang tampil di kop surat, kuitansi, dan laporan.">
+          <SectionSkeleton title={t('identity')} description={t('identityHint')}>
             <div className="flex items-center gap-4">
               <Skeleton className="size-20 shrink-0 rounded-xl" />
               <div className="flex min-w-0 flex-col gap-1.5">
                 <SkeletonButton size="sm" className="w-28" />
-                <p className="text-xs text-muted-foreground">
-                  PNG, JPG, atau WEBP, maksimal 1 MB. Latar transparan paling rapi.
-                </p>
+                <p className="text-xs text-muted-foreground">{t('logoHint')}</p>
               </div>
             </div>
-            <FieldSkeleton label="Nama klinik" />
-            <FieldSkeleton label="Nomor izin klinik" hint="Tampil di bawah alamat pada kop surat" />
+            <FieldSkeleton label={t('name')} />
+            <FieldSkeleton label={t('license')} hint={t('licenseHint')} />
           </SectionSkeleton>
-          <SectionSkeleton title="Kontak" description="Alamat dan nomor yang bisa dihubungi pasien.">
+          <SectionSkeleton title={t('contact')} description={t('contactHint')}>
             <div className="flex flex-col gap-1.5">
-              <span className="text-sm leading-none font-medium">Alamat</span>
+              <span className="text-sm leading-none font-medium">{t('address')}</span>
               <InputFrame className="h-16" />
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FieldSkeleton label="Telepon" />
-              <FieldSkeleton label="Email" hint="Opsional" />
+              <FieldSkeleton label={t('phone')} />
+              <FieldSkeleton label={t('email')} hint={tc('optional')} />
             </div>
           </SectionSkeleton>
-          <SectionSkeleton title="Keamanan" description="Komputer bersama keluar sendiri bila lama tidak dipakai.">
-            <FieldSkeleton
-              label="Keluar otomatis setelah"
-              hint="Lebih pendek lebih aman di meja depan; terlalu pendek membuat dokter sering login ulang."
-            />
+          <SectionSkeleton title={t('security')} description={t('securityHint')}>
+            <FieldSkeleton label={t('idle')} hint={t('idleHint')} />
           </SectionSkeleton>
         </div>
       </div>
       <aside className="flex flex-col gap-2.5 xl:sticky xl:top-19">
-        <h2 className="text-sm font-semibold">Pratinjau kop surat</h2>
+        <h2 className="text-sm font-semibold">{t('preview')}</h2>
         <Skeleton className="h-56 rounded-xl" />
       </aside>
     </div>
@@ -223,15 +226,15 @@ export function SettingsClinicSkeleton() {
 
 /** Kode ICD-10: the count, the format note and the upload. */
 export function SettingsIcd10Skeleton() {
+  const t = useTranslations('settings.icd10');
+
   return (
     <div className="flex max-w-2xl flex-col gap-4">
       <SkeletonLine className="w-80" />
       <div className="rounded-lg border p-4 text-sm">
-        <p className="mb-2 font-medium">Format file</p>
+        <p className="mb-2 font-medium">{t('format')}</p>
         <p className="text-muted-foreground">
-          Excel (.xlsx) atau CSV, satu kode per baris: <span className="tabular">kode, nama, nama Indonesia</span>.
-          Baris judul boleh ada. Kode seperti <span className="tabular">J069</span> otomatis menjadi{' '}
-          <span className="tabular">J06.9</span>. Kode yang sudah ada diperbarui, tidak ada yang dihapus.
+          {t.rich('formatHint', { k: (chunks) => <span className="tabular">{chunks}</span> })}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
@@ -244,15 +247,14 @@ export function SettingsIcd10Skeleton() {
 
 /** Log aktivitas: heading, the period and filters, then a day of entries. */
 export function SettingsActivitySkeleton() {
+  const t = useTranslations('settings.activity');
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3">
         <div>
-          <h2 className="text-base font-semibold">Log aktivitas</h2>
-          <p className="text-sm text-muted-foreground">
-            Siapa mengubah apa dan kapan, untuk data master, keuangan, dan operasional. Catatan medis tidak dicatat di
-            sini.
-          </p>
+          <h2 className="text-base font-semibold">{t('title')}</h2>
+          <p className="text-sm text-muted-foreground">{t('intro')}</p>
         </div>
         <ReportsRangeFilterSkeleton />
         <div className="flex flex-wrap items-center gap-2">

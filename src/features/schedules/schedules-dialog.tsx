@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -10,9 +11,10 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { useMessage } from '@/i18n/message';
 import { useActionMutation } from '@/lib/query';
 import { createScheduleAction, updateScheduleAction } from './schedules.actions';
-import { DAY_LABELS } from './schedules.constants';
+import { WEEKDAYS } from './schedules.constants';
 import { type ScheduleInput, type ScheduleValues, scheduleSchema, toHourMinute } from './schedules.lib';
 
 type Option = { id: string; name: string };
@@ -36,6 +38,8 @@ type SchedulesDialogProps = { doctors: Option[]; polis: Option[] } & (
 );
 
 export function SchedulesDialog(props: SchedulesDialogProps) {
+  const t = useTranslations('schedules');
+  const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
 
   return (
@@ -46,21 +50,21 @@ export function SchedulesDialog(props: SchedulesDialogProps) {
           onClick={() => setOpen(true)}
           className="flex h-8 w-full items-center justify-center gap-1 rounded-lg border border-dashed border-black/12 text-[0.8125rem] font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:bg-card hover:text-primary">
           <PlusIcon className="size-3.5" aria-hidden />
-          Tambah sesi
+          {t('addSession')}
         </button>
       ) : props.mode === 'create' ? (
         <Button onClick={() => setOpen(true)}>
           <PlusIcon />
-          Tambah jadwal
+          {t('add')}
         </Button>
       ) : (
         <Button variant="ghost" size="xs" onClick={() => setOpen(true)}>
-          Ubah
+          {tc('edit')}
         </Button>
       )}
       <DialogContent variant="drawer">
         <DialogHeader>
-          <DialogTitle>{props.mode === 'create' ? 'Tambah jadwal dokter' : 'Ubah jadwal dokter'}</DialogTitle>
+          <DialogTitle>{props.mode === 'create' ? t('addTitle') : t('editTitle')}</DialogTitle>
         </DialogHeader>
         <ScheduleForm {...props} onDone={() => setOpen(false)} />
       </DialogContent>
@@ -69,6 +73,10 @@ export function SchedulesDialog(props: SchedulesDialogProps) {
 }
 
 function ScheduleForm(props: SchedulesDialogProps & { onDone: () => void }) {
+  const t = useTranslations('schedules');
+  const tc = useTranslations('common');
+  const message = useMessage();
+
   const save = useActionMutation((values: ScheduleValues) =>
     props.mode === 'create' ? createScheduleAction(values) : updateScheduleAction(props.schedule.id, values),
   );
@@ -104,18 +112,18 @@ function ScheduleForm(props: SchedulesDialogProps & { onDone: () => void }) {
       onSubmit={form.handleSubmit((values) =>
         save.mutate(values, {
           onSuccess: () => {
-            toast.success('Jadwal tersimpan.');
+            toast.success(t('saved'));
             props.onDone();
           },
         }),
       )}>
-      <FormField label="Dokter" htmlFor="doctor_id" error={errors.doctor_id?.message} className="sm:col-span-2">
+      <FormField label={t('doctor')} htmlFor="doctor_id" error={errors.doctor_id?.message} className="sm:col-span-2">
         <NativeSelect
           id="doctor_id"
           className="w-full"
           aria-invalid={Boolean(errors.doctor_id)}
           {...form.register('doctor_id')}>
-          <NativeSelectOption value="">Pilih...</NativeSelectOption>
+          <NativeSelectOption value="">{t('pick')}</NativeSelectOption>
           {props.doctors.map((doctor) => (
             <NativeSelectOption key={doctor.id} value={doctor.id}>
               {doctor.name}
@@ -124,13 +132,13 @@ function ScheduleForm(props: SchedulesDialogProps & { onDone: () => void }) {
         </NativeSelect>
       </FormField>
 
-      <FormField label="Poli" htmlFor="poli_id" error={errors.poli_id?.message}>
+      <FormField label={t('poli')} htmlFor="poli_id" error={errors.poli_id?.message}>
         <NativeSelect
           id="poli_id"
           className="w-full"
           aria-invalid={Boolean(errors.poli_id)}
           {...form.register('poli_id')}>
-          <NativeSelectOption value="">Pilih...</NativeSelectOption>
+          <NativeSelectOption value="">{t('pick')}</NativeSelectOption>
           {props.polis.map((poli) => (
             <NativeSelectOption key={poli.id} value={poli.id}>
               {poli.name}
@@ -142,41 +150,43 @@ function ScheduleForm(props: SchedulesDialogProps & { onDone: () => void }) {
       {props.mode === 'create' ? (
         <fieldset className="flex flex-col gap-2 sm:col-span-2">
           <legend className="mb-2 text-sm font-medium">
-            Hari praktik <span className="font-normal text-muted-foreground">(boleh lebih dari satu)</span>
+            {t('practiceDays')} <span className="font-normal text-muted-foreground">{t('moreThanOne')}</span>
           </legend>
           <div className="flex flex-wrap gap-x-4 gap-y-2">
-            {Object.entries(DAY_LABELS).map(([value, label]) => (
-              <label key={value} className="flex items-center gap-2 text-sm">
-                <input type="checkbox" value={value} className="size-4 accent-primary" {...form.register('days')} />
-                {label}
+            {WEEKDAYS.map((key, index) => (
+              <label key={key} className="flex items-center gap-2 text-sm">
+                <input type="checkbox" value={index + 1} className="size-4 accent-primary" {...form.register('days')} />
+                {t(`days.${key}`)}
               </label>
             ))}
           </div>
           {errors.days && (
-            <p className="text-sm text-destructive">{errors.days.message ?? errors.days.root?.message}</p>
+            <p className="text-sm text-destructive">
+              {message(errors.days.message ?? errors.days.root?.message ?? '')}
+            </p>
           )}
         </fieldset>
       ) : (
-        <FormField label="Hari" htmlFor="day" error={errors.days?.message}>
+        <FormField label={t('day')} htmlFor="day" error={errors.days?.message}>
           <NativeSelect id="day" className="w-full" aria-invalid={Boolean(errors.days)} {...form.register('days.0')}>
-            {Object.entries(DAY_LABELS).map(([value, label]) => (
-              <NativeSelectOption key={value} value={value}>
-                {label}
+            {WEEKDAYS.map((key, index) => (
+              <NativeSelectOption key={key} value={index + 1}>
+                {t(`days.${key}`)}
               </NativeSelectOption>
             ))}
           </NativeSelect>
         </FormField>
       )}
 
-      <FormField label="Jam mulai" htmlFor="start_time" error={errors.start_time?.message}>
+      <FormField label={t('start')} htmlFor="start_time" error={errors.start_time?.message}>
         <Input id="start_time" type="time" aria-invalid={Boolean(errors.start_time)} {...form.register('start_time')} />
       </FormField>
 
-      <FormField label="Jam selesai" htmlFor="end_time" error={errors.end_time?.message}>
+      <FormField label={t('end')} htmlFor="end_time" error={errors.end_time?.message}>
         <Input id="end_time" type="time" aria-invalid={Boolean(errors.end_time)} {...form.register('end_time')} />
       </FormField>
 
-      <FormField label="Kuota pasien" htmlFor="quota" error={errors.quota?.message} hint="per hari">
+      <FormField label={t('quota')} htmlFor="quota" error={errors.quota?.message} hint={t('quotaHint')}>
         <Input
           id="quota"
           type="number"
@@ -189,7 +199,7 @@ function ScheduleForm(props: SchedulesDialogProps & { onDone: () => void }) {
 
       <DialogFooter className="sm:col-span-2">
         <Button type="submit" disabled={save.isPending}>
-          {save.isPending ? 'Menyimpan...' : 'Simpan'}
+          {save.isPending ? tc('saving') : tc('save')}
         </Button>
       </DialogFooter>
     </form>

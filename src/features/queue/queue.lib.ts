@@ -157,29 +157,28 @@ export function nextToCall(visits: readonly QueueVisit[], doctorId: string) {
 }
 
 export const cancelVisitSchema = z.object({
-  reason: z
-    .string()
-    .trim()
-    .min(1, 'Alasan pembatalan wajib diisi.')
-    .max(200, 'Alasan terlalu panjang, maksimal 200 karakter.'),
+  reason: z.string().trim().min(1, 'queue.errors.reasonRequired').max(200, 'queue.errors.reasonTooLong'),
 });
 
 export type CancelVisitValues = z.output<typeof cancelVisitSchema>;
 
-const QUEUE_ERRORS: Record<string, string> = {
-  not_allowed: 'Anda tidak punya akses untuk tindakan ini.',
-  not_your_patient: 'Hanya dokter yang menangani pasien ini yang bisa memulai pemeriksaan.',
-  not_waiting: 'Pasien ini sudah tidak dalam antrean. Daftar diperbarui otomatis.',
-  invalid_transition: 'Status kunjungan sudah berubah. Daftar diperbarui otomatis, coba lagi.',
-  cancel_reason_required: 'Alasan pembatalan wajib diisi.',
-  vitals_required:
-    'Tanda vital pasien ini belum dicatat. Minta perawat mencatatnya dulu, atau catat sendiri lewat tombol Vital.',
-};
+/** Guard keys raised by private.visits_before_update(); each has a message under queue.errors. */
+const QUEUE_ERRORS = new Set([
+  'not_allowed',
+  'not_your_patient',
+  'not_waiting',
+  'invalid_transition',
+  'cancel_reason_required',
+  'vitals_required',
+]);
 
-/** Maps a guard error from private.visits_before_update() to a message. */
+/** Maps a guard error from private.visits_before_update() to a message key. */
 export function queueErrorMessage(error: { code?: string; message?: string }) {
-  if (error.code === 'P0001' && error.message && QUEUE_ERRORS[error.message]) return QUEUE_ERRORS[error.message];
-  if (error.code === '42501') return QUEUE_ERRORS.not_allowed;
+  if (error.code === 'P0001' && error.message && QUEUE_ERRORS.has(error.message)) {
+    return `queue.errors.${error.message}`;
+  }
 
-  return 'Antrean gagal diperbarui. Coba lagi, atau hubungi admin jika terus terjadi.';
+  if (error.code === '42501') return 'queue.errors.not_allowed';
+
+  return 'queue.errors.failed';
 }

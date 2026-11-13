@@ -1,5 +1,6 @@
 import { ChevronLeftIcon, PlusIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Label } from '@/components/ui/label';
 import { SegmentedSkeleton } from '@/components/ui/segmented-skeleton';
 import {
@@ -12,37 +13,39 @@ import {
 } from '@/components/ui/skeleton';
 import { TableSkeleton } from '@/components/ui/table-skeleton';
 import { cn } from '@/lib/utils';
-import { STOCK_FILTER_LABELS } from './inventory.constants';
+import { STOCK_FILTERS } from './inventory.lib';
 import { InventorySearchSkeleton } from './inventory-search';
 
 /** The stock summary beside the Stok obat title (it streams in on its own). */
 export function InventorySummarySkeleton() {
+  const t = useTranslations('inventory.summary');
+
   return (
     <SkeletonStats
-      items={[
-        { label: 'Obat aktif', hint: 'jenis' },
-        { label: 'Nilai stok', hint: 'harga beli' },
-        { label: 'Perlu dipesan', hint: 'di bawah minimum' },
-        { label: 'Hampir kedaluwarsa', hint: '≤ 3 bulan' },
-      ]}
+      items={(['active', 'value', 'low', 'expiring'] as const).map((key) => ({
+        label: t(key),
+        hint: t(`${key}Hint`),
+      }))}
     />
   );
 }
 
 /** Stok: filter, search, and the stock rows (name, level bar, nearest expiry). */
 export function InventoryStockSkeleton() {
+  const t = useTranslations('inventory');
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <SegmentedSkeleton options={Object.values(STOCK_FILTER_LABELS)} />
-        <InventorySearchSkeleton placeholder="Cari nama obat" />
+        <SegmentedSkeleton options={STOCK_FILTERS.map((filter) => t(`filter.${filter}`))} />
+        <InventorySearchSkeleton placeholder={t('searchMedicine')} />
       </div>
       <TableSkeleton
         rows={10}
         columns={[
-          { label: 'Obat', bar: 'w-40' },
-          { label: 'Stok', className: 'w-[46%] sm:w-[34%]', bar: 'w-full' },
-          { label: 'Kedaluwarsa terdekat', className: 'hidden sm:table-cell', bar: 'w-28' },
+          { label: t('stock.colMedicine'), bar: 'w-40' },
+          { label: t('stock.colStock'), className: 'w-[46%] sm:w-[34%]', bar: 'w-full' },
+          { label: t('stock.colExpiry'), className: 'hidden sm:table-cell', bar: 'w-28' },
         ]}
       />
     </div>
@@ -51,11 +54,13 @@ export function InventoryStockSkeleton() {
 
 /** Pembelian: this month's total, the button, and the invoice rows. */
 export function InventoryPurchasesSkeleton() {
+  const t = useTranslations('inventory');
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <SkeletonLine className="w-96" />
-        <SkeletonAction icon={<PlusIcon />}>Catat pembelian</SkeletonAction>
+        <SkeletonAction icon={<PlusIcon />}>{t('purchases.record')}</SkeletonAction>
       </div>
       <ul className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
         {placeholders(6).map((key) => (
@@ -86,22 +91,22 @@ export function InventoryPurchasesSkeleton() {
 
 /** Stok opname: the explanation, the button, and the past counts. */
 export function InventoryOpnamesSkeleton() {
+  const t = useTranslations('inventory.opnames');
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">
-          Hitung stok fisik; selisih langsung menyesuaikan stok dan tercatat di kartu stok.
-        </p>
-        <SkeletonAction icon={<PlusIcon />}>Mulai stok opname</SkeletonAction>
+        <p className="text-sm text-muted-foreground">{t('intro')}</p>
+        <SkeletonAction icon={<PlusIcon />}>{t('start')}</SkeletonAction>
       </div>
       <TableSkeleton
         rows={5}
         columns={[
-          { label: 'Waktu', bar: 'w-36' },
-          { label: 'Oleh', bar: 'w-28' },
-          { label: 'Batch dihitung', className: 'text-right', bar: 'w-8' },
-          { label: 'Selisih', className: 'text-right', bar: 'w-20' },
-          { label: 'Catatan', bar: 'w-40' },
+          { label: t('colTime'), bar: 'w-36' },
+          { label: t('colBy'), bar: 'w-28' },
+          { label: t('colCounted'), className: 'text-right', bar: 'w-8' },
+          { label: t('colDifference'), className: 'text-right', bar: 'w-20' },
+          { label: t('colNote'), bar: 'w-40' },
         ]}
       />
     </div>
@@ -145,14 +150,16 @@ function DetailTitleSkeleton(props: { tags: string[]; tile?: string }) {
 
 /** One purchase invoice: supplier, total, and its batch lines. */
 export function InventoryPurchaseSkeleton() {
+  const t = useTranslations('inventory.purchase');
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-3">
-        <BackLink href="/inventory/purchases" label="Semua pembelian" />
+        <BackLink href="/inventory/purchases" label={t('all')} />
         <div className="flex flex-wrap items-center justify-between gap-4">
           <DetailTitleSkeleton tags={['w-28', 'w-24', 'w-52']} />
           <div className="flex flex-col items-end">
-            <span className="text-xs text-muted-foreground">Total faktur</span>
+            <span className="text-xs text-muted-foreground">{t('total')}</span>
             <SkeletonLine size="numeral-3xl" className="w-36" />
           </div>
         </div>
@@ -160,12 +167,12 @@ export function InventoryPurchaseSkeleton() {
       <TableSkeleton
         rows={5}
         columns={[
-          { label: 'Obat', bar: 'w-40' },
-          { label: 'No. batch', bar: 'w-20' },
-          { label: 'Kedaluwarsa', bar: 'w-24' },
-          { label: 'Jumlah', className: 'text-right', bar: 'w-12' },
-          { label: 'Harga beli', className: 'text-right', bar: 'w-20' },
-          { label: 'Subtotal', className: 'text-right', bar: 'w-24' },
+          { label: t('colMedicine'), bar: 'w-40' },
+          { label: t('colBatch'), bar: 'w-20' },
+          { label: t('colExpiry'), bar: 'w-24' },
+          { label: t('colQty'), className: 'text-right', bar: 'w-12' },
+          { label: t('colCost'), className: 'text-right', bar: 'w-20' },
+          { label: t('colSubtotal'), className: 'text-right', bar: 'w-24' },
         ]}
       />
     </div>
@@ -174,6 +181,8 @@ export function InventoryPurchaseSkeleton() {
 
 /** One finished stock count: title line, and the counted batches. */
 export function InventoryOpnameSkeleton() {
+  const t = useTranslations('inventory.opname');
+
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -185,12 +194,12 @@ export function InventoryOpnameSkeleton() {
       <TableSkeleton
         rows={6}
         columns={[
-          { label: 'Obat', bar: 'w-40' },
-          { label: 'Batch', bar: 'w-20' },
-          { label: 'Sistem', className: 'text-right', bar: 'w-10' },
-          { label: 'Fisik', className: 'text-right', bar: 'w-10' },
-          { label: 'Selisih', className: 'text-right', bar: 'w-10' },
-          { label: 'Alasan', bar: 'w-36' },
+          { label: t('colMedicine'), bar: 'w-40' },
+          { label: t('colBatch'), bar: 'w-20' },
+          { label: t('colSystem'), className: 'text-right', bar: 'w-10' },
+          { label: t('colCounted'), className: 'text-right', bar: 'w-10' },
+          { label: t('colDifference'), className: 'text-right', bar: 'w-10' },
+          { label: t('colReason'), bar: 'w-36' },
         ]}
       />
     </div>
@@ -199,15 +208,17 @@ export function InventoryOpnameSkeleton() {
 
 /** A medicine's stock card: current stock beside the movement history. */
 export function InventoryStockCardSkeleton() {
+  const t = useTranslations('inventory.card');
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <BackLink href="/inventory" label="Semua obat" />
+        <BackLink href="/inventory" label={t('allMedicines')} />
         <DetailTitleSkeleton tags={['w-24', 'w-24', 'w-20']} tile="bg-status-pharmacy-soft" />
       </div>
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
         <aside className="flex flex-col gap-2.5 lg:sticky lg:top-20">
-          <h3 className="text-sm font-semibold">Stok sekarang</h3>
+          <h3 className="text-sm font-semibold">{t('stockNow')}</h3>
           <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
             <div className="flex flex-col gap-3 border-b p-4">
               <span className="flex h-8 items-center">
@@ -217,7 +228,7 @@ export function InventoryStockCardSkeleton() {
               <SkeletonLine size="xs" className="w-64" />
             </div>
             <dl className="grid grid-cols-2 gap-px border-b bg-border">
-              {['Nilai stok', 'Kedaluwarsa terdekat'].map((label) => (
+              {[t('value'), t('nearest')].map((label) => (
                 <div key={label} className="flex flex-col gap-0.5 bg-card px-4 py-3">
                   <dt className="text-xs text-muted-foreground">{label}</dt>
                   <SkeletonLine className="w-20" />
@@ -236,7 +247,7 @@ export function InventoryStockCardSkeleton() {
         </aside>
         <section className="flex min-w-0 flex-col gap-2.5">
           <h3 className="flex items-center gap-2 text-sm font-semibold">
-            Kartu stok
+            {t('title')}
             <Skeleton className="h-5 w-6 rounded-md" />
           </h3>
           <ul className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
@@ -276,48 +287,53 @@ export function FieldSkeleton(props: FieldSkeletonProps) {
 
 /** Catat pembelian: invoice fields, the batch lines, and the total. */
 export function InventoryPurchaseFormSkeleton() {
+  const t = useTranslations('inventory');
+  const tc = useTranslations('common');
+
   return (
     <div className="flex flex-col gap-6">
       <div className="grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
-        <FieldSkeleton label="Supplier" />
-        <FieldSkeleton label="No. faktur" hint="opsional" />
-        <FieldSkeleton label="Tanggal" />
+        <FieldSkeleton label={t('purchaseForm.supplier')} />
+        <FieldSkeleton label={t('purchaseForm.invoiceNo')} hint={tc('optional')} />
+        <FieldSkeleton label={t('purchaseForm.date')} />
       </div>
       <TableSkeleton
         rows={1}
         columns={[
-          { label: 'Obat', className: 'min-w-56', bar: 'w-full' },
-          { label: 'No. batch', className: 'min-w-28', bar: 'w-full' },
-          { label: 'Kedaluwarsa', className: 'min-w-36', bar: 'w-full' },
-          { label: 'Jumlah', className: 'min-w-20', bar: 'w-full' },
-          { label: 'Harga beli', className: 'min-w-28', bar: 'w-full' },
-          { label: 'Subtotal', className: 'text-right', bar: 'w-16' },
+          { label: t('purchase.colMedicine'), className: 'min-w-56', bar: 'w-full' },
+          { label: t('purchase.colBatch'), className: 'min-w-28', bar: 'w-full' },
+          { label: t('purchase.colExpiry'), className: 'min-w-36', bar: 'w-full' },
+          { label: t('purchase.colQty'), className: 'min-w-20', bar: 'w-full' },
+          { label: t('purchase.colCost'), className: 'min-w-28', bar: 'w-full' },
+          { label: t('purchase.colSubtotal'), className: 'text-right', bar: 'w-16' },
         ]}
       />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <SkeletonButton className="w-32" />
         <SkeletonLine size="base" className="w-28" />
       </div>
-      <FieldSkeleton label="Catatan" hint="opsional" className="max-w-3xl" />
+      <FieldSkeleton label={t('purchaseForm.note')} hint={tc('optional')} className="max-w-3xl" />
     </div>
   );
 }
 
 /** Stok opname baru: the filter and every batch with stock. */
 export function InventoryOpnameFormSkeleton() {
+  const t = useTranslations('inventory');
+
   return (
     <div className="flex flex-col gap-4">
       <InputFrame className="max-w-sm" />
       <TableSkeleton
         rows={10}
         columns={[
-          { label: 'Obat', bar: 'w-40' },
-          { label: 'Batch', bar: 'w-20' },
-          { label: 'Kedaluwarsa', bar: 'w-24' },
-          { label: 'Sistem', className: 'text-right', bar: 'w-10' },
-          { label: 'Fisik', className: 'w-24', bar: 'w-full' },
-          { label: 'Selisih', bar: 'w-10' },
-          { label: 'Alasan', className: 'min-w-48', bar: 'w-full' },
+          { label: t('opname.colMedicine'), bar: 'w-40' },
+          { label: t('opname.colBatch'), bar: 'w-20' },
+          { label: t('purchase.colExpiry'), bar: 'w-24' },
+          { label: t('opname.colSystem'), className: 'text-right', bar: 'w-10' },
+          { label: t('opname.colCounted'), className: 'w-24', bar: 'w-full' },
+          { label: t('opname.colDifference'), bar: 'w-10' },
+          { label: t('opname.colReason'), className: 'min-w-48', bar: 'w-full' },
         ]}
       />
     </div>

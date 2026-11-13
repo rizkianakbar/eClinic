@@ -3,13 +3,13 @@
 import { ChevronRightIcon, CoffeeIcon, MegaphoneIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { ArrivalScope, useArriving } from '@/components/ui/arrival';
 import { Button } from '@/components/ui/button';
 import { Elapsed } from '@/components/ui/elapsed';
 import { Panel, PanelEmpty } from '@/components/ui/panel';
 import { ExamVitalsDialog } from '@/features/exam/exam-vitals-dialog';
-import { SEX_LABELS } from '@/features/patients/patients.constants';
 import { ageInYears } from '@/features/patients/patients.lib';
 import { toHourMinute } from '@/features/schedules/schedules.lib';
 import type { PracticeSession } from '@/features/visits/visits.lib';
@@ -44,6 +44,7 @@ const minutesSince = (iso: string, now: number) => Math.max(0, Math.floor((now -
 
 /** The doctor's home: the room, how my day is going, who waits for me (with triage), and who I have seen. */
 export function QueueDesk(props: QueueDeskProps) {
+  const t = useTranslations();
   const board = useQueueBoard(props.visitDate);
   const all = board.data ?? [];
   const mine = all.filter((visit) => visit.doctor_id === props.actor.userId);
@@ -83,9 +84,9 @@ export function QueueDesk(props: QueueDeskProps) {
 
         {/* Phones: the schedule takes the first row, the three counts share the second. */}
         <dl className="grid grid-cols-6 overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)] lg:grid-cols-4">
-          <DayFigure label="Jadwal hari ini" className="col-span-6 border-b lg:col-span-1 lg:border-b-0">
+          <DayFigure label={t('queue.desk.schedule')} className="col-span-6 border-b lg:col-span-1 lg:border-b-0">
             {props.sessions.length === 0 ? (
-              <dd className="text-sm text-muted-foreground">Tidak ada jadwal praktik</dd>
+              <dd className="text-sm text-muted-foreground">{t('queue.desk.noSchedule')}</dd>
             ) : (
               props.sessions.map((session) => (
                 <dd key={session.id} className="flex items-baseline gap-1.5">
@@ -97,7 +98,7 @@ export function QueueDesk(props: QueueDeskProps) {
               ))
             )}
           </DayFigure>
-          <DayFigure label="Kuota terisi" className="col-span-2 lg:col-span-1 lg:border-l">
+          <DayFigure label={t('queue.desk.quota')} className="col-span-2 lg:col-span-1 lg:border-l">
             <dd className="numeral text-[1.5rem]">
               {taken}
               <span className="text-base text-muted-foreground">/{quota}</span>
@@ -112,33 +113,41 @@ export function QueueDesk(props: QueueDeskProps) {
               />
             </dd>
           </DayFigure>
-          <DayFigure label="Menunggu saya" className="col-span-2 border-l lg:col-span-1">
+          <DayFigure label={t('queue.desk.waitingForMe')} className="col-span-2 border-l lg:col-span-1">
             <dd className="numeral text-[1.5rem]">{waiting.length}</dd>
             <dd className="text-xs text-muted-foreground">
               {waiting.length === 0
-                ? 'Ruang tunggu kosong'
-                : `${triaged} sudah tanda vital · terlama ${longest < 60 ? `${longest} mnt` : `${Math.floor(longest / 60)} j ${longest % 60} m`}`}
+                ? t('queue.desk.waitingEmpty')
+                : t('queue.desk.waitingHint', {
+                    triaged,
+                    longest:
+                      longest < 60
+                        ? t('common.elapsed.minutes', { minutes: longest })
+                        : t('common.elapsed.hours', { hours: Math.floor(longest / 60), minutes: longest % 60 }),
+                  })}
             </dd>
           </DayFigure>
-          <DayFigure label="Selesai diperiksa" className="col-span-2 border-l lg:col-span-1">
+          <DayFigure label={t('queue.desk.seen')} className="col-span-2 border-l lg:col-span-1">
             <dd className="numeral text-[1.5rem]">{seen}</dd>
             <dd className="text-xs text-muted-foreground">
-              {seen === 0 ? 'Belum ada' : `${bpjsSeen} BPJS · ${seen - bpjsSeen} umum`}
+              {seen === 0
+                ? t('queue.desk.seenNone')
+                : t('queue.desk.seenHint', { bpjs: bpjsSeen, umum: seen - bpjsSeen })}
             </dd>
           </DayFigure>
         </dl>
 
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
           <Panel
-            title="Antrean saya"
+            title={t('queue.desk.myQueue')}
             count={waiting.length}
             dot="bg-line-waiting"
-            link={{ href: '/queue', label: 'Papan antrean' }}>
+            link={{ href: '/queue', label: t('queue.desk.board') }}>
             {waiting.length + lanes.skipped.length === 0 ? (
               <PanelEmpty
                 icon={<CoffeeIcon />}
-                title="Tidak ada pasien menunggu"
-                description="Pasien yang didaftarkan ke jadwal Anda muncul di sini."
+                title={t('queue.desk.noneWaiting')}
+                description={t('queue.desk.noneWaitingHint')}
               />
             ) : (
               <ol className="divide-y">
@@ -155,7 +164,7 @@ export function QueueDesk(props: QueueDeskProps) {
                 {lanes.skipped.length > 0 && (
                   <>
                     <li className="bg-muted/40 px-4 py-1.5 text-xs font-medium text-muted-foreground">
-                      Dilewati, bisa dipanggil ulang
+                      {t('queue.board.skipped')}
                     </li>
                     {lanes.skipped.map((visit) => (
                       <WaitingRow
@@ -173,12 +182,9 @@ export function QueueDesk(props: QueueDeskProps) {
             )}
           </Panel>
 
-          <Panel title="Pasien saya hari ini" count={finished.length}>
+          <Panel title={t('queue.desk.myPatients')} count={finished.length}>
             {finished.length === 0 ? (
-              <PanelEmpty
-                title="Belum ada pasien diperiksa"
-                description="Diagnosis utama tiap pasien tampil di sini."
-              />
+              <PanelEmpty title={t('queue.desk.noneSeen')} description={t('queue.desk.noneSeenHint')} />
             ) : (
               <ul className="divide-y">
                 {finished.map((visit) => {
@@ -207,14 +213,16 @@ export function QueueDesk(props: QueueDeskProps) {
                                 {diagnosis.name}
                               </>
                             ) : visit.status === 'in_exam' ? (
-                              'Sedang diperiksa'
+                              t('queue.desk.inExam')
                             ) : (
-                              'Tanpa diagnosis'
+                              t('queue.desk.noDiagnosis')
                             )}
                           </span>
                         </span>
                         <span className={cn('shrink-0 text-xs font-medium', station.text)}>
-                          {STATUS_SHORT[visit.status] ?? ''}
+                          {visit.status === 'cancelled' || visit.status === 'registered' || visit.status === 'waiting'
+                            ? ''
+                            : t(`journey.${visit.status}.short`)}
                         </span>
                         <ChevronRightIcon
                           className="size-4 shrink-0 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5"
@@ -232,13 +240,6 @@ export function QueueDesk(props: QueueDeskProps) {
     </ArrivalScope>
   );
 }
-
-const STATUS_SHORT: Record<string, string> = {
-  in_exam: 'Periksa',
-  to_pharmacy: 'Farmasi',
-  to_cashier: 'Kasir',
-  done: 'Pulang',
-};
 
 type DayFigureProps = {
   label: string;
@@ -266,6 +267,7 @@ type WaitingRowProps = {
 /** One waiting patient: number, who, triage vitals, how long they have waited, and my next action. */
 function WaitingRow(props: WaitingRowProps) {
   const { visit, actor, visitDate } = props;
+  const t = useTranslations();
   const router = useRouter();
   const call = useQueueAction(visitDate, callVisitAction);
   const skip = useQueueAction(visitDate, skipVisitAction);
@@ -297,14 +299,15 @@ function WaitingRow(props: WaitingRowProps) {
             </span>
           )}
           <span className="text-[0.8125rem] text-muted-foreground">
-            {patient && `${SEX_LABELS[patient.sex as keyof typeof SEX_LABELS]}, ${ageInYears(patient.birth_date)} th`}
+            {patient &&
+              `${t(`sex.${patient.sex as 'male' | 'female'}`)}, ${t('patients.ageShort', { age: ageInYears(patient.birth_date) })}`}
           </span>
         </div>
         <QueueVitalChips reading={props.details?.vitals.get(visit.id)} essentialOnly />
         {called && (
           <p className={cn('flex items-center gap-1.5 text-xs font-medium', color.text)}>
             <MegaphoneIcon className="size-3.5" aria-hidden />
-            Sudah dipanggil, menunggu masuk
+            {t('queue.room.called')}
           </p>
         )}
       </div>
@@ -316,7 +319,7 @@ function WaitingRow(props: WaitingRowProps) {
               size="xs"
               disabled={pending}
               onClick={() => start.mutate(visit.id, { onSuccess: () => router.push(`/exam/${visit.id}`) })}>
-              Mulai periksa
+              {t('queue.actions.startExam')}
             </Button>
           )}
           {canCall(actor, visit) && (
@@ -325,23 +328,25 @@ function WaitingRow(props: WaitingRowProps) {
               variant="outline"
               disabled={pending}
               onClick={() =>
-                call.mutate(visit.id, { onSuccess: () => toast.success(`Nomor ${visit.queue_no} dipanggil.`) })
+                call.mutate(visit.id, {
+                  onSuccess: () => toast.success(t('queue.actions.called', { number: visit.queue_no })),
+                })
               }>
               <MegaphoneIcon />
-              {visit.called_at || visit.skipped_at ? 'Ulang' : 'Panggil'}
+              {visit.called_at || visit.skipped_at ? t('queue.actions.recallShort') : t('queue.actions.call')}
             </Button>
           )}
           {blockedByVitals(actor, visit) && canRecordVitals(actor, visit) && (
             <ExamVitalsDialog
               visitId={visit.id}
               patientName={visit.patient?.full_name ?? ''}
-              label="Catat vital"
+              label={t('queue.actions.recordVitals')}
               primary
             />
           )}
           {canSkip(actor, visit) && called && (
             <Button size="xs" variant="ghost" disabled={pending} onClick={() => skip.mutate(visit.id)}>
-              Lewati
+              {t('queue.actions.skip')}
             </Button>
           )}
         </div>

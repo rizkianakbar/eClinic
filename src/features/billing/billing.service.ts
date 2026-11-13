@@ -12,7 +12,7 @@ import {
   type VoidValues,
 } from './billing.lib';
 
-const DUPLICATE_SERVICE = 'Nama layanan ini sudah ada. Gunakan nama lain.';
+const DUPLICATE_SERVICE = 'errors.duplicate.service';
 
 export async function listServices(supabase: SupabaseClient) {
   const { data, error } = await supabase
@@ -44,7 +44,7 @@ export async function updateService(
 
   if (error) return { ok: false, error: masterDataErrorMessage(error, DUPLICATE_SERVICE) };
 
-  return data ? { ok: true, data: undefined } : { ok: false, error: 'Layanan tidak ditemukan. Muat ulang halaman.' };
+  return data ? { ok: true, data: undefined } : { ok: false, error: 'billing.errors.serviceNotFound' };
 }
 
 // Invoices ------------------------------------------------------------------------

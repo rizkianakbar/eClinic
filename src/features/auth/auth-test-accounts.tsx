@@ -1,10 +1,10 @@
 'use client';
 
 import { FlaskConicalIcon, LoaderCircleIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { initials } from '@/features/patients/patients.lib';
 import type { Role } from '@/lib/auth';
 import { cn } from '@/lib/utils';
-import { ROLE_LABELS } from './auth.constants';
 import { useTestAccountSignIn } from './auth.hooks';
 
 type AuthTestAccountsProps = {
@@ -13,6 +13,7 @@ type AuthTestAccountsProps = {
 
 /** Development only (the page renders it under `next dev`): sign in as any seeded test account in one click. */
 export function AuthTestAccounts(props: AuthTestAccountsProps) {
+  const t = useTranslations();
   const signIn = useTestAccountSignIn();
 
   return (
@@ -20,8 +21,8 @@ export function AuthTestAccounts(props: AuthTestAccountsProps) {
       <div className="flex items-start gap-2">
         <FlaskConicalIcon className="mt-0.5 size-4 shrink-0 text-amber-700" aria-hidden />
         <div>
-          <h2 className="text-sm font-semibold text-amber-900">Masuk cepat sebagai akun uji</h2>
-          <p className="text-xs text-amber-900/70">Hanya muncul saat pengembangan (bun run dev).</p>
+          <h2 className="text-sm font-semibold text-amber-900">{t('auth.test.title')}</h2>
+          <p className="text-xs text-amber-900/70">{t('auth.test.hint')}</p>
         </div>
       </div>
       <ul className="grid grid-cols-2 gap-1.5">
@@ -50,7 +51,7 @@ export function AuthTestAccounts(props: AuthTestAccountsProps) {
                     {account.fullName.replace(/\s*\(Uji\)$/, '')}
                   </span>
                   <span className="block truncate text-[0.6875rem] text-muted-foreground">
-                    {ROLE_LABELS[account.role]}
+                    {t(`roles.${account.role}`)}
                   </span>
                 </span>
               </button>

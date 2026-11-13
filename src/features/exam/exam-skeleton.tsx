@@ -11,32 +11,36 @@ import {
   SyringeIcon,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { placeholders, Skeleton, SkeletonButton, SkeletonLine } from '@/components/ui/skeleton';
 import { VisitsJourneyPosition } from '@/features/visits/visits-journey-line';
 import { SOAP_FIELDS } from './exam.constants';
 import { ExamSection } from './exam-section';
 
-const VITALS = ['Tekanan darah', 'Nadi', 'Suhu', 'Napas', 'SpO₂', 'Berat', 'Tinggi', 'IMT'];
+const VITALS = ['bp', 'pulse', 'temp', 'rr', 'spo2', 'weight', 'height', 'bmi'] as const;
 
+/** The checklist items (exam.check.<key>) and whether each is required. */
 const CHECKLIST = [
-  ['Catatan SOAP', true],
-  ['Diagnosis utama', true],
-  ['Resep atau tanpa obat', true],
-  ['Tindakan', false],
-  ['Surat', false],
-  ['Tanda tangan', true],
+  ['soap', true],
+  ['diagnosis', true],
+  ['rxOrNone', true],
+  ['procedures', false],
+  ['letters', false],
+  ['sign', true],
 ] as const;
 
 /** The exam page while it loads: patient card, the five sections with their real titles, and the side rail. */
 export function ExamSkeleton() {
+  const t = useTranslations();
+
   return (
     <div className="flex flex-col gap-6">
       <Link
         href="/queue"
         className="-mb-2 -ml-1 -my-1.5 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
         <ChevronLeftIcon className="size-4" aria-hidden />
-        Antrean
+        {t('nav.queue')}
       </Link>
       <header className="flex flex-wrap items-center justify-between gap-x-10 gap-y-5 rounded-2xl border bg-card px-5 py-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
         <div className="flex min-w-0 items-center gap-4">
@@ -59,8 +63,8 @@ export function ExamSkeleton() {
           <ExamSection
             id="soap"
             icon={NotebookPenIcon}
-            title="Catatan SOAP"
-            description="Wajib diisi sebelum tanda tangan. Ctrl+S menyimpan draf."
+            title={t('exam.section.soap')}
+            description={t('exam.section.soapHint')}
             flush>
             {SOAP_FIELDS.map((field) => (
               <div key={field.name} className="grid grid-cols-[2.75rem_minmax(0,1fr)] border-b last:border-0">
@@ -71,8 +75,8 @@ export function ExamSkeleton() {
                 </div>
                 <div className="flex min-w-0 flex-col px-3 pt-2.5 pb-2">
                   <span className="flex items-baseline gap-2 text-xs">
-                    <span className="font-semibold text-foreground">{field.label}</span>
-                    <span className="text-muted-foreground">{field.hint}</span>
+                    <span className="font-semibold text-foreground">{t(`exam.soap.${field.name}.label`)}</span>
+                    <span className="text-muted-foreground">{t(`exam.soap.${field.name}.hint`)}</span>
                   </span>
                   <div className="flex min-h-14 flex-col gap-1.5 py-2">
                     <Skeleton className="h-3 w-3/4 rounded" />
@@ -84,15 +88,15 @@ export function ExamSkeleton() {
           <ExamSection
             id="diagnosis"
             icon={StethoscopeIcon}
-            title="Diagnosis"
-            description="ICD-10. Tandai satu sebagai diagnosis utama.">
+            title={t('exam.section.diagnosis')}
+            description={t('exam.section.diagnosisHint')}>
             <Skeleton className="h-9 rounded-lg" />
           </ExamSection>
           <ExamSection
             id="resep"
             icon={PillIcon}
-            title="Resep"
-            description='Wajib: tambahkan obat, atau pilih "Tidak perlu obat" dengan alasannya.'>
+            title={t('exam.section.rx')}
+            description={t('exam.section.rxRequired')}>
             <div className="flex flex-col gap-2">
               <Skeleton className="h-9 rounded-lg" />
               <SkeletonButton size="sm" className="w-36" />
@@ -101,15 +105,15 @@ export function ExamSkeleton() {
           <ExamSection
             id="tindakan"
             icon={SyringeIcon}
-            title="Tindakan dan bahan habis pakai"
-            description="Opsional. Masuk tagihan otomatis; bahan diambil dari stok saat tanda tangan.">
+            title={t('exam.section.procedures')}
+            description={t('exam.section.proceduresHint')}>
             <Skeleton className="h-9 rounded-lg" />
           </ExamSection>
           <ExamSection
             id="surat"
             icon={FileTextIcon}
-            title="Surat"
-            description="Surat sakit dan rujukan, dicetak dengan kop klinik.">
+            title={t('exam.section.letters')}
+            description={t('exam.section.lettersHint')}>
             <div className="flex gap-2">
               <SkeletonButton size="sm" className="w-28" />
               <SkeletonButton size="sm" className="w-32" />
@@ -118,12 +122,12 @@ export function ExamSkeleton() {
         </div>
 
         <aside className="flex flex-col gap-4 xl:sticky xl:top-19">
-          <RailCardSkeleton title="Tanda vital" icon={HeartPulseIcon}>
+          <RailCardSkeleton title={t('exam.rail.vitals')} icon={HeartPulseIcon}>
             <div className="flex flex-col gap-3">
               <dl className="grid grid-cols-2 gap-2">
-                {VITALS.map((label) => (
-                  <div key={label} className="flex flex-col gap-1 rounded-lg border bg-muted/40 px-3 py-2">
-                    <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+                {VITALS.map((key) => (
+                  <div key={key} className="flex flex-col gap-1 rounded-lg border bg-muted/40 px-3 py-2">
+                    <dt className="text-xs font-medium text-muted-foreground">{t(`exam.vitals.${key}`)}</dt>
                     <dd className="flex h-6 items-center">
                       <Skeleton className="h-4 w-14 rounded" />
                     </dd>
@@ -133,10 +137,10 @@ export function ExamSkeleton() {
               <SkeletonLine className="w-36" />
             </div>
           </RailCardSkeleton>
-          <RailCardSkeleton title="Kelengkapan" icon={ListChecksIcon}>
+          <RailCardSkeleton title={t('exam.rail.checklist')} icon={ListChecksIcon}>
             <ol className="flex flex-col gap-0.5">
-              {CHECKLIST.map(([label, required]) => (
-                <li key={label} className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm">
+              {CHECKLIST.map(([key, required]) => (
+                <li key={key} className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm">
                   <span
                     className={
                       required
@@ -145,13 +149,13 @@ export function ExamSkeleton() {
                     }
                     aria-hidden
                   />
-                  <span className="flex-1 text-muted-foreground">{label}</span>
-                  {!required && <span className="text-xs text-muted-foreground/70">opsional</span>}
+                  <span className="flex-1 text-muted-foreground">{t(`exam.check.${key}`)}</span>
+                  {!required && <span className="text-xs text-muted-foreground/70">{t('exam.check.optional')}</span>}
                 </li>
               ))}
             </ol>
           </RailCardSkeleton>
-          <RailCardSkeleton title="Kunjungan sebelumnya" icon={HistoryIcon}>
+          <RailCardSkeleton title={t('exam.rail.history')} icon={HistoryIcon}>
             <ExamHistorySkeleton />
           </RailCardSkeleton>
         </aside>

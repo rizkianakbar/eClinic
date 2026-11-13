@@ -1,10 +1,13 @@
+import { getTranslations } from 'next-intl/server';
 import { SkeletonPage } from '@/components/ui/skeleton';
 import { BillingInvoiceSkeleton, VisitHeaderSkeleton } from '@/features/billing/billing-skeleton';
 
-export default function Loading() {
+export default async function Loading() {
+  const t = await getTranslations();
+
   return (
-    <SkeletonPage route label="Memuat tagihan">
-      <VisitHeaderSkeleton back={{ href: '/cashier', label: 'Kasir' }} />
+    <SkeletonPage route label={t('billing.loading')}>
+      <VisitHeaderSkeleton back={{ href: '/cashier', label: t('nav.cashier') }} />
       <BillingInvoiceSkeleton />
     </SkeletonPage>
   );

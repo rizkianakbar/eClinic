@@ -1,6 +1,7 @@
 import { BanknoteIcon, ChevronRightIcon, LandmarkIcon, QrCodeIcon } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PAYMENT_METHOD_LABELS } from '@/features/billing/billing.constants';
+import { PAYMENT_METHODS } from '@/features/billing/billing.lib';
 import { formatDate } from '@/lib/dates';
 import { formatRupiah } from '@/lib/money';
 import { cn } from '@/lib/utils';
@@ -23,10 +24,16 @@ const METHOD_STYLE: Record<string, { tone: string; icon: typeof BanknoteIcon }> 
   transfer: { tone: 'bg-[#3a7bd5]', icon: LandmarkIcon },
 };
 
+const isMethod = (method: string): method is (typeof PAYMENT_METHODS)[number] =>
+  (PAYMENT_METHODS as readonly string[]).includes(method);
+
 const share = (part: number, total: number) => (total > 0 ? Math.round((part / total) * 100) : 0);
 
 /** Money in: how much, when, from which poli, by which method. */
 export function ReportsRevenue(props: ReportsRevenueProps) {
+  const t = useTranslations('reports.revenue');
+  const tm = useTranslations('paymentMethod');
+  const locale = useLocale();
   const { daily, byPoli, byMethod, totals } = props.report;
   const byDay = new Map(daily.map((day) => [day.day, day.revenue]));
   const series = props.days.map((day) => ({ day, value: byDay.get(day) ?? 0 }));
@@ -38,33 +45,38 @@ export function ReportsRevenue(props: ReportsRevenueProps) {
     <div className="flex flex-col gap-6">
       <ReportsKpis
         items={[
-          { label: 'Pendapatan (umum)', value: formatRupiah(totals.revenue), hint: 'Tagihan umum yang lunas' },
+          { label: t('kpiRevenue'), value: formatRupiah(totals.revenue), hint: t('kpiRevenueHint') },
           {
-            label: 'Tagihan lunas',
+            label: t('kpiInvoices'),
             value: String(totals.invoices),
-            hint: `Rata-rata ${totals.invoices > 0 ? formatRupiah(Math.round(totals.revenue / totals.invoices)) : '–'}`,
+            hint: t('kpiAverage', {
+              amount: totals.invoices > 0 ? formatRupiah(Math.round(totals.revenue / totals.invoices)) : '–',
+            }),
           },
           {
-            label: 'Diskon',
+            label: t('kpiDiscounts'),
             value: formatRupiah(totals.discounts),
-            hint: `${share(totals.discounts, totals.gross)}% dari bruto ${formatRupiah(totals.gross)}`,
+            hint: t('kpiDiscountsHint', {
+              share: share(totals.discounts, totals.gross),
+              gross: formatRupiah(totals.gross),
+            }),
           },
           {
-            label: 'Kunjungan BPJS',
+            label: t('kpiBpjs'),
             value: String(totals.bpjsVisits),
-            hint: `Nilai layanan ${formatRupiah(totals.bpjsBilled)}`,
+            hint: t('kpiBpjsHint', { amount: formatRupiah(totals.bpjsBilled) }),
           },
         ]}
       />
 
-      <ReportsSection title="Pendapatan per hari">
+      <ReportsSection title={t('perDay')}>
         <div className="p-4">
-          <ReportsBarChart series={series} unit="rupiah" label="Pendapatan per hari" />
+          <ReportsBarChart series={series} unit="rupiah" label={t('perDay')} />
         </div>
       </ReportsSection>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <ReportsSection title="Per poli">
+        <ReportsSection title={t('perPoli')}>
           {poliRows.length === 0 ? (
             <Empty />
           ) : (
@@ -82,7 +94,11 @@ export function ReportsRevenue(props: ReportsRevenueProps) {
                     />
                   </span>
                   <span className="tabular text-xs text-muted-foreground">
-                    {share(row.revenue, totals.revenue)}% · {row.invoices} tagihan · {row.bpjs_visits} BPJS
+                    {t('poliLine', {
+                      share: share(row.revenue, totals.revenue),
+                      invoices: row.invoices,
+                      bpjs: row.bpjs_visits,
+                    })}
                   </span>
                 </li>
               ))}
@@ -90,7 +106,7 @@ export function ReportsRevenue(props: ReportsRevenueProps) {
           )}
         </ReportsSection>
 
-        <ReportsSection title="Per metode pembayaran">
+        <ReportsSection title={t('perMethod')}>
           {byMethod.length === 0 ? (
             <Empty />
           ) : (
@@ -113,9 +129,7 @@ export function ReportsRevenue(props: ReportsRevenueProps) {
                     <li key={row.method} className="flex items-center gap-3 text-sm">
                       <span className={cn('size-2.5 rounded-sm', style?.tone ?? 'bg-muted-foreground')} aria-hidden />
                       <Icon className="size-4 text-muted-foreground" aria-hidden />
-                      <span className="flex-1 font-medium">
-                        {PAYMENT_METHOD_LABELS[row.method as keyof typeof PAYMENT_METHOD_LABELS] ?? row.method}
-                      </span>
+                      <span className="flex-1 font-medium">{isMethod(row.method) ? tm(row.method) : row.method}</span>
                       <span className="tabular text-xs text-muted-foreground">
                         {row.payments}× · {share(row.amount, methodTotal)}%
                       </span>
@@ -138,25 +152,25 @@ export function ReportsRevenue(props: ReportsRevenueProps) {
               className="size-4 text-muted-foreground transition-transform group-open:rotate-90"
               aria-hidden
             />
-            Rincian per hari
-            <span className="text-xs font-normal text-muted-foreground">untuk pembukuan, sama dengan ekspor Excel</span>
+            {t('daily')}
+            <span className="text-xs font-normal text-muted-foreground">{t('dailyHint')}</span>
           </summary>
           <div className="border-t p-3">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tanggal</TableHead>
-                  <TableHead className="text-right">Tagihan</TableHead>
-                  <TableHead className="text-right">Bruto</TableHead>
-                  <TableHead className="text-right">Diskon</TableHead>
-                  <TableHead className="text-right">Pendapatan</TableHead>
-                  <TableHead className="text-right">BPJS</TableHead>
+                  <TableHead>{t('colDate')}</TableHead>
+                  <TableHead className="text-right">{t('colInvoices')}</TableHead>
+                  <TableHead className="text-right">{t('colGross')}</TableHead>
+                  <TableHead className="text-right">{t('colDiscounts')}</TableHead>
+                  <TableHead className="text-right">{t('colRevenue')}</TableHead>
+                  <TableHead className="text-right">{t('colBpjs')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {daily.map((day) => (
                   <TableRow key={day.day}>
-                    <TableCell>{formatDate(day.day)}</TableCell>
+                    <TableCell>{formatDate(day.day, locale)}</TableCell>
                     <TableCell className="tabular text-right">{day.invoices}</TableCell>
                     <TableCell className="tabular text-right">{formatRupiah(day.gross)}</TableCell>
                     <TableCell className="tabular text-right">{formatRupiah(day.discounts)}</TableCell>
@@ -174,5 +188,7 @@ export function ReportsRevenue(props: ReportsRevenueProps) {
 }
 
 function Empty() {
-  return <p className="px-4 py-8 text-center text-sm text-muted-foreground">Tidak ada data pada periode ini.</p>;
+  const t = useTranslations('reports');
+
+  return <p className="px-4 py-8 text-center text-sm text-muted-foreground">{t('noData')}</p>;
 }

@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ImageUpIcon, LoaderCircleIcon, Trash2Icon } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { useRef } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -11,6 +12,7 @@ import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { segmentedGroup, segmentedItem } from '@/components/ui/segmented';
 import { Textarea } from '@/components/ui/textarea';
+import { useMessage } from '@/i18n/message';
 import { useActionMutation } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { removeClinicLogoAction, updateClinicProfileAction, uploadClinicLogoAction } from './settings.actions';
@@ -51,6 +53,9 @@ function Section(props: SectionProps) {
 
 /** Clinic profile with a live preview of the letterhead every printed letter and report carries. */
 export function SettingsClinicForm(props: SettingsClinicFormProps) {
+  const t = useTranslations('settings.clinic');
+  const tc = useTranslations('common');
+  const message = useMessage();
   const { clinic } = props;
   const save = useActionMutation(updateClinicProfileAction);
   const upload = useActionMutation(uploadClinicLogoAction);
@@ -79,7 +84,7 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
     const problem = logoFileError(file);
 
     if (problem) {
-      toast.error(problem);
+      toast.error(message(problem));
 
       return;
     }
@@ -87,7 +92,7 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
     const data = new FormData();
 
     data.set('logo', file);
-    upload.mutate(data, { onSuccess: () => toast.success('Logo diperbarui.') });
+    upload.mutate(data, { onSuccess: () => toast.success(t('logoUpdated')) });
   }
 
   const logoBusy = upload.isPending || remove.isPending;
@@ -99,20 +104,20 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
       onSubmit={form.handleSubmit((values) =>
         save.mutate(values, {
           onSuccess: () => {
-            toast.success('Profil klinik tersimpan.');
+            toast.success(t('saved'));
             form.reset(form.getValues());
           },
         }),
       )}>
       <div className="flex min-w-0 flex-col gap-4">
         <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
-          <Section title="Identitas" description="Nama dan logo yang tampil di kop surat, kuitansi, dan laporan.">
+          <Section title={t('identity')} description={t('identityHint')}>
             <div className="flex items-center gap-4">
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={logoBusy}
-                aria-label={clinic.logoUrl ? 'Ganti logo' : 'Unggah logo'}
+                aria-label={clinic.logoUrl ? t('changeLogo') : t('uploadLogo')}
                 className={cn(
                   'group relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted/50 transition-colors hover:border-primary/60 focus-visible:ring-3 focus-visible:ring-primary/20 focus-visible:outline-none',
                   !clinic.logoUrl && 'border-dashed',
@@ -120,7 +125,7 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
                 {clinic.logoUrl ? (
                   <Image
                     src={clinic.logoUrl}
-                    alt="Logo klinik"
+                    alt={t('logoAlt')}
                     width={80}
                     height={80}
                     unoptimized
@@ -146,7 +151,7 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
                     size="sm"
                     disabled={logoBusy}
                     onClick={() => fileRef.current?.click()}>
-                    {clinic.logoUrl ? 'Ganti logo' : 'Unggah logo'}
+                    {clinic.logoUrl ? t('changeLogo') : t('uploadLogo')}
                   </Button>
                   {clinic.logoUrl && (
                     <Button
@@ -155,15 +160,13 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
                       size="sm"
                       disabled={logoBusy}
                       className="text-muted-foreground hover:text-destructive"
-                      onClick={() => remove.mutate(undefined, { onSuccess: () => toast.success('Logo dihapus.') })}>
+                      onClick={() => remove.mutate(undefined, { onSuccess: () => toast.success(t('logoRemoved')) })}>
                       <Trash2Icon aria-hidden />
-                      Hapus
+                      {t('remove')}
                     </Button>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  PNG, JPG, atau WEBP, maksimal 1 MB. Latar transparan paling rapi.
-                </p>
+                <p className="text-xs text-muted-foreground">{t('logoHint')}</p>
               </div>
               <input
                 ref={fileRef}
@@ -177,46 +180,46 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
                 }}
               />
             </div>
-            <FormField label="Nama klinik" htmlFor="clinic_name" error={errors.name?.message}>
+            <FormField label={t('name')} htmlFor="clinic_name" error={errors.name?.message}>
               <Input id="clinic_name" {...form.register('name')} />
             </FormField>
             <FormField
-              label="Nomor izin klinik"
+              label={t('license')}
               htmlFor="clinic_license"
               error={errors.license_no?.message}
-              hint="Tampil di bawah alamat pada kop surat">
-              <Input id="clinic_license" placeholder="Contoh: 503/123/DPMPTSP/2026" {...form.register('license_no')} />
+              hint={t('licenseHint')}>
+              <Input id="clinic_license" placeholder={t('licensePlaceholder')} {...form.register('license_no')} />
             </FormField>
           </Section>
 
-          <Section title="Kontak" description="Alamat dan nomor yang bisa dihubungi pasien.">
-            <FormField label="Alamat" htmlFor="clinic_address" error={errors.address?.message}>
+          <Section title={t('contact')} description={t('contactHint')}>
+            <FormField label={t('address')} htmlFor="clinic_address" error={errors.address?.message}>
               <Textarea
                 id="clinic_address"
                 rows={2}
-                placeholder="Jalan, kelurahan, kecamatan, kota"
+                placeholder={t('addressPlaceholder')}
                 {...form.register('address')}
               />
             </FormField>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField label="Telepon" htmlFor="clinic_phone" error={errors.phone?.message}>
+              <FormField label={t('phone')} htmlFor="clinic_phone" error={errors.phone?.message}>
                 <Input id="clinic_phone" type="tel" {...form.register('phone')} />
               </FormField>
-              <FormField label="Email" htmlFor="clinic_email" error={errors.email?.message} hint="Opsional">
+              <FormField label={t('email')} htmlFor="clinic_email" error={errors.email?.message} hint={tc('optional')}>
                 <Input id="clinic_email" type="email" {...form.register('email')} />
               </FormField>
             </div>
           </Section>
 
-          <Section title="Keamanan" description="Komputer bersama keluar sendiri bila lama tidak dipakai.">
+          <Section title={t('security')} description={t('securityHint')}>
             <FormField
-              label="Keluar otomatis setelah"
+              label={t('idle')}
               htmlFor="clinic_idle"
               error={errors.idle_logout_minutes?.message}
-              hint="Lebih pendek lebih aman di meja depan; terlalu pendek membuat dokter sering login ulang.">
+              hint={t('idleHint')}>
               <div className="flex flex-wrap items-center gap-3">
                 <fieldset className={segmentedGroup}>
-                  <legend className="sr-only">Pilihan cepat</legend>
+                  <legend className="sr-only">{t('presets')}</legend>
                   {IDLE_PRESETS.map((minutes) => (
                     <button
                       key={minutes}
@@ -243,7 +246,7 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
                     {...form.register('idle_logout_minutes')}
                   />
                   <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground">
-                    menit
+                    {t('minutes')}
                   </span>
                 </div>
               </div>
@@ -259,14 +262,14 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
           aria-hidden={!isDirty}>
           <p className="flex items-center gap-2 text-sm">
             <span className="size-2 rounded-full bg-amber-500" aria-hidden />
-            Ada perubahan yang belum disimpan
+            {t('unsaved')}
           </p>
           <div className="flex gap-2">
             <Button type="button" variant="ghost" size="sm" disabled={save.isPending} onClick={() => form.reset()}>
-              Batalkan
+              {t('discard')}
             </Button>
             <Button type="submit" size="sm" disabled={save.isPending}>
-              {save.isPending ? 'Menyimpan…' : 'Simpan profil'}
+              {save.isPending ? tc('saving') : t('save')}
             </Button>
           </div>
         </div>
@@ -274,14 +277,14 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
 
       <aside className="flex flex-col gap-2.5 xl:sticky xl:top-19">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Pratinjau kop surat</h2>
-          <span className="text-xs text-muted-foreground">berubah saat Anda mengetik</span>
+          <h2 className="text-sm font-semibold">{t('preview')}</h2>
+          <span className="text-xs text-muted-foreground">{t('previewLive')}</span>
         </div>
         <div className="overflow-hidden rounded-xl border bg-muted/40 p-3">
           <div className="origin-top rounded-md bg-white p-5 text-black shadow-[0_1px_3px_rgb(20_32_29/0.12)]">
             <SettingsLetterhead
               clinic={{
-                name: live.name || 'Nama klinik',
+                name: live.name || t('previewName'),
                 address: live.address || null,
                 phone: live.phone || null,
                 email: live.email || null,
@@ -298,7 +301,7 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
             </div>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">Dipakai di surat sakit, surat rujukan, dan laporan cetak.</p>
+        <p className="text-xs text-muted-foreground">{t('previewNote')}</p>
       </aside>
     </form>
   );

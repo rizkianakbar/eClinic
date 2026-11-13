@@ -1,14 +1,18 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useMessage } from '@/i18n/message';
 import { useSignIn } from './auth.hooks';
 import { type SignInInput, type SignInValues, signInSchema } from './auth.lib';
 
 export function LoginForm() {
+  const t = useTranslations('auth.login');
+  const message = useMessage();
   const signIn = useSignIn();
 
   const form = useForm<SignInInput, unknown, SignInValues>({
@@ -21,7 +25,7 @@ export function LoginForm() {
   return (
     <form noValidate className="flex flex-col gap-5" onSubmit={form.handleSubmit((values) => signIn.mutate(values))}>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t('email')}</Label>
         <Input
           id="email"
           type="email"
@@ -34,11 +38,11 @@ export function LoginForm() {
           aria-invalid={Boolean(errors.email)}
           {...form.register('email')}
         />
-        {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+        {errors.email && <p className="text-sm text-destructive">{message(errors.email.message ?? '')}</p>}
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Kata sandi</Label>
+        <Label htmlFor="password">{t('password')}</Label>
         <Input
           id="password"
           type="password"
@@ -47,11 +51,11 @@ export function LoginForm() {
           aria-invalid={Boolean(errors.password)}
           {...form.register('password')}
         />
-        {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+        {errors.password && <p className="text-sm text-destructive">{message(errors.password.message ?? '')}</p>}
       </div>
 
       <Button type="submit" size="lg" disabled={signIn.isPending}>
-        {signIn.isPending ? 'Memeriksa...' : 'Masuk'}
+        {signIn.isPending ? t('checking') : t('submit')}
       </Button>
     </form>
   );

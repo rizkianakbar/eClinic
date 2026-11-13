@@ -1,4 +1,5 @@
 import { CalendarXIcon, UserRoundSearchIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { initials } from '@/features/patients/patients.lib';
 import { toHourMinute } from '@/features/schedules/schedules.lib';
 import { cn } from '@/lib/utils';
@@ -11,20 +12,19 @@ type VisitsSessionsPanelProps = {
 
 /** Before a patient is chosen: which doctors are practising today and how many places are left. */
 export function VisitsSessionsPanel(props: VisitsSessionsPanelProps) {
+  const t = useTranslations('visits.sessions');
   const left = props.sessions.reduce((sum, session) => sum + Math.max(0, session.quota - session.taken), 0);
 
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
       <div className="flex items-center gap-3 border-b bg-muted/30 px-4 py-3">
         <UserRoundSearchIcon className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-        <p className="text-[0.8125rem] text-muted-foreground">
-          Cari dan pilih pasien di kiri. Dokter dan kuota hari ini:
-        </p>
+        <p className="text-[0.8125rem] text-muted-foreground">{t('intro')}</p>
       </div>
       {props.sessions.length === 0 ? (
         <div className="flex flex-col items-center gap-1 px-6 py-10 text-center">
           <CalendarXIcon className="size-6 text-muted-foreground" aria-hidden />
-          <p className="text-sm font-medium">Tidak ada jadwal dokter hari ini</p>
+          <p className="text-sm font-medium">{t('none')}</p>
         </div>
       ) : (
         <ul>
@@ -51,7 +51,7 @@ export function VisitsSessionsPanel(props: VisitsSessionsPanelProps) {
                           'tabular shrink-0 text-xs',
                           full ? 'font-semibold text-destructive' : 'text-muted-foreground',
                         )}>
-                        {full ? 'Penuh' : `sisa ${session.quota - session.taken}`}
+                        {full ? t('full') : t('left', { count: session.quota - session.taken })}
                       </span>
                     </span>
                     <span className="h-1 overflow-hidden rounded-full bg-muted">
@@ -62,7 +62,7 @@ export function VisitsSessionsPanel(props: VisitsSessionsPanelProps) {
                     </span>
                     <span className="tabular text-xs text-muted-foreground">
                       {session.poliName} · {toHourMinute(session.startTime)}–{toHourMinute(session.endTime)}
-                      {ended && ' · selesai'}
+                      {ended && t('ended')}
                     </span>
                   </span>
                 </li>
@@ -72,7 +72,10 @@ export function VisitsSessionsPanel(props: VisitsSessionsPanelProps) {
       )}
       {props.sessions.length > 0 && (
         <p className="border-t bg-muted/30 px-4 py-2.5 text-[0.8125rem] text-muted-foreground">
-          Sisa kuota hari ini <span className="tabular font-semibold text-foreground">{left}</span> pasien
+          {t.rich('quotaLeft', {
+            count: left,
+            b: (chunks) => <span className="tabular font-semibold text-foreground">{chunks}</span>,
+          })}
         </p>
       )}
     </div>

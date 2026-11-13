@@ -2,6 +2,7 @@ import type { z } from 'zod';
 import { DOCTOR_FEE_TYPE_LABELS, SERVICE_TYPE_LABELS } from '@/features/billing/billing.constants';
 import { serviceSchema } from '@/features/billing/billing.lib';
 import { medicineSchema, supplierSchema } from '@/features/inventory/inventory.lib';
+import { keyed } from '@/i18n/keyed';
 
 export const IMPORT_KINDS = ['medicines', 'suppliers', 'services'] as const;
 
@@ -252,9 +253,7 @@ export function parseImportRows(
   );
 
   if (headerIndex === -1) {
-    return {
-      error: `Baris judul tidak ditemukan. Pakai template ${config.title.toLowerCase()} dan jangan ubah judul kolomnya.`,
-    };
+    return { error: 'dataImport.errors.noHeader' };
   }
 
   const header = sheet[headerIndex].map(normalizeHeader);
@@ -263,7 +262,9 @@ export function parseImportRows(
 
   if (missing.length > 0) {
     return {
-      error: `Kolom ${missing.map((column) => `"${column.header}"`).join(', ')} tidak ada. Pakai template terbaru.`,
+      error: keyed('dataImport.errors.missingColumns', {
+        columns: missing.map((column) => `"${column.header}"`).join(', '),
+      }),
     };
   }
 
@@ -291,7 +292,7 @@ export function parseImportRows(
     const earlier = seen.get(key);
 
     if (earlier !== undefined) {
-      rows.push({ line, cells, ok: false, errors: [`Nama sama dengan baris ${earlier}. Hapus salah satu.`] });
+      rows.push({ line, cells, ok: false, errors: [keyed('dataImport.errors.duplicateName', { line: earlier })] });
 
       return;
     }

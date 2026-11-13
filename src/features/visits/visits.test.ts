@@ -30,7 +30,7 @@ describe('createVisitSchema', () => {
 
     const messages = result.error?.issues.map((issue) => issue.message);
 
-    expect(messages).toEqual(expect.arrayContaining(['Pilih jadwal dokter.', 'Pilih jenis pembayaran.']));
+    expect(messages).toEqual(expect.arrayContaining(['visits.errors.pickSchedule', 'visits.errors.pickPayer']));
   });
 });
 
@@ -58,16 +58,19 @@ describe('sessionEnded', () => {
 
 describe('visitErrorMessage', () => {
   it('maps database rule keys to actionable messages', () => {
-    expect(visitErrorMessage({ code: 'P0001', message: 'quota_full' })).toMatch(/Kuota dokter/);
-    expect(visitErrorMessage({ code: 'P0001', message: 'bpjs_number_missing' })).toMatch(/nomor BPJS/);
+    expect(visitErrorMessage({ code: 'P0001', message: 'quota_full' })).toBe('visits.errors.quota_full');
+
+    expect(visitErrorMessage({ code: 'P0001', message: 'bpjs_number_missing' })).toBe(
+      'visits.errors.bpjs_number_missing',
+    );
   });
 
   it('explains a same-day duplicate', () => {
-    expect(visitErrorMessage({ code: '23505' })).toMatch(/sudah terdaftar di poli ini hari ini/);
+    expect(visitErrorMessage({ code: '23505' })).toBe('visits.errors.duplicateToday');
   });
 
   it('falls back for unknown errors', () => {
-    expect(visitErrorMessage({ code: 'P0001', message: 'something_else' })).toMatch(/gagal didaftarkan/);
+    expect(visitErrorMessage({ code: 'P0001', message: 'something_else' })).toBe('visits.errors.failed');
   });
 });
 

@@ -30,14 +30,14 @@ describe('rangePresets', () => {
   it('computes last month across a year boundary', () => {
     const presets = rangePresets('2027-01-15');
 
-    expect(presets.find((preset) => preset.label === 'Bulan lalu')).toEqual({
-      label: 'Bulan lalu',
+    expect(presets.find((preset) => preset.key === 'lastMonth')).toEqual({
+      key: 'lastMonth',
       from: '2026-12-01',
       to: '2026-12-31',
     });
 
-    expect(presets.find((preset) => preset.label === '7 hari')).toEqual({
-      label: '7 hari',
+    expect(presets.find((preset) => preset.key === 'week')).toEqual({
+      key: 'week',
       from: '2027-01-09',
       to: '2027-01-15',
     });

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,8 @@ type SettingsActiveToggleProps = {
 
 /** Activate directly; deactivate after confirmation. Nothing is ever deleted. */
 export function SettingsActiveToggle(props: SettingsActiveToggleProps) {
+  const t = useTranslations('settings.toggle');
+  const tc = useTranslations('common');
   const [confirming, setConfirming] = useState(false);
   const toggle = useActionMutation((isActive: boolean) => props.action(props.id, isActive));
 
@@ -36,7 +39,7 @@ export function SettingsActiveToggle(props: SettingsActiveToggleProps) {
     toggle.mutate(isActive, {
       onSuccess: () => {
         setConfirming(false);
-        toast.success(isActive ? `${props.name} diaktifkan.` : `${props.name} dinonaktifkan.`);
+        toast.success(t(isActive ? 'activated' : 'deactivated', { name: props.name }));
       },
     });
   }
@@ -44,7 +47,7 @@ export function SettingsActiveToggle(props: SettingsActiveToggleProps) {
   if (!props.isActive) {
     return (
       <Button variant="outline" size={props.size ?? 'sm'} disabled={toggle.isPending} onClick={() => run(true)}>
-        Aktifkan
+        {t('activate')}
       </Button>
     );
   }
@@ -56,17 +59,17 @@ export function SettingsActiveToggle(props: SettingsActiveToggleProps) {
         size={props.size ?? 'sm'}
         className="text-destructive hover:bg-status-cancelled-soft hover:text-destructive"
         onClick={() => setConfirming(true)}>
-        Nonaktifkan
+        {t('deactivate')}
       </Button>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nonaktifkan {props.name}?</DialogTitle>
-          <DialogDescription>{props.consequence} Data lama tetap tersimpan dan bisa diaktifkan lagi.</DialogDescription>
+          <DialogTitle>{t('title', { name: props.name })}</DialogTitle>
+          <DialogDescription>{t('description', { consequence: props.consequence })}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <DialogClose render={<Button variant="outline" />}>Batal</DialogClose>
+          <DialogClose render={<Button variant="outline" />}>{tc('cancel')}</DialogClose>
           <Button variant="destructive" disabled={toggle.isPending} onClick={() => run(false)}>
-            {toggle.isPending ? 'Memproses...' : 'Nonaktifkan'}
+            {toggle.isPending ? t('processing') : t('deactivate')}
           </Button>
         </DialogFooter>
       </DialogContent>

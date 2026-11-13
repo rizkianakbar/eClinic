@@ -1,5 +1,5 @@
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
-import { ROLE_LABELS } from '@/features/auth/auth.constants';
 import { AuthIdleLogout } from '@/features/auth/auth-idle-logout';
 import { PATIENT_EDITOR_ROLES, PATIENT_VIEWER_ROLES } from '@/features/patients/patients.constants';
 import { initials } from '@/features/patients/patients.lib';
@@ -29,6 +29,7 @@ const has = (roles: readonly string[], role: string) => roles.includes(role);
  */
 export function AppShell(props: AppShellProps) {
   const { session } = props;
+  const t = useTranslations();
 
   return (
     <AppShellLiveProvider role={session.role} userId={session.userId} visitDate={todayInJakarta()}>
@@ -41,7 +42,7 @@ export function AppShell(props: AppShellProps) {
             {session.clinicName}
           </span>
           <span className="hidden rounded-full border px-2 py-0.5 text-xs font-medium text-muted-foreground sm:block">
-            {ROLE_LABELS[session.role]}
+            {t(`roles.${session.role}`)}
           </span>
 
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
@@ -55,7 +56,7 @@ export function AppShell(props: AppShellProps) {
             <AppShellUserMenu
               fullName={session.fullName}
               initials={initials(session.fullName)}
-              roleLabel={ROLE_LABELS[session.role]}
+              roleLabel={t(`roles.${session.role}`)}
               clinicName={session.clinicName}
               canManageClinic={session.role === 'owner' || session.role === 'admin'}
               idleLogoutMinutes={session.idleLogoutMinutes}

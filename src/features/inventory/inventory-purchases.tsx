@@ -1,5 +1,6 @@
 import { ChevronRightIcon, PlusIcon, TruckIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageLinks } from '@/components/ui/page-links';
@@ -16,25 +17,26 @@ type InventoryPurchasesProps = Awaited<ReturnType<typeof listPurchases>> & {
 
 /** Every supplier invoice received; each one added batches (with purchase price) to stock. */
 export function InventoryPurchases(props: InventoryPurchasesProps) {
+  const t = useTranslations('inventory');
+  const locale = useLocale();
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Bulan ini <span className="tabular font-semibold text-foreground">{formatRupiah(props.month.total)}</span>{' '}
-          dari <span className="tabular font-semibold text-foreground">{props.month.count}</span> faktur. Setiap
-          pembelian menambah stok per batch.
+          {t.rich('purchases.month', {
+            total: formatRupiah(props.month.total),
+            count: props.month.count,
+            b: (chunks) => <span className="tabular font-semibold text-foreground">{chunks}</span>,
+          })}
         </p>
         <Link href="/inventory/purchases/new" className={buttonVariants()}>
           <PlusIcon />
-          Catat pembelian
+          {t('purchases.record')}
         </Link>
       </div>
       {props.purchases.length === 0 ? (
-        <EmptyState
-          icon={TruckIcon}
-          title="Belum ada pembelian"
-          description="Catat faktur dari supplier: obat, nomor batch, tanggal kedaluwarsa, dan harga belinya."
-        />
+        <EmptyState icon={TruckIcon} title={t('purchases.empty')} description={t('purchases.emptyHint')} />
       ) : (
         <ul className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           {props.purchases.map((purchase) => (
@@ -48,15 +50,15 @@ export function InventoryPurchases(props: InventoryPurchasesProps) {
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium">{purchase.supplier?.name}</span>
                   <span className="tabular block text-xs text-muted-foreground">
-                    Faktur {purchase.invoice_no ?? 'tanpa nomor'}
+                    {t('purchases.invoice', { no: purchase.invoice_no ?? t('purchases.noNumber') })}
                   </span>
                 </span>
                 <span className="hidden text-sm text-muted-foreground sm:block">
-                  {formatDate(purchase.purchase_date)}
+                  {formatDate(purchase.purchase_date, locale)}
                 </span>
                 <span className="hidden sm:block">
                   <span className="tabular rounded-md bg-muted px-1.5 text-xs leading-5 font-medium">
-                    {purchase.items[0]?.count ?? 0} obat
+                    {t('medicineCount', { count: purchase.items[0]?.count ?? 0 })}
                   </span>
                 </span>
                 <span className="tabular text-right text-sm font-semibold">{formatRupiah(purchase.total)}</span>
@@ -69,7 +71,12 @@ export function InventoryPurchases(props: InventoryPurchasesProps) {
           ))}
         </ul>
       )}
-      <PageLinks page={props.page} pageSize={MEDICINES_PAGE_SIZE} total={props.total} noun="pembelian" />
+      <PageLinks
+        page={props.page}
+        pageSize={MEDICINES_PAGE_SIZE}
+        total={props.total}
+        countLabel={t('purchases.count', { count: props.total })}
+      />
     </div>
   );
 }

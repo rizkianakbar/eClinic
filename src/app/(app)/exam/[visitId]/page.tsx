@@ -13,9 +13,9 @@ import {
   StethoscopeIcon,
   SyringeIcon,
 } from 'lucide-react';
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { z } from 'zod';
 import { EXAM_VIEWER_ROLES, SOAP_FIELDS } from '@/features/exam/exam.constants';
@@ -41,17 +41,17 @@ import { ExamSoapForm } from '@/features/exam/exam-soap-form';
 import { SoapText } from '@/features/exam/exam-soap-sheet';
 import { ExamVitals } from '@/features/exam/exam-vitals';
 import { ExamVitalsDialog } from '@/features/exam/exam-vitals-dialog';
-import { SEX_LABELS } from '@/features/patients/patients.constants';
 import { ageInYears, initials } from '@/features/patients/patients.lib';
 import { getPrescription } from '@/features/prescriptions/prescriptions.service';
 import { PrescriptionsEditor } from '@/features/prescriptions/prescriptions-editor';
 import { VisitsJourneyPosition } from '@/features/visits/visits-journey-line';
+import { pageTitle } from '@/i18n/metadata';
 import { requireRole } from '@/lib/auth';
 import { formatDateTime, todayInJakarta } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils';
 
-export const metadata: Metadata = { title: 'Pemeriksaan' };
+export const generateMetadata = pageTitle('exam.title');
 
 export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
   const session = await requireRole(...EXAM_VIEWER_ROLES);
@@ -60,6 +60,7 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
   if (!z.uuid().safeParse(visitId).success) notFound();
 
   const supabase = await createClient();
+  const [t, locale] = await Promise.all([getTranslations(), getLocale()]);
 
   const [visit, vitals, soap, diagnoses, prescription, procedures, letters, procedureOptions] = await Promise.all([
     getExamVisit(supabase, visitId),
@@ -91,31 +92,33 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
   const hasPrimary = diagnoses.some((diagnosis) => diagnosis.is_primary);
 
   const checklist = [
-    { href: '#soap', label: 'Catatan SOAP', done: hasNotes, required: true },
-    { href: '#diagnosis', label: 'Diagnosis utama', done: hasPrimary, required: true },
+    { href: '#soap', label: t('exam.check.soap'), done: hasNotes, required: true },
+    { href: '#diagnosis', label: t('exam.check.diagnosis'), done: hasPrimary, required: true },
     {
       href: '#resep',
       label: prescriptionCount
-        ? `Resep, ${prescriptionCount} obat`
+        ? t('exam.check.rx', { count: prescriptionCount })
         : visit.no_medicine_reason
-          ? 'Tidak perlu obat'
-          : 'Resep atau tanpa obat',
+          ? t('exam.check.noMedicine')
+          : t('exam.check.rxOrNone'),
       done: prescriptionCount > 0 || Boolean(visit.no_medicine_reason),
       required: true,
     },
     {
       href: '#tindakan',
-      label: procedures.length ? `Tindakan, ${procedures.length}` : 'Tindakan',
+      label: procedures.length
+        ? t('exam.check.proceduresCount', { count: procedures.length })
+        : t('exam.check.procedures'),
       done: procedures.length > 0,
       required: false,
     },
     {
       href: '#surat',
-      label: letters.length ? `Surat, ${letters.length}` : 'Surat',
+      label: letters.length ? t('exam.check.lettersCount', { count: letters.length }) : t('exam.check.letters'),
       done: letters.length > 0,
       required: false,
     },
-    { href: '#soap', label: 'Tanda tangan', done: signed, required: true },
+    { href: '#soap', label: t('exam.check.sign'), done: signed, required: true },
   ];
 
   return (
@@ -124,7 +127,7 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
         href="/queue"
         className="-mb-2 -ml-1 -my-1.5 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
         <ChevronLeftIcon className="size-4" aria-hidden />
-        Antrean
+        {t('nav.queue')}
       </Link>
 
       {/* Who is in the room, and where they are in today's visit. */}
@@ -146,19 +149,20 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
                   'rounded-md px-1.5 text-xs leading-5 font-medium',
                   visit.payer_type === 'bpjs' ? 'bg-bpjs-soft text-bpjs' : 'bg-muted text-muted-foreground',
                 )}>
-                {visit.payer_type === 'bpjs' ? 'BPJS' : 'Umum'}
+                {t(`payer.${visit.payer_type as 'umum' | 'bpjs'}`)}
               </span>
               {signed && (
                 <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-1.5 text-xs leading-5 font-medium text-secondary-foreground">
                   <LockIcon className="size-3" aria-hidden />
-                  Ditandatangani
+                  {t('exam.signed')}
                 </span>
               )}
             </div>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              {SEX_LABELS[patient.sex as keyof typeof SEX_LABELS]}, {ageInYears(patient.birth_date)} tahun
+              {t(`sex.${patient.sex as 'male' | 'female'}`)},{' '}
+              {t('patients.ageLong', { age: ageInYears(patient.birth_date) })}
               <Dot />
-              RM <span className="tabular font-medium text-foreground">{patient.mrn}</span>
+              {t('patients.mrn')} <span className="tabular font-medium text-foreground">{patient.mrn}</span>
               <Dot />
               {visit.poli?.name}
               <Dot />
@@ -178,16 +182,19 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
             <ExamSection
               id="soap"
               icon={NotebookPenIcon}
-              title="Catatan SOAP"
+              title={t('exam.section.soap')}
               description={
                 signed
-                  ? `Ditandatangani ${soap.main?.author?.full_name}, ${formatDateTime(soap.main!.signed_at!)}`
-                  : 'Wajib diisi sebelum tanda tangan. Ctrl+S menyimpan draf.'
+                  ? t('exam.section.soapSigned', {
+                      name: soap.main?.author?.full_name ?? '',
+                      when: formatDateTime(soap.main!.signed_at!, locale),
+                    })
+                  : t('exam.section.soapHint')
               }
               action={
                 !signed &&
                 soap.main &&
-                !editable && <span className="text-xs font-medium text-status-waiting">Draf</span>
+                !editable && <span className="text-xs font-medium text-status-waiting">{t('exam.section.draft')}</span>
               }
               flush>
               {editable ? (
@@ -207,7 +214,7 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
                 <SoapText note={soap.main} />
               ) : (
                 <p className="p-4 text-sm text-muted-foreground">
-                  {visit.status === 'waiting' ? 'Pemeriksaan belum dimulai.' : 'Belum ada catatan.'}
+                  {visit.status === 'waiting' ? t('exam.section.notStarted') : t('exam.section.noNotes')}
                 </p>
               )}
             </ExamSection>
@@ -215,8 +222,8 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
             <ExamSection
               id="diagnosis"
               icon={StethoscopeIcon}
-              title="Diagnosis"
-              description="ICD-10. Tandai satu sebagai diagnosis utama."
+              title={t('exam.section.diagnosis')}
+              description={t('exam.section.diagnosisHint')}
               meta={diagnoses.length || undefined}>
               <ExamDiagnoses visitId={visit.id} diagnoses={diagnoses} editable={editable} />
             </ExamSection>
@@ -224,12 +231,8 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
             <ExamSection
               id="resep"
               icon={PillIcon}
-              title="Resep"
-              description={
-                prescriptionCount
-                  ? 'Diteruskan ke farmasi setelah tanda tangan.'
-                  : 'Wajib: tambahkan obat, atau pilih "Tidak perlu obat" dengan alasannya.'
-              }
+              title={t('exam.section.rx')}
+              description={prescriptionCount ? t('exam.section.rxForward') : t('exam.section.rxRequired')}
               meta={prescriptionCount || undefined}>
               <PrescriptionsEditor
                 visitId={visit.id}
@@ -242,8 +245,8 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
             <ExamSection
               id="tindakan"
               icon={SyringeIcon}
-              title="Tindakan dan bahan habis pakai"
-              description="Opsional. Masuk tagihan otomatis; bahan diambil dari stok saat tanda tangan."
+              title={t('exam.section.procedures')}
+              description={t('exam.section.proceduresHint')}
               meta={procedures.length || undefined}>
               <ExamProcedures
                 visitId={visit.id}
@@ -257,8 +260,8 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
             <ExamSection
               id="surat"
               icon={FileTextIcon}
-              title="Surat"
-              description="Surat sakit dan rujukan, dicetak dengan kop klinik."
+              title={t('exam.section.letters')}
+              description={t('exam.section.lettersHint')}
               meta={letters.length || undefined}>
               <ExamLetters
                 visitId={visit.id}
@@ -283,8 +286,8 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
               <ExamSection
                 id="amandemen"
                 icon={FilePenLineIcon}
-                title="Amandemen"
-                description="Koreksi setelah tanda tangan. Catatan asli tidak berubah."
+                title={t('exam.section.amendments')}
+                description={t('exam.section.amendmentsHint')}
                 meta={soap.amendments.length || undefined}>
                 <ExamAmendments visitId={visit.id} amendments={soap.amendments} canAmend={isOwnDoctor} />
               </ExamSection>
@@ -294,15 +297,17 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
 
         <aside className="flex flex-col gap-4 xl:sticky xl:top-19 xl:max-h-[calc(100dvh-6rem)] xl:overflow-y-auto xl:overscroll-contain xl:pb-1">
           <RailCard
-            title="Tanda vital"
+            title={t('exam.rail.vitals')}
             icon={HeartPulseIcon}
             action={
-              canRecordVitals && <ExamVitalsDialog visitId={visit.id} patientName={patient.full_name} label="Catat" />
+              canRecordVitals && (
+                <ExamVitalsDialog visitId={visit.id} patientName={patient.full_name} label={t('exam.rail.record')} />
+              )
             }>
             <ExamVitals vitals={vitals} layout="rail" />
           </RailCard>
 
-          <RailCard title="Kelengkapan" icon={ListChecksIcon}>
+          <RailCard title={t('exam.rail.checklist')} icon={ListChecksIcon}>
             <ol className="flex flex-col gap-0.5">
               {checklist.map((item) => (
                 <li key={item.label}>
@@ -325,14 +330,16 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
                     <span className={cn('flex-1', item.done ? 'text-foreground' : 'text-muted-foreground')}>
                       {item.label}
                     </span>
-                    {!item.required && !item.done && <span className="text-xs text-muted-foreground/70">opsional</span>}
+                    {!item.required && !item.done && (
+                      <span className="text-xs text-muted-foreground/70">{t('exam.check.optional')}</span>
+                    )}
                   </a>
                 </li>
               ))}
             </ol>
           </RailCard>
 
-          <RailCard title="Kunjungan sebelumnya" icon={HistoryIcon}>
+          <RailCard title={t('exam.rail.history')} icon={HistoryIcon}>
             <Suspense fallback={<ExamHistorySkeleton />}>
               <HistoryList history={history} />
             </Suspense>
@@ -348,7 +355,9 @@ type History = ReturnType<typeof listPreviousVisits>;
 async function HistoryCount(props: { history: History }) {
   const visits = await props.history;
 
-  return visits.length === 0 ? 'Pasien baru' : `${visits.length} kunjungan sebelumnya`;
+  const t = await getTranslations('exam.rail');
+
+  return visits.length === 0 ? t('newPatient') : t('previousCount', { count: visits.length });
 }
 
 async function HistoryList(props: { history: History }) {

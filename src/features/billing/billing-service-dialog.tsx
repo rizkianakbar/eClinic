@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -12,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { useActionMutation } from '@/lib/query';
 import { createServiceAction, updateServiceAction } from './billing.actions';
-import { DOCTOR_FEE_TYPE_LABELS, SERVICE_TYPE_LABELS } from './billing.constants';
 import { type ServiceInput, type ServiceValues, serviceSchema } from './billing.lib';
 
 type Service = ServiceValues & { id: string };
@@ -20,6 +20,8 @@ type Service = ServiceValues & { id: string };
 type BillingServiceDialogProps = { mode: 'create' } | { mode: 'edit'; service: Service };
 
 export function BillingServiceDialog(props: BillingServiceDialogProps) {
+  const t = useTranslations('billing.services');
+  const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
 
   return (
@@ -27,16 +29,16 @@ export function BillingServiceDialog(props: BillingServiceDialogProps) {
       {props.mode === 'create' ? (
         <Button onClick={() => setOpen(true)}>
           <PlusIcon />
-          Tambah layanan
+          {t('add')}
         </Button>
       ) : (
         <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-          Ubah
+          {tc('edit')}
         </Button>
       )}
       <DialogContent variant="drawer">
         <DialogHeader>
-          <DialogTitle>{props.mode === 'create' ? 'Tambah layanan' : `Ubah ${props.service.name}`}</DialogTitle>
+          <DialogTitle>{props.mode === 'create' ? t('add') : t('editTitle', { name: props.service.name })}</DialogTitle>
         </DialogHeader>
         <ServiceForm {...props} onDone={() => setOpen(false)} />
       </DialogContent>
@@ -44,7 +46,13 @@ export function BillingServiceDialog(props: BillingServiceDialogProps) {
   );
 }
 
+const SERVICE_TYPES = ['consultation', 'procedure', 'other', 'package'] as const;
+const FEE_TYPES = ['none', 'fixed', 'percent'] as const;
+
 function ServiceForm(props: BillingServiceDialogProps & { onDone: () => void }) {
+  const t = useTranslations('billing');
+  const tc = useTranslations('common');
+
   const save = useActionMutation((values: ServiceValues) =>
     props.mode === 'create' ? createServiceAction(values) : updateServiceAction(props.service.id, values),
   );
@@ -67,24 +75,28 @@ function ServiceForm(props: BillingServiceDialogProps & { onDone: () => void }) 
       onSubmit={form.handleSubmit((values) =>
         save.mutate(values, {
           onSuccess: () => {
-            toast.success('Layanan tersimpan.');
+            toast.success(t('services.saved'));
             props.onDone();
           },
         }),
       )}>
-      <FormField label="Nama layanan" htmlFor="service_name" error={errors.name?.message} className="sm:col-span-2">
+      <FormField
+        label={t('services.name')}
+        htmlFor="service_name"
+        error={errors.name?.message}
+        className="sm:col-span-2">
         <Input id="service_name" autoFocus aria-invalid={Boolean(errors.name)} {...form.register('name')} />
       </FormField>
-      <FormField label="Jenis" htmlFor="service_type" error={errors.type?.message}>
+      <FormField label={t('services.type')} htmlFor="service_type" error={errors.type?.message}>
         <NativeSelect id="service_type" className="w-full" {...form.register('type')}>
-          {Object.entries(SERVICE_TYPE_LABELS).map(([value, label]) => (
+          {SERVICE_TYPES.map((value) => (
             <NativeSelectOption key={value} value={value}>
-              {label}
+              {t(`serviceType.${value}`)}
             </NativeSelectOption>
           ))}
         </NativeSelect>
       </FormField>
-      <FormField label="Tarif" htmlFor="service_price" error={errors.price?.message}>
+      <FormField label={t('services.price')} htmlFor="service_price" error={errors.price?.message}>
         <Input
           id="service_price"
           inputMode="numeric"
@@ -92,20 +104,20 @@ function ServiceForm(props: BillingServiceDialogProps & { onDone: () => void }) 
           {...form.register('price')}
         />
       </FormField>
-      <FormField label="Jasa dokter" htmlFor="service_fee_type" error={errors.doctor_fee_type?.message}>
+      <FormField label={t('services.doctorFee')} htmlFor="service_fee_type" error={errors.doctor_fee_type?.message}>
         <NativeSelect id="service_fee_type" className="w-full" {...form.register('doctor_fee_type')}>
-          {Object.entries(DOCTOR_FEE_TYPE_LABELS).map(([value, label]) => (
+          {FEE_TYPES.map((value) => (
             <NativeSelectOption key={value} value={value}>
-              {label}
+              {t(`feeType.${value}`)}
             </NativeSelectOption>
           ))}
         </NativeSelect>
       </FormField>
       {feeType !== 'none' && (
         <FormField
-          label={feeType === 'percent' ? 'Persentase' : 'Nominal'}
+          label={feeType === 'percent' ? t('services.percent') : t('services.amount')}
           htmlFor="service_fee_value"
-          hint={feeType === 'percent' ? '% dari tarif' : 'rupiah'}
+          hint={feeType === 'percent' ? t('services.percentHint') : t('services.rupiahHint')}
           error={errors.doctor_fee_value?.message}>
           <Input
             id="service_fee_value"
@@ -117,7 +129,7 @@ function ServiceForm(props: BillingServiceDialogProps & { onDone: () => void }) 
       )}
       <DialogFooter className="sm:col-span-2">
         <Button type="submit" disabled={save.isPending}>
-          {save.isPending ? 'Menyimpan...' : 'Simpan'}
+          {save.isPending ? tc('saving') : tc('save')}
         </Button>
       </DialogFooter>
     </form>

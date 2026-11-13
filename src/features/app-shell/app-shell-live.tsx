@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { createContext, type ReactNode, use, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { useQueueBoard, useQueueRealtime } from '@/features/queue/queue.hooks';
@@ -40,6 +41,7 @@ type AppShellLiveProviderProps = {
  * way in, and a count in the browser tab title for when the window is behind.
  */
 export function AppShellLiveProvider(props: AppShellLiveProviderProps) {
+  const t = useTranslations('shell');
   const router = useRouter();
   const pathname = usePathname();
 
@@ -60,15 +62,19 @@ export function AppShellLiveProvider(props: AppShellLiveProviderProps) {
     for (const visit of newArrivals(seen.current, current)) {
       const href = ARRIVAL_HREF[props.role]?.(visit.id);
 
-      toast(`${visit.patient?.full_name ?? 'Pasien'} menunggu`, {
-        description: `${station?.label} · nomor ${visit.queue_no}${visit.poli ? `, ${visit.poli.name}` : ''}`,
+      const where = { station: station ? t(`station.${station.label}`) : '', number: visit.queue_no };
+
+      toast(t('arrival.title', { name: visit.patient?.full_name ?? t('arrival.patient') }), {
+        description: visit.poli
+          ? t('arrival.descriptionPoli', { ...where, poli: visit.poli.name })
+          : t('arrival.description', where),
         duration: 10_000,
-        action: href ? { label: 'Buka', onClick: () => router.push(href) } : undefined,
+        action: href ? { label: t('arrival.open'), onClick: () => router.push(href) } : undefined,
       });
     }
 
     seen.current = new Set(current.map((visit) => visit.id));
-  }, [board.data, props.role, props.userId, router, station?.label]);
+  }, [board.data, props.role, props.userId, router, station, t]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Next resets document.title on every navigation, so pathname re-applies the count.
   useEffect(() => {

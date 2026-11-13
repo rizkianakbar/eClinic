@@ -1,13 +1,13 @@
-import type { Metadata } from 'next';
 import { PHARMACY_ROLES } from '@/features/inventory/inventory.constants';
 import { parsePage } from '@/features/inventory/inventory.lib';
 import { getPurchaseMonth, listPurchases } from '@/features/inventory/inventory.service';
 import { InventoryPurchases } from '@/features/inventory/inventory-purchases';
+import { pageTitle } from '@/i18n/metadata';
 import { requireRole } from '@/lib/auth';
 import { todayInJakarta } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: 'Pembelian' };
+export const generateMetadata = pageTitle('inventory.titles.purchases');
 
 export default async function PurchasesPage(props: PageProps<'/inventory/purchases'>) {
   await requireRole(...PHARMACY_ROLES);

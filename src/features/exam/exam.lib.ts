@@ -1,34 +1,36 @@
 import { z } from 'zod';
+import { keyed } from '@/i18n/keyed';
+import type { AppLocale } from '@/i18n/locales';
 
 /** Blank -> null, otherwise a number in range (comma accepted as decimal separator). */
-function measurement(label: string, min: number, max: number, options: { decimals?: boolean } = {}) {
+function measurement(min: number, max: number, options: { decimals?: boolean } = {}) {
   return z
     .union([z.string(), z.number()])
     .nullish()
     .transform((value) => (value === null || value === undefined ? '' : String(value).trim().replace(',', '.')))
-    .refine((value) => value === '' || !Number.isNaN(Number(value)), `${label} harus berupa angka.`)
+    .refine((value) => value === '' || !Number.isNaN(Number(value)), 'exam.errors.notNumber')
     .transform((value) => (value === '' ? null : Number(value)))
-    .refine((value) => value === null || options.decimals || Number.isInteger(value), `${label} harus bilangan bulat.`)
-    .refine((value) => value === null || (value >= min && value <= max), `${label} harus antara ${min} dan ${max}.`);
+    .refine((value) => value === null || options.decimals || Number.isInteger(value), 'exam.errors.notInteger')
+    .refine((value) => value === null || (value >= min && value <= max), keyed('exam.errors.range', { min, max }));
 }
 
 export const vitalsSchema = z
   .object({
-    systolic: measurement('Sistolik', 50, 300),
-    diastolic: measurement('Diastolik', 20, 200),
-    pulse: measurement('Nadi', 20, 250),
-    temperature: measurement('Suhu', 30, 45, { decimals: true }),
-    respiratory_rate: measurement('Napas', 5, 80),
-    spo2: measurement('SpO2', 50, 100),
-    weight: measurement('Berat badan', 0.5, 400, { decimals: true }),
-    height: measurement('Tinggi badan', 20, 250, { decimals: true }),
+    systolic: measurement(50, 300),
+    diastolic: measurement(20, 200),
+    pulse: measurement(20, 250),
+    temperature: measurement(30, 45, { decimals: true }),
+    respiratory_rate: measurement(5, 80),
+    spo2: measurement(50, 100),
+    weight: measurement(0.5, 400, { decimals: true }),
+    height: measurement(20, 250, { decimals: true }),
   })
   .refine((v) => Object.values(v).some((value) => value !== null), {
-    message: 'Isi minimal satu tanda vital.',
+    message: 'exam.errors.oneVital',
     path: ['systolic'],
   })
   .refine((v) => (v.systolic === null) === (v.diastolic === null), {
-    message: 'Tekanan darah perlu sistolik dan diastolik.',
+    message: 'exam.errors.bothPressures',
     path: ['diastolic'],
   });
 
@@ -39,7 +41,7 @@ const noteText = z
   .string()
   .nullish()
   .transform((value) => (value ?? '').trim())
-  .refine((value) => value.length <= 5000, 'Teks terlalu panjang, maksimal 5000 karakter.')
+  .refine((value) => value.length <= 5000, 'exam.errors.textTooLong')
   .transform((value) => value || null);
 
 export const soapSchema = z.object({
@@ -50,7 +52,7 @@ export const soapSchema = z.object({
 });
 
 export const amendmentSchema = soapSchema.refine((v) => Object.values(v).some((value) => value !== null), {
-  message: 'Tulis isi amandemen.',
+  message: 'exam.errors.amendmentEmpty',
   path: ['subjective'],
 });
 
@@ -58,24 +60,24 @@ export type SoapInput = z.input<typeof soapSchema>;
 export type SoapValues = z.output<typeof soapSchema>;
 
 export const procedureSchema = z.object({
-  service_id: z.uuid('Pilih tindakan.'),
+  service_id: z.uuid('exam.errors.pickProcedure'),
   qty: z.coerce
-    .number<string | number>({ error: 'Jumlah wajib diisi angka.' })
-    .int('Jumlah harus bilangan bulat.')
-    .min(1, 'Jumlah minimal 1.')
-    .max(100, 'Jumlah maksimal 100.'),
-  performed_by: z.uuid('Pilih pelaksana.'),
+    .number<string | number>({ error: 'exam.errors.qtyNumber' })
+    .int('exam.errors.qtyInteger')
+    .min(1, keyed('exam.errors.qtyMin', { min: 1 }))
+    .max(100, keyed('exam.errors.qtyMax', { max: 100 })),
+  performed_by: z.uuid('exam.errors.pickPerformer'),
 });
 
 export type ProcedureInput = z.input<typeof procedureSchema>;
 
 export const consumableSchema = z.object({
-  medicine_id: z.uuid('Pilih bahan.'),
+  medicine_id: z.uuid('exam.errors.pickConsumable'),
   qty: z.coerce
-    .number<string | number>({ error: 'Jumlah wajib diisi angka.' })
-    .int('Jumlah harus bilangan bulat.')
-    .min(1, 'Jumlah minimal 1.')
-    .max(1000, 'Jumlah maksimal 1000.'),
+    .number<string | number>({ error: 'exam.errors.qtyNumber' })
+    .int('exam.errors.qtyInteger')
+    .min(1, keyed('exam.errors.qtyMin', { min: 1 }))
+    .max(1000, keyed('exam.errors.qtyMax', { max: 1000 })),
 });
 
 /** Form version: the picker keeps the medicine object to show its name. */
@@ -84,7 +86,7 @@ export const consumableFormSchema = z
     medicine: z
       .object({ id: z.uuid(), name: z.string(), unit: z.string() })
       .nullable()
-      .refine((medicine) => medicine !== null, 'Pilih bahan.'),
+      .refine((medicine) => medicine !== null, 'exam.errors.pickConsumable'),
     qty: consumableSchema.shape.qty,
   })
   .transform(({ medicine, qty }) => ({ medicine_id: medicine!.id, qty }));
@@ -95,26 +97,26 @@ export type ProcedureValues = z.output<typeof procedureSchema>;
 
 // Letters ---------------------------------------------------------------------------
 
-const letterText = (max: number, message: string) =>
+const letterText = (max: number) =>
   z
     .string()
     .nullish()
     .transform((value) => (value ?? '').trim())
-    .refine((value) => value.length <= max, message)
+    .refine((value) => value.length <= max, keyed('exam.errors.maxLength', { max }))
     .transform((value) => value || null);
 
 export function sickLetterSchema(today: string) {
   return z.object({
     rest_from: z
       .string()
-      .min(1, 'Tanggal mulai istirahat wajib diisi.')
-      .pipe(z.iso.date('Tanggal tidak valid.'))
-      .refine((value) => value >= today, 'Tanggal mulai istirahat tidak boleh sebelum hari ini.'),
+      .min(1, 'exam.errors.restFromRequired')
+      .pipe(z.iso.date('exam.errors.dateInvalid'))
+      .refine((value) => value >= today, 'exam.errors.restFromPast'),
     rest_days: z.coerce
-      .number<string | number>({ error: 'Lama istirahat wajib diisi.' })
-      .int('Lama istirahat harus bilangan bulat.')
-      .min(1, 'Minimal 1 hari.')
-      .max(30, 'Maksimal 30 hari.'),
+      .number<string | number>({ error: 'exam.errors.restDaysRequired' })
+      .int('exam.errors.restDaysInteger')
+      .min(1, 'exam.errors.restDaysMin')
+      .max(30, 'exam.errors.restDaysMax'),
     show_diagnosis: z.boolean(),
   });
 }
@@ -123,11 +125,19 @@ export type SickLetterInput = z.input<ReturnType<typeof sickLetterSchema>>;
 export type SickLetterValues = z.output<ReturnType<typeof sickLetterSchema>>;
 
 export const referralLetterSchema = z.object({
-  destination: z.string().trim().min(1, 'Faskes tujuan wajib diisi.').max(200, 'Maksimal 200 karakter.'),
-  specialty: letterText(100, 'Maksimal 100 karakter.'),
-  reason: z.string().trim().min(1, 'Alasan rujukan wajib diisi.').max(1000, 'Maksimal 1000 karakter.'),
-  clinical_summary: letterText(2000, 'Maksimal 2000 karakter.'),
-  therapy: letterText(1000, 'Maksimal 1000 karakter.'),
+  destination: z
+    .string()
+    .trim()
+    .min(1, 'exam.errors.destinationRequired')
+    .max(200, keyed('exam.errors.maxLength', { max: 200 })),
+  specialty: letterText(100),
+  reason: z
+    .string()
+    .trim()
+    .min(1, 'exam.errors.reasonRequired')
+    .max(1000, keyed('exam.errors.maxLength', { max: 1000 })),
+  clinical_summary: letterText(2000),
+  therapy: letterText(1000),
 });
 
 export type ReferralLetterInput = z.input<typeof referralLetterSchema>;
@@ -162,27 +172,19 @@ export type VitalsReading = {
   height: number | null;
 };
 
-/** Short labels for vitals shown inline (queue rows, worklists). */
-export const VITAL_SHORT_LABELS: Record<string, string> = {
-  bp: 'TD',
-  pulse: 'Nadi',
-  temp: 'Suhu',
-  rr: 'RR',
-  spo2: 'SpO₂',
-  weight: 'BB',
-  height: 'TB',
-  bmi: 'IMT',
-};
-
 export type VitalFlag = 'low' | 'high' | null;
 
+/** Vital-sign keys: names under messages exam.vitals.<key> (short form: exam.vitals.short.<key>). */
+export type VitalKey = 'bp' | 'pulse' | 'temp' | 'rr' | 'spo2' | 'weight' | 'height' | 'bmi';
+
 export type VitalItem = {
-  key: string;
-  label: string;
+  key: VitalKey;
   value: string;
+  /** A unit, or 'perMinute' (worded per language: "x/mnt", "/min"). */
   unit: string;
   flag: VitalFlag;
-  flagLabel?: string;
+  /** A more specific word for the flag (exam.vitals.flag.fever). */
+  flagLabel?: 'fever';
 };
 
 /** Above/below a range; null inside it or when either bound is absent. */
@@ -197,9 +199,9 @@ function outside(value: number, low: number | null, high: number | null): VitalF
  * A reading as display items, each flagged against common adult reference
  * ranges (a visual hint for the doctor, not a diagnosis).
  */
-export function vitalItems(reading: VitalsReading): VitalItem[] {
+export function vitalItems(reading: VitalsReading, locale: AppLocale = 'id'): VitalItem[] {
   const items: VitalItem[] = [];
-  const decimal = (value: number) => String(value).replace('.', ',');
+  const decimal = (value: number) => (locale === 'id' ? String(value).replace('.', ',') : String(value));
 
   if (reading.systolic !== null && reading.diastolic !== null) {
     const flag =
@@ -211,7 +213,6 @@ export function vitalItems(reading: VitalsReading): VitalItem[] {
 
     items.push({
       key: 'bp',
-      label: 'Tekanan darah',
       value: `${reading.systolic}/${reading.diastolic}`,
       unit: 'mmHg',
       flag,
@@ -221,9 +222,8 @@ export function vitalItems(reading: VitalsReading): VitalItem[] {
   if (reading.pulse !== null) {
     items.push({
       key: 'pulse',
-      label: 'Nadi',
       value: String(reading.pulse),
-      unit: 'x/mnt',
+      unit: 'perMinute',
       flag: outside(reading.pulse, 60, 100),
     });
   }
@@ -233,20 +233,18 @@ export function vitalItems(reading: VitalsReading): VitalItem[] {
 
     items.push({
       key: 'temp',
-      label: 'Suhu',
       value: decimal(reading.temperature),
       unit: '°C',
       flag,
-      flagLabel: flag === 'high' ? 'Demam' : undefined,
+      flagLabel: flag === 'high' ? 'fever' : undefined,
     });
   }
 
   if (reading.respiratory_rate !== null) {
     items.push({
       key: 'rr',
-      label: 'Napas',
       value: String(reading.respiratory_rate),
-      unit: 'x/mnt',
+      unit: 'perMinute',
       flag: outside(reading.respiratory_rate, 12, 20),
     });
   }
@@ -254,7 +252,6 @@ export function vitalItems(reading: VitalsReading): VitalItem[] {
   if (reading.spo2 !== null) {
     items.push({
       key: 'spo2',
-      label: 'SpO₂',
       value: String(reading.spo2),
       unit: '%',
       flag: outside(reading.spo2, 95, null),
@@ -262,17 +259,17 @@ export function vitalItems(reading: VitalsReading): VitalItem[] {
   }
 
   if (reading.weight !== null) {
-    items.push({ key: 'weight', label: 'Berat', value: decimal(reading.weight), unit: 'kg', flag: null });
+    items.push({ key: 'weight', value: decimal(reading.weight), unit: 'kg', flag: null });
   }
 
   if (reading.height !== null) {
-    items.push({ key: 'height', label: 'Tinggi', value: decimal(reading.height), unit: 'cm', flag: null });
+    items.push({ key: 'height', value: decimal(reading.height), unit: 'cm', flag: null });
   }
 
   const bmi = bodyMassIndex(reading.weight, reading.height);
 
   if (bmi !== null) {
-    items.push({ key: 'bmi', label: 'IMT', value: decimal(bmi), unit: 'kg/m²', flag: outside(bmi, 18.5, 24.9) });
+    items.push({ key: 'bmi', value: decimal(bmi), unit: 'kg/m²', flag: outside(bmi, 18.5, 24.9) });
   }
 
   return items;
@@ -291,35 +288,44 @@ export function parseIcd10Search(input: string) {
   return words.length < 2 ? null : { kind: 'name' as const, text: words };
 }
 
-const EXAM_ERRORS: Record<string, string> = {
-  not_your_patient: 'Hanya dokter yang menangani pasien ini yang bisa mengubah rekam medisnya.',
-  not_in_exam: 'Pemeriksaan belum dimulai atau sudah selesai. Muat ulang halaman.',
-  record_locked: 'Rekam medis sudah ditandatangani dan terkunci. Tambahkan amandemen untuk koreksi.',
-  primary_diagnosis_required: 'Pilih minimal satu diagnosis utama sebelum menandatangani.',
-  medicine_decision_required:
-    'Tentukan resep dulu: tambahkan minimal satu obat, atau pilih "Tidak perlu obat" dengan alasannya.',
-  soap_missing: 'Catatan SOAP belum ada. Isi dan simpan catatan terlebih dahulu.',
-  soap_not_signed: 'Catatan SOAP belum ditandatangani.',
-  amend_target_invalid: 'Amandemen hanya bisa ditambahkan pada rekam medis yang sudah ditandatangani.',
-  amendment_empty: 'Tulis isi amandemen.',
-  visit_closed: 'Tanda vital hanya bisa dicatat saat pasien menunggu atau diperiksa.',
-  visit_not_found: 'Kunjungan tidak ditemukan. Muat ulang halaman.',
-  not_allowed: 'Anda tidak punya akses untuk tindakan ini.',
-  medicine_inactive: 'Obat ini sudah tidak aktif. Pilih obat lain.',
-  compound_mismatch: 'Racikan tidak ditemukan. Muat ulang halaman.',
-  service_inactive: 'Tindakan ini tidak aktif atau bukan tindakan. Pilih tindakan lain.',
-  performer_invalid: 'Pelaksana harus dokter atau perawat yang aktif.',
-};
+/** Guard keys raised by the exam triggers and sign_visit(); each has a message under exam.errors. */
+const EXAM_ERRORS = new Set([
+  'not_your_patient',
+  'not_in_exam',
+  'record_locked',
+  'primary_diagnosis_required',
+  'medicine_decision_required',
+  'soap_missing',
+  'soap_not_signed',
+  'amend_target_invalid',
+  'amendment_empty',
+  'visit_closed',
+  'visit_not_found',
+  'not_allowed',
+  'medicine_inactive',
+  'compound_mismatch',
+  'service_inactive',
+  'performer_invalid',
+]);
 
-/** Maps guard errors from the exam triggers and sign_visit() to messages. */
+/** Maps guard errors from the exam triggers and sign_visit() to message keys (short stock names the item). */
 export function examErrorMessage(error: { code?: string; message?: string; details?: string }) {
   if (error.code === 'P0001' && error.message === 'insufficient_stock') {
-    return `Stok bahan habis pakai ${error.details || ''} tidak cukup. Kurangi jumlahnya atau minta farmasi menambah stok, lalu tanda tangani lagi.`;
+    return keyed('exam.errors.insufficient_stock', { item: error.details ?? '' });
   }
 
-  if (error.code === 'P0001' && error.message && EXAM_ERRORS[error.message]) return EXAM_ERRORS[error.message];
-  if (error.code === '23505') return 'Diagnosis ini sudah dipilih.';
-  if (error.code === '42501') return EXAM_ERRORS.not_allowed;
+  if (error.code === 'P0001' && error.message && EXAM_ERRORS.has(error.message)) return `exam.errors.${error.message}`;
+  if (error.code === '23505') return 'exam.errors.duplicateDiagnosis';
+  if (error.code === '42501') return 'exam.errors.not_allowed';
 
-  return 'Rekam medis gagal disimpan. Coba lagi, atau hubungi admin jika terus terjadi.';
+  return 'exam.errors.failed';
+}
+
+type Icd10Names = { name: string; name_id: string | null } | null | undefined;
+
+/** The diagnosis name in the reader's language: the Indonesian name when there is one, else the WHO English name. */
+export function icd10Name(icd10: Icd10Names, locale: AppLocale) {
+  if (!icd10) return '';
+
+  return locale === 'en' ? icd10.name : (icd10.name_id ?? icd10.name);
 }

@@ -1,5 +1,7 @@
 import { CalendarIcon, ChevronRightIcon, StethoscopeIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
+import { INTL_LOCALE } from '@/i18n/locales';
 import { cn } from '@/lib/utils';
 import type { listPatientVisits } from './visits.service';
 import { VisitsStatusBadge } from './visits-status-badge';
@@ -12,18 +14,20 @@ type VisitsHistoryProps = {
   hrefFor: (visitId: string) => string;
 };
 
-const day = new Intl.DateTimeFormat('id-ID', { day: 'numeric', timeZone: 'UTC' });
-const month = new Intl.DateTimeFormat('id-ID', { month: 'short', timeZone: 'UTC' });
-const year = new Intl.DateTimeFormat('id-ID', { year: 'numeric', timeZone: 'UTC' });
-
 /** Visits as a timeline, newest first: when, where, with whom, why, and how it ended. */
 export function VisitsHistory(props: VisitsHistoryProps) {
+  const t = useTranslations('visits.history');
+  const locale = INTL_LOCALE[useLocale()];
+  const day = new Intl.DateTimeFormat(locale, { day: 'numeric', timeZone: 'UTC' });
+  const month = new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' });
+  const year = new Intl.DateTimeFormat(locale, { year: 'numeric', timeZone: 'UTC' });
+
   if (props.visits.length === 0) {
     return (
       <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed px-6 py-12 text-center">
         <CalendarIcon className="mb-1 size-6 text-muted-foreground" aria-hidden />
-        <p className="text-sm font-medium">Belum pernah berkunjung</p>
-        <p className="text-[0.8125rem] text-muted-foreground">Kunjungan yang didaftarkan akan tercatat di sini.</p>
+        <p className="text-sm font-medium">{t('empty')}</p>
+        <p className="text-[0.8125rem] text-muted-foreground">{t('emptyHint')}</p>
       </div>
     );
   }
@@ -69,7 +73,7 @@ export function VisitsHistory(props: VisitsHistoryProps) {
                 </div>
                 <p className="flex items-center gap-1.5 text-[0.8125rem] text-muted-foreground">
                   <StethoscopeIcon className="size-3.5" aria-hidden />
-                  {visit.doctor?.full_name ?? '-'} · antrean {visit.queue_no}
+                  {visit.doctor?.full_name ?? '-'} · {t('queue', { number: visit.queue_no })}
                 </p>
                 {diagnosis && (
                   <p className="flex items-baseline gap-2 text-sm">
@@ -80,7 +84,9 @@ export function VisitsHistory(props: VisitsHistoryProps) {
                   </p>
                 )}
                 {visit.cancel_reason && (
-                  <p className="text-[0.8125rem] text-status-cancelled">Batal: {visit.cancel_reason}</p>
+                  <p className="text-[0.8125rem] text-status-cancelled">
+                    {t('cancelled', { reason: visit.cancel_reason })}
+                  </p>
                 )}
               </div>
               <ChevronRightIcon

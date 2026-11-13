@@ -2,10 +2,12 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { XIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PrescriptionsMedicinePicker } from '@/features/prescriptions/prescriptions-medicine-picker';
+import { useMessage } from '@/i18n/message';
 import { formatRupiah } from '@/lib/money';
 import { useActionMutation } from '@/lib/query';
 import { addConsumableAction, removeConsumableAction } from './exam.actions';
@@ -23,6 +25,9 @@ const EMPTY: ConsumableFormInput = { medicine: null, qty: '1' };
 
 /** Bahan habis pakai for one procedure: taken from stock when the record is signed, billed automatically. */
 export function ExamConsumables(props: ExamConsumablesProps) {
+  const t = useTranslations('exam.consumables');
+  const tp = useTranslations('exam.procedures');
+  const message = useMessage();
   const add = useActionMutation((values: ConsumableValues) => addConsumableAction(props.procedureId, values));
   const remove = useActionMutation(removeConsumableAction);
 
@@ -37,7 +42,7 @@ export function ExamConsumables(props: ExamConsumablesProps) {
 
   return (
     <div className="flex flex-col gap-1 border-l-2 pl-3">
-      <p className="text-xs font-medium text-muted-foreground">Bahan habis pakai</p>
+      <p className="text-xs font-medium text-muted-foreground">{t('title')}</p>
       {props.consumables.map((item) => (
         <div key={item.id} className="flex items-center gap-2 text-xs">
           <span className="flex-1">
@@ -48,7 +53,7 @@ export function ExamConsumables(props: ExamConsumablesProps) {
             <Button
               size="icon-xs"
               variant="ghost"
-              aria-label="Hapus bahan"
+              aria-label={t('remove')}
               disabled={remove.isPending}
               onClick={() => remove.mutate(item.id)}>
               <XIcon />
@@ -75,12 +80,14 @@ export function ExamConsumables(props: ExamConsumablesProps) {
               )}
             />
           </div>
-          <Input aria-label="Jumlah" inputMode="numeric" className="w-16" {...form.register('qty')} />
+          <Input aria-label={tp('qty')} inputMode="numeric" className="w-16" {...form.register('qty')} />
           <Button type="submit" size="sm" variant="ghost" disabled={add.isPending}>
-            Tambah bahan
+            {t('add')}
           </Button>
           {(errors.medicine ?? errors.qty) && (
-            <p className="w-full text-xs text-destructive">{errors.medicine?.message ?? errors.qty?.message}</p>
+            <p className="w-full text-xs text-destructive">
+              {message(errors.medicine?.message ?? errors.qty?.message ?? '')}
+            </p>
           )}
         </form>
       )}

@@ -11,6 +11,7 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,12 +46,13 @@ function Kbd(props: { children: string }) {
 
 /** Everything about "me": who is signed in, my account, the clinic (for managers), and sign out kept apart. */
 export function AppShellUserMenu(props: AppShellUserMenuProps) {
+  const t = useTranslations('shell.menu');
   const signOut = useSignOut();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Menu akun"
+        aria-label={t('label')}
         className="flex size-9 items-center justify-center rounded-full transition-shadow hover:ring-4 hover:ring-black/5 data-popup-open:ring-4 data-popup-open:ring-black/5">
         <span className="flex size-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,#1d6b57,#0f3d33)] text-[0.6875rem] font-semibold text-white">
           {props.initials}
@@ -76,15 +78,15 @@ export function AppShellUserMenu(props: AppShellUserMenuProps) {
         <DropdownMenuGroup>
           <DropdownMenuLinkItem render={<Link href="/account" />}>
             <UserRoundIcon />
-            Akun saya
+            {t('account')}
           </DropdownMenuLinkItem>
           <DropdownMenuLinkItem render={<Link href="/account#kata-sandi" />}>
             <KeyRoundIcon />
-            Ganti kata sandi
+            {t('password')}
           </DropdownMenuLinkItem>
           <DropdownMenuLinkItem render={<Link href="/account#pintasan" />}>
             <KeyboardIcon />
-            Pintasan keyboard
+            {t('shortcuts')}
             {props.hasSearch && <Kbd>Ctrl K</Kbd>}
           </DropdownMenuLinkItem>
         </DropdownMenuGroup>
@@ -93,18 +95,18 @@ export function AppShellUserMenu(props: AppShellUserMenuProps) {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuLabel>Klinik</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('clinic')}</DropdownMenuLabel>
               <DropdownMenuLinkItem render={<Link href="/settings/clinic" />}>
                 <BuildingIcon />
-                Profil klinik
+                {t('clinicProfile')}
               </DropdownMenuLinkItem>
               <DropdownMenuLinkItem render={<Link href="/settings/staff" />}>
                 <UsersIcon />
-                Kelola staf
+                {t('staff')}
               </DropdownMenuLinkItem>
               <DropdownMenuLinkItem render={<Link href="/settings/activity" />}>
                 <HistoryIcon />
-                Log aktivitas
+                {t('activity')}
               </DropdownMenuLinkItem>
             </DropdownMenuGroup>
           </>
@@ -113,11 +115,11 @@ export function AppShellUserMenu(props: AppShellUserMenuProps) {
         <DropdownMenuSeparator />
         <p className="flex items-start gap-2 px-2 py-1.5 text-xs text-muted-foreground">
           <TimerIcon className="mt-px size-3.5 shrink-0" aria-hidden />
-          Keluar otomatis setelah {props.idleLogoutMinutes} menit tidak dipakai. Keluar sendiri saat meninggalkan meja.
+          {t('idle', { minutes: props.idleLogoutMinutes })}
         </p>
         <DropdownMenuItem tone="destructive" disabled={signOut.isPending} onClick={() => signOut.mutate()}>
           <LogOutIcon />
-          {signOut.isPending ? 'Keluar…' : 'Keluar'}
+          {signOut.isPending ? t('signingOut') : t('signOut')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -10,9 +11,9 @@ import { Input } from '@/components/ui/input';
 import { segmentedGroup, segmentedRadioItem } from '@/components/ui/segmented';
 import { SheetBody, SheetClose, SheetFooter } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
+import { useMessage } from '@/i18n/message';
 import { todayInJakarta } from '@/lib/dates';
 import { cn } from '@/lib/utils';
-import { SEX_LABELS } from './patients.constants';
 import { useCreatePatient, useUpdatePatient } from './patients.hooks';
 import { type PatientInput, type PatientValues, patientSchema } from './patients.lib';
 
@@ -33,6 +34,8 @@ type PatientFormProps = ({ mode: 'create' } | { mode: 'edit'; patientId: string;
 
 /** Fields and footer; lives inside a drawer (`PatientsSheet`). */
 export function PatientForm(props: PatientFormProps) {
+  const t = useTranslations();
+  const message = useMessage();
   const router = useRouter();
   const create = useCreatePatient();
   const update = useUpdatePatient(props.mode === 'edit' ? props.patientId : '');
@@ -49,7 +52,7 @@ export function PatientForm(props: PatientFormProps) {
     if (props.mode === 'create') {
       create.mutate(values, {
         onSuccess: (patient) => {
-          toast.success('Pasien baru tersimpan. Daftarkan kunjungannya di sini.');
+          toast.success(t('patients.form.savedNew'));
 
           props.onSaved?.();
           router.push(`/patients/${patient.id}`);
@@ -58,7 +61,7 @@ export function PatientForm(props: PatientFormProps) {
     } else {
       update.mutate(values, {
         onSuccess: () => {
-          toast.success('Data pasien tersimpan.');
+          toast.success(t('patients.form.saved'));
           props.onSaved?.();
           router.refresh();
         },
@@ -69,7 +72,11 @@ export function PatientForm(props: PatientFormProps) {
   return (
     <form noValidate className="flex min-h-0 flex-1 flex-col" onSubmit={form.handleSubmit(onSubmit)}>
       <SheetBody className="grid grid-cols-1 content-start gap-x-4 gap-y-5 sm:grid-cols-2">
-        <FormField label="Nama lengkap" htmlFor="full_name" error={errors.full_name?.message} className="sm:col-span-2">
+        <FormField
+          label={t('patients.form.fullName')}
+          htmlFor="full_name"
+          error={errors.full_name?.message}
+          className="sm:col-span-2">
           <Input
             id="full_name"
             autoFocus={props.mode === 'create'}
@@ -84,7 +91,7 @@ export function PatientForm(props: PatientFormProps) {
           htmlFor="nik"
           className="sm:col-span-2"
           error={errors.nik?.message}
-          hint="16 digit. Kosongkan jika belum ada.">
+          hint={t('patients.form.nikHint')}>
           <Input
             id="nik"
             inputMode="numeric"
@@ -95,11 +102,11 @@ export function PatientForm(props: PatientFormProps) {
         </FormField>
 
         <FormField
-          label="Nomor BPJS"
+          label={t('patients.form.bpjs')}
           htmlFor="bpjs_number"
           className="sm:col-span-2"
           error={errors.bpjs_number?.message}
-          hint="13 digit, jika pasien BPJS.">
+          hint={t('patients.form.bpjsHint')}>
           <Input
             id="bpjs_number"
             inputMode="numeric"
@@ -109,7 +116,7 @@ export function PatientForm(props: PatientFormProps) {
           />
         </FormField>
 
-        <FormField label="Tanggal lahir" htmlFor="birth_date" error={errors.birth_date?.message}>
+        <FormField label={t('patients.form.birthDate')} htmlFor="birth_date" error={errors.birth_date?.message}>
           <Input
             id="birth_date"
             type="date"
@@ -120,23 +127,23 @@ export function PatientForm(props: PatientFormProps) {
         </FormField>
 
         <fieldset className="flex flex-col gap-1.5">
-          <legend className="mb-1.5 text-sm font-medium">Jenis kelamin</legend>
+          <legend className="mb-1.5 text-sm font-medium">{t('patients.form.sex')}</legend>
           <div className={cn(segmentedGroup, 'grid w-full grid-cols-2')}>
-            {Object.entries(SEX_LABELS).map(([value, label]) => (
+            {(['male', 'female'] as const).map((value) => (
               <label key={value} className={cn(segmentedRadioItem, 'h-9')}>
                 <input type="radio" value={value} className="sr-only" {...form.register('sex')} />
-                {label}
+                {t(`sex.${value}`)}
               </label>
             ))}
           </div>
-          {errors.sex && <p className="text-[0.8125rem] text-destructive">{errors.sex.message}</p>}
+          {errors.sex && <p className="text-[0.8125rem] text-destructive">{message(errors.sex.message ?? '')}</p>}
         </fieldset>
 
         <FormField
-          label="Nomor HP"
+          label={t('patients.form.phone')}
           htmlFor="phone"
           error={errors.phone?.message}
-          hint="Opsional."
+          hint={t('patients.form.optional')}
           className="sm:col-span-2">
           <Input
             id="phone"
@@ -148,18 +155,22 @@ export function PatientForm(props: PatientFormProps) {
         </FormField>
 
         <FormField
-          label="Alamat"
+          label={t('patients.form.address')}
           htmlFor="address"
           error={errors.address?.message}
-          hint="Opsional."
+          hint={t('patients.form.optional')}
           className="sm:col-span-2">
           <Textarea id="address" rows={2} aria-invalid={Boolean(errors.address)} {...form.register('address')} />
         </FormField>
       </SheetBody>
       <SheetFooter>
-        <SheetClose render={<Button type="button" variant="outline" />}>Batal</SheetClose>
+        <SheetClose render={<Button type="button" variant="outline" />}>{t('common.cancel')}</SheetClose>
         <Button type="submit" disabled={mutation.isPending || (props.mode === 'edit' && !form.formState.isDirty)}>
-          {mutation.isPending ? 'Menyimpan…' : props.mode === 'create' ? 'Simpan pasien' : 'Simpan perubahan'}
+          {mutation.isPending
+            ? t('common.saving')
+            : props.mode === 'create'
+              ? t('patients.form.save')
+              : t('patients.form.saveChanges')}
         </Button>
       </SheetFooter>
     </form>

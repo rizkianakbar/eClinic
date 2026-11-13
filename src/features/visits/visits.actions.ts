@@ -14,7 +14,7 @@ export async function createVisitAction(
 
   const parsed = createVisitSchema.safeParse(input);
 
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Data kunjungan tidak valid.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'visits.errors.invalid' };
 
   return createVisit(await createClient(), parsed.data);
 }

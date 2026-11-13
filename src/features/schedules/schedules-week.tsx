@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { segmentedGroup, segmentedItem } from '@/components/ui/segmented';
@@ -8,7 +9,7 @@ import { initials } from '@/features/patients/patients.lib';
 import { SettingsActiveToggle } from '@/features/settings/settings-active-toggle';
 import { cn } from '@/lib/utils';
 import { setScheduleActiveAction } from './schedules.actions';
-import { DAY_LABELS } from './schedules.constants';
+import { weekdayKey } from './schedules.constants';
 import { toHourMinute } from './schedules.lib';
 import type { listSchedules } from './schedules.service';
 import { SchedulesDialog } from './schedules-dialog';
@@ -46,6 +47,7 @@ function centerDay(el: HTMLElement, day: number, behavior: ScrollBehavior) {
  * which carries the only filled header, and can be narrowed to one doctor.
  */
 export function SchedulesWeek(props: SchedulesWeekProps) {
+  const t = useTranslations('schedules');
   const { doctors, polis } = props;
   const scroller = useRef<HTMLOListElement>(null);
   const [doctorId, setDoctorId] = useState<string | null>(null);
@@ -86,9 +88,9 @@ export function SchedulesWeek(props: SchedulesWeekProps) {
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <fieldset className={segmentedGroup}>
-          <legend className="sr-only">Tampilkan dokter</legend>
+          <legend className="sr-only">{t('showDoctor')}</legend>
           <button type="button" className={segmentedItem(doctorId === null)} onClick={() => setDoctorId(null)}>
-            Semua dokter
+            {t('allDoctors')}
           </button>
           {scheduledDoctors.map((doctor) => (
             <button
@@ -106,12 +108,12 @@ export function SchedulesWeek(props: SchedulesWeekProps) {
             variant="outline"
             size="sm"
             onClick={() => scroller.current && centerDay(scroller.current, props.today, 'smooth')}>
-            Hari ini
+            {t('today')}
           </Button>
           <Button
             variant="outline"
             size="icon-sm"
-            aria-label="Hari sebelumnya"
+            aria-label={t('previousDay')}
             disabled={edges.start}
             onClick={() => scrollByColumn(-1)}>
             <ChevronLeftIcon />
@@ -119,7 +121,7 @@ export function SchedulesWeek(props: SchedulesWeekProps) {
           <Button
             variant="outline"
             size="icon-sm"
-            aria-label="Hari berikutnya"
+            aria-label={t('nextDay')}
             disabled={edges.end}
             onClick={() => scrollByColumn(1)}>
             <ChevronRightIcon />
@@ -130,7 +132,7 @@ export function SchedulesWeek(props: SchedulesWeekProps) {
       <ol
         ref={scroller}
         onScroll={updateEdges}
-        aria-label="Jadwal mingguan"
+        aria-label={t('week')}
         className="-mx-1 flex snap-x snap-mandatory scroll-px-1 gap-3 overflow-x-auto px-1 pb-3 scrollbar-thin">
         {DAYS.map((day) => {
           const sessions = visible.filter((schedule) => schedule.day_of_week === day);
@@ -153,16 +155,16 @@ export function SchedulesWeek(props: SchedulesWeekProps) {
                   isToday ? 'border-primary/30 bg-primary text-primary-foreground' : 'bg-card',
                 )}>
                 <span className="flex items-center gap-2 text-sm font-semibold">
-                  {DAY_LABELS[day]}
+                  {t(`days.${weekdayKey(day)}`)}
                   {isToday && (
                     <span className="rounded-md bg-white/20 px-1.5 text-[0.6875rem] leading-5 font-medium">
-                      Hari ini
+                      {t('today')}
                     </span>
                   )}
                 </span>
                 <span
                   className={cn('tabular text-xs', isToday ? 'text-primary-foreground/85' : 'text-muted-foreground')}>
-                  {active.length === 0 ? 'Libur' : `${active.length} sesi · ${quota} kuota`}
+                  {active.length === 0 ? t('dayOff') : t('dayLoad', { sessions: active.length, quota })}
                 </span>
               </header>
               <div className="flex flex-1 flex-col gap-2 p-2">
@@ -184,7 +186,10 @@ export function SchedulesWeek(props: SchedulesWeekProps) {
                         <span className="text-muted-foreground">–{toHourMinute(schedule.end_time)}</span>
                       </p>
                       <span className="tabular text-xs text-muted-foreground">
-                        <span className="font-semibold text-foreground">{schedule.quota}</span> pasien
+                        {t.rich('patients', {
+                          count: schedule.quota,
+                          b: (chunks) => <span className="font-semibold text-foreground">{chunks}</span>,
+                        })}
                       </span>
                     </div>
                     <div className="flex min-w-0 items-center gap-2">
@@ -199,7 +204,7 @@ export function SchedulesWeek(props: SchedulesWeekProps) {
                         </span>
                         <span className="block truncate text-xs text-muted-foreground">
                           {schedule.poli?.name}
-                          {!schedule.is_active && ' · nonaktif'}
+                          {!schedule.is_active && ` · ${t('inactiveShort')}`}
                         </span>
                       </span>
                     </div>
@@ -209,15 +214,18 @@ export function SchedulesWeek(props: SchedulesWeekProps) {
                         id={schedule.id}
                         isActive={schedule.is_active}
                         action={setScheduleActiveAction}
-                        name={`jadwal ${DAY_LABELS[schedule.day_of_week]} ${toHourMinute(schedule.start_time)}`}
-                        consequence="Jadwal ini tidak dipakai untuk pendaftaran kunjungan baru."
+                        name={t('toggleName', {
+                          day: t(`days.${weekdayKey(schedule.day_of_week)}`),
+                          time: toHourMinute(schedule.start_time),
+                        })}
+                        consequence={t('deactivateConsequence')}
                         size="xs"
                       />
                     </div>
                   </article>
                 ))}
                 {sessions.length === 0 && (
-                  <p className="px-1 py-3 text-center text-[0.8125rem] text-muted-foreground">Tidak ada praktik</p>
+                  <p className="px-1 py-3 text-center text-[0.8125rem] text-muted-foreground">{t('noPractice')}</p>
                 )}
                 <div className="mt-auto">
                   <SchedulesDialog mode="create" day={day} doctors={doctors} polis={polis} />

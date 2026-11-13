@@ -31,7 +31,7 @@ describe('parseRupiah', () => {
 });
 
 describe('rupiahField', () => {
-  const field = rupiahField('Harga');
+  const field = rupiahField();
 
   it('parses formatted input and passes numbers through', () => {
     expect(field.parse('Rp 15.000')).toBe(15000);
@@ -39,8 +39,8 @@ describe('rupiahField', () => {
   });
 
   it('rejects blanks and negatives with a message', () => {
-    expect(field.safeParse('').error?.issues[0]?.message).toBe('Harga wajib diisi dengan angka, contoh: 15000.');
-    expect(field.safeParse('-5').error?.issues[0]?.message).toBe('Harga tidak boleh negatif.');
+    expect(field.safeParse('').error?.issues[0]?.message).toBe('validation.amountNumber');
+    expect(field.safeParse('-5').error?.issues[0]?.message).toBe('validation.amountNegative');
   });
 });
 
@@ -48,6 +48,7 @@ describe('formatRupiahCompact', () => {
   it('shortens to rb / jt', () => {
     expect(formatRupiahCompact(650_000)).toBe('Rp\u00a0650\u00a0rb');
     expect(formatRupiahCompact(1_250_000)).toBe('Rp\u00a01,3\u00a0jt');
+    expect(formatRupiahCompact(1_250_000, 'en')).toBe('Rp\u00a01.3M');
     expect(formatRupiahCompact(0)).toBe('Rp\u00a00');
   });
 });

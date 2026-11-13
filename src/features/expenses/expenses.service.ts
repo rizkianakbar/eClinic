@@ -38,7 +38,5 @@ export async function voidExpense(supabase: SupabaseClient, expenseId: string, r
 
   if (error) return { ok: false, error: expenseErrorMessage(error) };
 
-  return data
-    ? { ok: true, data: undefined }
-    : { ok: false, error: 'Pengeluaran tidak ditemukan. Muat ulang halaman.' };
+  return data ? { ok: true, data: undefined } : { ok: false, error: 'expenses.errors.notFound' };
 }

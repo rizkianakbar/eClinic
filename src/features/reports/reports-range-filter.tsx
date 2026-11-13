@@ -3,6 +3,7 @@
 import { CalendarRangeIcon, LoaderCircleIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { type SubmitEvent, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ type ReportsRangeFilterProps = {
  * header and tabs stay in place.
  */
 export function ReportsRangeFilter(props: ReportsRangeFilterProps) {
+  const t = useTranslations('reports.range');
   const router = useRouter();
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
@@ -35,8 +37,8 @@ export function ReportsRangeFilter(props: ReportsRangeFilterProps) {
     const from = String(data.get('from') ?? '');
     const to = String(data.get('to') ?? '');
 
-    if (!from || !to) return setError('Isi kedua tanggal.');
-    if (from > to) return setError('Tanggal awal harus sebelum tanggal akhir.');
+    if (!from || !to) return setError(t('bothDates'));
+    if (from > to) return setError(t('order'));
 
     setError(null);
     startTransition(() => router.push(href({ from, to }), { scroll: false }));
@@ -46,19 +48,19 @@ export function ReportsRangeFilter(props: ReportsRangeFilterProps) {
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-2 shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
       <div className="flex flex-wrap items-center gap-2">
         <CalendarRangeIcon className="ml-1.5 size-4 text-muted-foreground" aria-hidden />
-        <span className="text-sm font-medium">Periode</span>
+        <span className="text-sm font-medium">{t('period')}</span>
         <div className={segmentedGroup}>
           {rangePresets(props.today).map((preset) => {
             const active = preset.from === props.range.from && preset.to === props.range.to;
 
             return (
               <Link
-                key={preset.label}
+                key={preset.key}
                 href={href({ from: preset.from, to: preset.to })}
                 scroll={false}
                 aria-current={active ? 'true' : undefined}
                 className={segmentedItem(active)}>
-                {preset.label}
+                {t(preset.key)}
               </Link>
             );
           })}
@@ -73,18 +75,18 @@ export function ReportsRangeFilter(props: ReportsRangeFilterProps) {
         <Input
           type="date"
           name="from"
-          aria-label="Dari tanggal"
+          aria-label={t('from')}
           aria-invalid={Boolean(error)}
           defaultValue={props.range.from}
           max={props.today}
           className="h-8 w-38"
           onChange={() => setError(null)}
         />
-        <span className="text-sm text-muted-foreground">s/d</span>
+        <span className="text-sm text-muted-foreground">{t('until')}</span>
         <Input
           type="date"
           name="to"
-          aria-label="Sampai tanggal"
+          aria-label={t('to')}
           aria-invalid={Boolean(error)}
           defaultValue={props.range.to}
           max={props.today}
@@ -93,7 +95,7 @@ export function ReportsRangeFilter(props: ReportsRangeFilterProps) {
         />
         <Button type="submit" variant="outline" size="sm" disabled={pending}>
           {pending && <LoaderCircleIcon className="animate-spin" aria-hidden />}
-          Tampilkan
+          {t('show')}
         </Button>
         {error && <p className="w-full text-right text-[0.8125rem] text-destructive">{error}</p>}
       </form>

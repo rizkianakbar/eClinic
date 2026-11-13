@@ -273,7 +273,7 @@ export async function getLetter(supabase: SupabaseClient, letterId: string) {
 export async function addConsumable(supabase: SupabaseClient, procedureId: string, values: ConsumableValues) {
   const { error } = await supabase.from('procedure_consumables').insert({ ...values, visit_procedure_id: procedureId });
 
-  if (error?.code === '23505') return { ok: false, error: 'Bahan ini sudah dicatat untuk tindakan ini.' } as const;
+  if (error?.code === '23505') return { ok: false, error: 'exam.errors.consumableDuplicate' } as const;
 
   return error ? fail(error) : ok;
 }

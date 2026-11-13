@@ -1,4 +1,5 @@
 import { InfoIcon, TrendingDownIcon, TrendingUpIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { formatRupiah } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { profitLossStatement } from './reports.lib';
@@ -13,53 +14,44 @@ type Line = { label: string; note: string; value: number; kind: 'income' | 'cost
 
 /** The income statement, top to bottom: what came in, what it cost, what is left. */
 export function ReportsProfitLoss(props: ReportsProfitLossProps) {
+  const t = useTranslations('reports.pl');
   const statement = profitLossStatement(props.profitLoss);
   const loss = statement.net < 0;
   const scale = Math.max(1, statement.revenue, statement.medicineCost + statement.expenses);
 
   const lines: Line[] = [
-    { label: 'Pendapatan', note: 'Tagihan pasien umum yang lunas', value: statement.revenue, kind: 'income' },
+    { label: t('revenue'), note: t('revenueNote'), value: statement.revenue, kind: 'income' },
+    { label: t('medicineCost'), note: t('medicineCostNote'), value: statement.medicineCost, kind: 'cost' },
     {
-      label: 'Harga pokok obat',
-      note: 'Harga beli batch yang diserahkan (umum dan BPJS)',
-      value: statement.medicineCost,
-      kind: 'cost',
-    },
-    {
-      label: 'Laba kotor',
-      note: statement.grossMargin === null ? '' : `Margin ${statement.grossMargin}%`,
+      label: t('gross'),
+      note: statement.grossMargin === null ? '' : t('margin', { margin: statement.grossMargin }),
       value: statement.gross,
       kind: 'result',
     },
-    {
-      label: 'Pengeluaran operasional',
-      note: 'Gaji, sewa, listrik, dan lainnya yang dicatat',
-      value: statement.expenses,
-      kind: 'cost',
-    },
+    { label: t('expenses'), note: t('expensesNote'), value: statement.expenses, kind: 'cost' },
   ];
 
   return (
     <div className="flex flex-col gap-6">
       <ReportsKpis
         items={[
-          { label: 'Pendapatan', value: formatRupiah(statement.revenue) },
+          { label: t('revenue'), value: formatRupiah(statement.revenue) },
           {
-            label: 'Total biaya',
+            label: t('totalCost'),
             value: formatRupiah(statement.medicineCost + statement.expenses),
-            hint: 'Obat + operasional',
+            hint: t('totalCostHint'),
           },
           {
-            label: loss ? 'Rugi bersih' : 'Laba bersih',
+            label: loss ? t('loss') : t('profit'),
             value: formatRupiah(statement.net),
-            hint: statement.netMargin === null ? 'Belum ada pendapatan' : `Margin ${statement.netMargin}%`,
+            hint: statement.netMargin === null ? t('noRevenue') : t('margin', { margin: statement.netMargin }),
             tone: loss ? 'negative' : 'positive',
           },
         ]}
       />
 
       <section className="flex flex-col gap-2.5">
-        <h3 className="text-sm font-semibold">Laporan laba rugi</h3>
+        <h3 className="text-sm font-semibold">{t('statement')}</h3>
         <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           <ol>
             {lines.map((line) => (
@@ -121,11 +113,11 @@ export function ReportsProfitLoss(props: ReportsProfitLossProps) {
                 )}
               </span>
               <span>
-                <span className="block font-semibold">{loss ? 'Rugi bersih' : 'Laba bersih'}</span>
+                <span className="block font-semibold">{loss ? t('loss') : t('profit')}</span>
                 <span className="block text-xs text-muted-foreground">
                   {statement.netMargin === null
-                    ? 'Belum ada pendapatan pada periode ini'
-                    : `${statement.netMargin}% dari pendapatan`}
+                    ? t('noRevenuePeriod')
+                    : t('ofRevenue', { margin: statement.netMargin })}
                 </span>
               </span>
             </span>
@@ -138,9 +130,7 @@ export function ReportsProfitLoss(props: ReportsProfitLossProps) {
 
       <p className="flex items-start gap-2 text-[0.8125rem] text-muted-foreground">
         <InfoIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
-        Pendapatan dihitung dari tagihan pasien umum yang lunas; tagihan batal tidak dihitung. Harga pokok obat termasuk
-        obat pasien BPJS, sedangkan pendapatan kapitasi BPJS belum termasuk, jadi laba bisa tampak lebih kecil dari
-        sebenarnya.
+        {t('note')}
       </p>
     </div>
   );

@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/server';
 import { type CancelVisitValues, cancelVisitSchema } from './queue.lib';
 import { callVisit, cancelVisit, skipVisit, startExam } from './queue.service';
 
-const NOT_FOUND: ActionResult<never> = { ok: false, error: 'Kunjungan tidak ditemukan. Muat ulang halaman.' };
+const NOT_FOUND: ActionResult<never> = { ok: false, error: 'queue.errors.notFound' };
 const isId = (value: string) => z.uuid().safeParse(value).success;
 
 export async function callVisitAction(visitId: string): Promise<ActionResult> {
@@ -37,7 +37,7 @@ export async function cancelVisitAction(visitId: string, input: CancelVisitValue
 
   const parsed = cancelVisitSchema.safeParse(input);
 
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Alasan tidak valid.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'queue.errors.reasonInvalid' };
 
   return cancelVisit(await createClient(), visitId, parsed.data.reason);
 }

@@ -1,5 +1,6 @@
 import 'server-only';
 import type { DateRange } from '@/features/reports/reports.lib';
+import { keyed } from '@/i18n/keyed';
 import type { Session } from '@/lib/auth';
 import type { ActionResult } from '@/lib/query';
 import { readSpreadsheet } from '@/lib/spreadsheet';
@@ -21,8 +22,7 @@ type AdminClient = ReturnType<typeof createAdminClient>;
 /** Effectively permanent; lifted on reactivation. Kills refresh of existing sessions. */
 const DEACTIVATED_BAN = '876000h';
 
-const NOT_ALLOWED =
-  'Akun ini tidak bisa Anda ubah. Akun sendiri dan akun pemilik hanya bisa diubah oleh pemilik klinik.';
+const NOT_ALLOWED = 'settings.errors.cannotEdit';
 
 // Staff ----------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ export async function createStaff(
   if (profileError) {
     await admin.auth.admin.deleteUser(data.user.id);
 
-    return { ok: false, error: masterDataErrorMessage(profileError, 'Akun staf ini sudah ada.') };
+    return { ok: false, error: masterDataErrorMessage(profileError, 'errors.duplicate.staff') };
   }
 
   return { ok: true, data: undefined };
@@ -89,7 +89,7 @@ export async function updateStaff(
 
   const { data, error } = await supabase.from('profiles').update(values).eq('id', staffId).select('id').maybeSingle();
 
-  if (error) return { ok: false, error: masterDataErrorMessage(error, 'Akun staf ini sudah ada.') };
+  if (error) return { ok: false, error: masterDataErrorMessage(error, 'errors.duplicate.staff') };
   if (!data) return { ok: false, error: NOT_ALLOWED };
 
   return { ok: true, data: undefined };
@@ -124,9 +124,7 @@ export async function setStaffActive(
 
     return {
       ok: false,
-      error: isActive
-        ? 'Akun diaktifkan, tetapi login belum dibuka. Coba aktifkan lagi.'
-        : 'Akses sudah dicabut, tetapi sesi login lama belum diputus. Coba nonaktifkan lagi.',
+      error: isActive ? 'settings.errors.activatedNoLogin' : 'settings.errors.revokedSessionLeft',
     };
   }
 
@@ -154,7 +152,7 @@ export async function resetStaffPassword(
 
 // Polis ----------------------------------------------------------------------
 
-const DUPLICATE_POLI = 'Nama poli ini sudah ada. Gunakan nama lain.';
+const DUPLICATE_POLI = 'errors.duplicate.poli';
 
 export async function listPolis(supabase: SupabaseClient, options: { activeOnly?: boolean } = {}) {
   let query = supabase
@@ -190,7 +188,7 @@ export async function updatePoli(
   const { data, error } = await supabase.from('polis').update(values).eq('id', poliId).select('id').maybeSingle();
 
   if (error) return { ok: false, error: masterDataErrorMessage(error, DUPLICATE_POLI) };
-  if (!data) return { ok: false, error: 'Poli tidak ditemukan. Muat ulang halaman lalu coba lagi.' };
+  if (!data) return { ok: false, error: 'settings.errors.poliNotFound' };
 
   return { ok: true, data: undefined };
 }
@@ -243,9 +241,7 @@ export async function updateClinicProfile(
 
   if (error) return { ok: false, error: masterDataErrorMessage(error, '') };
 
-  return data
-    ? { ok: true, data: undefined }
-    : { ok: false, error: 'Anda tidak punya akses untuk mengubah profil klinik.' };
+  return data ? { ok: true, data: undefined } : { ok: false, error: 'settings.errors.noProfileAccess' };
 }
 
 /** Replaces the logo at "<clinic_id>/logo" and stores its path. */
@@ -256,7 +252,7 @@ export async function uploadClinicLogo(supabase: SupabaseClient, clinicId: strin
     .from(LOGO_BUCKET)
     .upload(path, file, { upsert: true, contentType: file.type, cacheControl: '60' });
 
-  if (error) return { ok: false, error: 'Logo gagal diunggah. Pastikan file PNG/JPG/WEBP maksimal 1 MB.' };
+  if (error) return { ok: false, error: 'settings.errors.logoUploadFailed' };
 
   return updateLogoPath(supabase, clinicId, path);
 }
@@ -275,7 +271,7 @@ async function updateLogoPath(supabase: SupabaseClient, clinicId: string, path: 
     .select('id')
     .maybeSingle();
 
-  if (error || !data) return { ok: false, error: 'Profil klinik gagal diperbarui.' };
+  if (error || !data) return { ok: false, error: 'settings.errors.profileUpdateFailed' };
 
   return { ok: true, data: undefined };
 }
@@ -305,12 +301,12 @@ export async function importIcd10(
   } catch {
     return {
       ok: false,
-      error: 'File tidak bisa dibaca. Gunakan Excel (.xlsx) atau CSV dengan kolom: kode, nama, nama Indonesia.',
+      error: 'settings.errors.icd10Unreadable',
     };
   }
 
   if (parsed.rows.length === 0) {
-    return { ok: false, error: 'Tidak ada baris ICD-10 yang valid. Periksa kolom: kode, nama, nama Indonesia.' };
+    return { ok: false, error: 'settings.errors.icd10NoRows' };
   }
 
   for (let start = 0; start < parsed.rows.length; start += 1000) {
@@ -322,7 +318,7 @@ export async function importIcd10(
 
       return {
         ok: false,
-        error: `Impor berhenti di baris ke-${start + 1}. Baris sebelumnya sudah tersimpan; coba impor ulang.`,
+        error: keyed('settings.errors.icd10Stopped', { row: start + 1 }),
       };
     }
   }
@@ -370,6 +366,7 @@ export async function listAuditLogs(
 
   return {
     total: count ?? 0,
-    logs: data.map((row) => ({ ...row, actorName: row.actor_id ? (names.get(row.actor_id) ?? 'Staf') : 'Sistem' })),
+    // null: the system (no actor) or a person no longer listed; the screen words it.
+    logs: data.map((row) => ({ ...row, actorName: row.actor_id ? (names.get(row.actor_id) ?? null) : null })),
   };
 }

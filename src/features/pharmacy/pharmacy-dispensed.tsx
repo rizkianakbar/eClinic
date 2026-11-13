@@ -1,5 +1,6 @@
 import { BoxesIcon, CircleCheckIcon, PrinterIcon, XCircleIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { buttonVariants } from '@/components/ui/button';
 import { formatDate, formatDateTime } from '@/lib/dates';
 import { cn } from '@/lib/utils';
@@ -9,7 +10,7 @@ import type { DispenseLine } from './pharmacy-dispense-form';
 
 type PharmacyDispensedProps = {
   visitId: string;
-  lines: Pick<DispenseLine, 'id' | 'group' | 'name' | 'qty' | 'unit' | 'signa'>[];
+  lines: Pick<DispenseLine, 'id' | 'compound' | 'name' | 'qty' | 'unit' | 'signa'>[];
   dispensation: NonNullable<Awaited<ReturnType<typeof getDispensation>>>;
   labels: DrugLabel[];
   patientName: string;
@@ -18,6 +19,8 @@ type PharmacyDispensedProps = {
 /** After dispensing: who handed it over, the labels to print (previewed), and what came from which batch. */
 export function PharmacyDispensed(props: PharmacyDispensedProps) {
   const { dispensation } = props;
+  const t = useTranslations();
+  const locale = useLocale();
 
   const givenCount = props.lines.filter((line) =>
     dispensation.items.some((item) => item.prescription_item_id === line.id && item.status === 'given'),
@@ -31,22 +34,26 @@ export function PharmacyDispensed(props: PharmacyDispensedProps) {
             <CircleCheckIcon className="size-5" aria-hidden />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold">Obat sudah diserahkan</p>
+            <p className="font-semibold">{t('pharmacy.done.title')}</p>
             <p className="text-sm text-muted-foreground">
-              {givenCount} dari {props.lines.length} obat oleh {dispensation.dispenser?.full_name},{' '}
-              {formatDateTime(dispensation.dispensed_at)}
+              {t('pharmacy.done.by', {
+                given: givenCount,
+                total: props.lines.length,
+                name: dispensation.dispenser?.full_name ?? '',
+                when: formatDateTime(dispensation.dispensed_at, locale),
+              })}
             </p>
           </div>
           <Link href={`/print/drug-labels/${props.visitId}`} target="_blank" className={buttonVariants({ size: 'lg' })}>
             <PrinterIcon />
-            Cetak {props.labels.length} etiket
+            {t('pharmacy.done.print', { count: props.labels.length })}
           </Link>
         </section>
 
         <section className="overflow-hidden rounded-2xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           <header className="border-b px-4 py-3">
-            <h2 className="text-[0.9375rem] font-semibold">Rincian penyerahan</h2>
-            <p className="text-xs text-muted-foreground">Batch yang dipakai tercatat di kartu stok.</p>
+            <h2 className="text-[0.9375rem] font-semibold">{t('pharmacy.done.details')}</h2>
+            <p className="text-xs text-muted-foreground">{t('pharmacy.done.detailsHint')}</p>
           </header>
           <ol className="divide-y">
             {props.lines.map((line) => {
@@ -61,7 +68,14 @@ export function PharmacyDispensed(props: PharmacyDispensedProps) {
                     <CircleCheckIcon className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
                   )}
                   <div className="min-w-0 flex-1">
-                    {line.group && <p className="text-xs font-medium text-muted-foreground">{line.group}</p>}
+                    {line.compound && (
+                      <p className="text-xs font-medium text-muted-foreground">
+                        {t('pharmacy.compoundGroup', {
+                          form: t(`compoundForm.${line.compound.form as 'puyer' | 'kapsul'}`),
+                        })}{' '}
+                        · {line.compound.quantity} · {line.compound.signa}
+                      </p>
+                    )}
                     <p className={cn('text-sm font-medium', notGiven && 'text-muted-foreground line-through')}>
                       {line.name}{' '}
                       <span className="tabular font-normal text-muted-foreground">
@@ -70,15 +84,20 @@ export function PharmacyDispensed(props: PharmacyDispensedProps) {
                     </p>
                     {notGiven ? (
                       <p className="text-[0.8125rem] text-status-cancelled">
-                        Tidak diberikan: {notGiven.not_given_reason}
+                        {t('pharmacy.done.notGiven', { reason: notGiven.not_given_reason ?? '' })}
                       </p>
                     ) : (
                       <p className="flex flex-wrap gap-x-3 text-[0.8125rem] text-muted-foreground">
                         {rows.map((item) => (
                           <span key={item.id} className="inline-flex items-center gap-1">
                             <BoxesIcon className="size-3.5" aria-hidden />
-                            Batch <span className="tabular font-medium text-foreground">{item.batch?.batch_no}</span>
-                            <span className="tabular">ED {item.batch ? formatDate(item.batch.expiry_date) : '-'}</span>
+                            {t('pharmacy.form.batch')}{' '}
+                            <span className="tabular font-medium text-foreground">{item.batch?.batch_no}</span>
+                            <span className="tabular">
+                              {t('pharmacy.form.expiry', {
+                                date: item.batch ? formatDate(item.batch.expiry_date, locale) : '-',
+                              })}
+                            </span>
                             <span className="tabular">× {item.qty}</span>
                           </span>
                         ))}
@@ -93,10 +112,11 @@ export function PharmacyDispensed(props: PharmacyDispensedProps) {
       </div>
 
       <aside className="flex flex-col gap-3 xl:sticky xl:top-19">
-        <h2 className="text-sm font-semibold">Pratinjau etiket</h2>
+        <h2 className="text-sm font-semibold">{t('pharmacy.done.preview')}</h2>
+        {locale === 'en' && <p className="-mt-2 text-xs text-muted-foreground">{t('pharmacy.done.previewNote')}</p>}
         {props.labels.length === 0 ? (
           <p className="rounded-xl border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
-            Tidak ada obat yang diberikan.
+            {t('pharmacy.done.noneGiven')}
           </p>
         ) : (
           <div className="flex flex-col gap-2">

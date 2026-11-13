@@ -32,12 +32,12 @@ describe('serviceSchema', () => {
     expect(
       serviceSchema.safeParse({ ...base, doctor_fee_type: 'fixed', doctor_fee_value: '60.000' }).error?.issues[0]
         ?.message,
-    ).toBe('Jasa dokter tidak boleh melebihi tarif.');
+    ).toBe('billing.errors.feeOverPrice');
 
     expect(
       serviceSchema.safeParse({ ...base, doctor_fee_type: 'percent', doctor_fee_value: '101' }).error?.issues[0]
         ?.message,
-    ).toBe('Persentase jasa dokter harus 0 sampai 100.');
+    ).toBe('billing.errors.feePercent');
   });
 
   it('accepts its own output, so the action can re-check parsed values', () => {
@@ -64,7 +64,7 @@ describe('discountSchema', () => {
     });
 
     expect(discountSchema.safeParse({ amount: '5000', reason: '' }).error?.issues[0]?.message).toBe(
-      'Alasan diskon wajib diisi.',
+      'billing.errors.discountReasonRequired',
     );
 
     expect(discountSchema.parse({ amount: '0', reason: '' })).toEqual({ amount: 0, reason: '' });
@@ -90,14 +90,16 @@ describe('paymentSchema', () => {
 
   it('refuses cash below the total', () => {
     expect(schema.safeParse({ method: 'cash', cash_received: '100000', reference: '' }).error?.issues[0]?.message).toBe(
-      'Uang diterima kurang dari total tagihan.',
+      'billing.errors.cashNotEnough',
     );
   });
 });
 
 describe('billingErrorMessage', () => {
   it('explains why a system line cannot be removed', () => {
-    expect(billingErrorMessage({ code: 'P0001', message: 'item_not_removable' })).toMatch(/diskon dengan alasan/);
+    expect(billingErrorMessage({ code: 'P0001', message: 'item_not_removable' })).toBe(
+      'billing.errors.itemNotRemovable',
+    );
   });
 });
 
@@ -109,9 +111,7 @@ describe('packageItemsSchema', () => {
       items: [{ service_id: LAB, qty: 2 }],
     });
 
-    expect(packageItemsSchema.safeParse({ items: [] }).error?.issues[0]?.message).toBe(
-      'Tambahkan minimal satu layanan ke paket.',
-    );
+    expect(packageItemsSchema.safeParse({ items: [] }).error?.issues[0]?.message).toBe('billing.errors.packageEmpty');
 
     expect(
       packageItemsSchema.safeParse({
@@ -120,13 +120,13 @@ describe('packageItemsSchema', () => {
           { service_id: LAB, qty: 1 },
         ],
       }).error?.issues[0]?.message,
-    ).toBe('Layanan tidak boleh dobel.');
+    ).toBe('billing.errors.packageDuplicate');
   });
 });
 
 describe('voidSchema', () => {
   it('requires a reason', () => {
-    expect(voidSchema.safeParse({ reason: ' ' }).error?.issues[0]?.message).toBe('Alasan pembatalan wajib diisi.');
+    expect(voidSchema.safeParse({ reason: ' ' }).error?.issues[0]?.message).toBe('billing.errors.voidReasonRequired');
   });
 });
 

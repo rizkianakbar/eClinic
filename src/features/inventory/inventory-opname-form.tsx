@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -9,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useMessage } from '@/i18n/message';
 import { formatDate } from '@/lib/dates';
 import { useActionMutation } from '@/lib/query';
 import { cn } from '@/lib/utils';
@@ -23,6 +25,10 @@ type InventoryOpnameFormProps = {
 
 /** Type the physical count for the batches you checked; blank rows are not part of the opname. */
 export function InventoryOpnameForm(props: InventoryOpnameFormProps) {
+  const t = useTranslations('inventory');
+  const tc = useTranslations('common');
+  const locale = useLocale();
+  const message = useMessage();
   const router = useRouter();
   const [filter, setFilter] = useState('');
   const post = useActionMutation(postStockOpnameAction);
@@ -45,7 +51,7 @@ export function InventoryOpnameForm(props: InventoryOpnameFormProps) {
   const needle = filter.trim().toLowerCase();
 
   if (props.batches.length === 0) {
-    return <p className="rounded-lg border p-4 text-sm text-muted-foreground">Tidak ada batch dengan stok.</p>;
+    return <p className="rounded-lg border p-4 text-sm text-muted-foreground">{t('opnameForm.noBatches')}</p>;
   }
 
   return (
@@ -55,15 +61,15 @@ export function InventoryOpnameForm(props: InventoryOpnameFormProps) {
       onSubmit={form.handleSubmit((values) =>
         post.mutate(values, {
           onSuccess: (opname) => {
-            toast.success('Stok opname disimpan. Stok sudah disesuaikan.');
+            toast.success(t('opnameForm.saved'));
             router.push(`/inventory/opname/${opname.id}`);
           },
         }),
       )}>
       <Input
         type="search"
-        aria-label="Saring obat"
-        placeholder="Saring nama obat"
+        aria-label={t('opnameForm.filter')}
+        placeholder={t('opnameForm.filterPlaceholder')}
         className="max-w-sm"
         value={filter}
         onChange={(event) => setFilter(event.target.value)}
@@ -71,13 +77,13 @@ export function InventoryOpnameForm(props: InventoryOpnameFormProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Obat</TableHead>
-            <TableHead>Batch</TableHead>
-            <TableHead>Kedaluwarsa</TableHead>
-            <TableHead className="text-right">Sistem</TableHead>
-            <TableHead className="w-24">Fisik</TableHead>
-            <TableHead>Selisih</TableHead>
-            <TableHead className="min-w-48">Alasan</TableHead>
+            <TableHead>{t('opname.colMedicine')}</TableHead>
+            <TableHead>{t('opname.colBatch')}</TableHead>
+            <TableHead>{t('purchase.colExpiry')}</TableHead>
+            <TableHead className="text-right">{t('opname.colSystem')}</TableHead>
+            <TableHead className="w-24">{t('opname.colCounted')}</TableHead>
+            <TableHead>{t('opname.colDifference')}</TableHead>
+            <TableHead className="min-w-48">{t('opname.colReason')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -91,14 +97,17 @@ export function InventoryOpnameForm(props: InventoryOpnameFormProps) {
                 <TableCell className="font-medium">{batch.medicine?.name}</TableCell>
                 <TableCell className="tabular">{batch.batch_no}</TableCell>
                 <TableCell className={cn(batch.expiry_date <= props.today && 'font-medium text-destructive')}>
-                  {formatDate(batch.expiry_date)}
+                  {formatDate(batch.expiry_date, locale)}
                 </TableCell>
                 <TableCell className="text-right">
                   {batch.qty_on_hand} {batch.medicine?.unit}
                 </TableCell>
                 <TableCell>
                   <Input
-                    aria-label={`Jumlah fisik ${batch.medicine?.name} ${batch.batch_no}`}
+                    aria-label={t('opnameForm.countedLabel', {
+                      medicine: batch.medicine?.name ?? '',
+                      batch: batch.batch_no,
+                    })}
                     inputMode="numeric"
                     aria-invalid={Boolean(errors.rows?.[index]?.counted)}
                     {...form.register(`rows.${index}.counted`)}
@@ -110,8 +119,8 @@ export function InventoryOpnameForm(props: InventoryOpnameFormProps) {
                 <TableCell>
                   {difference !== null && difference !== 0 && (
                     <Input
-                      aria-label="Alasan selisih"
-                      placeholder="contoh: kedaluwarsa, rusak, hilang"
+                      aria-label={t('opnameForm.reasonLabel')}
+                      placeholder={t('opnameForm.reasonPlaceholder')}
                       aria-invalid={Boolean(errors.rows?.[index]?.reason)}
                       {...form.register(`rows.${index}.reason`)}
                     />
@@ -123,22 +132,22 @@ export function InventoryOpnameForm(props: InventoryOpnameFormProps) {
         </TableBody>
       </Table>
       {(errors.rows?.root?.message ?? errors.rows?.message) && (
-        <p className="text-sm text-destructive">{errors.rows?.root?.message ?? errors.rows?.message}</p>
+        <p className="text-sm text-destructive">{message(errors.rows?.root?.message ?? errors.rows?.message ?? '')}</p>
       )}
       {Array.isArray(errors.rows) && errors.rows.some(Boolean) && (
-        <p className="text-sm text-destructive">Periksa baris yang ditandai merah.</p>
+        <p className="text-sm text-destructive">{t('opnameForm.checkRows')}</p>
       )}
       <FormField
-        label="Catatan"
+        label={t('purchaseForm.note')}
         htmlFor="opname_note"
         error={errors.note?.message}
-        hint="opsional"
+        hint={tc('optional')}
         className="max-w-xl">
         <Input id="opname_note" {...form.register('note')} />
       </FormField>
       <div>
         <Button type="submit" disabled={post.isPending}>
-          {post.isPending ? 'Menyimpan...' : 'Simpan stok opname'}
+          {post.isPending ? tc('saving') : t('opnameForm.save')}
         </Button>
       </div>
     </form>

@@ -1,12 +1,12 @@
 import { ChevronRightIcon, HistoryIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { PageLinks } from '@/components/ui/page-links';
 import { PanelEmpty } from '@/components/ui/panel';
-import { SEX_LABELS } from '@/features/patients/patients.constants';
+import { icd10Name } from '@/features/exam/exam.lib';
 import { ageInYears } from '@/features/patients/patients.lib';
-import { formatDate, formatTime, relativeDay } from '@/lib/dates';
+import { daysBetween, formatDate, formatTime, relativeDay } from '@/lib/dates';
 import { cn } from '@/lib/utils';
-import { VISIT_STATUS_LABELS } from './visits.constants';
 import { VISIT_HISTORY_PAGE_SIZE } from './visits.lib';
 import type { listVisitHistory } from './visits.service';
 import { STATION_COLORS } from './visits-journey-line';
@@ -35,6 +35,8 @@ function tone(status: Visit['status']) {
  * stands, the patient, poli and doctor, the primary diagnosis (clinical roles) and the status.
  */
 export function VisitsHistoryList(props: VisitsHistoryListProps) {
+  const t = useTranslations();
+  const locale = useLocale();
   const days = new Map<string, Visit[]>();
 
   for (const visit of props.visits) days.set(visit.visit_date, [...(days.get(visit.visit_date) ?? []), visit]);
@@ -42,11 +44,7 @@ export function VisitsHistoryList(props: VisitsHistoryListProps) {
   if (props.visits.length === 0) {
     return (
       <div className="rounded-xl border bg-card">
-        <PanelEmpty
-          icon={<HistoryIcon />}
-          title="Tidak ada kunjungan"
-          description="Coba perlebar periode, atau hapus kata pencarian."
-        />
+        <PanelEmpty icon={<HistoryIcon />} title={t('visits.list.empty')} description={t('visits.list.emptyHint')} />
       </div>
     );
   }
@@ -56,26 +54,29 @@ export function VisitsHistoryList(props: VisitsHistoryListProps) {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-[0.8125rem] text-muted-foreground">
-        Kunjungan{' '}
-        <span className="tabular font-medium text-foreground">
-          {first.toLocaleString('id-ID')}–{(first + props.visits.length - 1).toLocaleString('id-ID')}
-        </span>{' '}
-        dari <span className="tabular font-medium text-foreground">{props.total.toLocaleString('id-ID')}</span>, terbaru
-        di atas.
+        {t.rich('visits.list.summary', {
+          from: first,
+          to: first + props.visits.length - 1,
+          total: props.total,
+          b: (chunks) => <span className="tabular font-medium text-foreground">{chunks}</span>,
+        })}
       </p>
 
       {[...days].map(([day, visits]) => {
-        const relative = relativeDay(day, props.today);
+        // Today and yesterday are named; older days are just the date.
+        const recent = daysBetween(day, props.today) <= 1;
 
         return (
           <section key={day} className="rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
             <header className="sticky top-[3.3rem] z-10 flex items-center justify-between gap-3 rounded-t-xl border-b bg-card/95 px-4 py-2.5 backdrop-blur">
               <h2 className="text-sm font-semibold">
-                {relative === 'Hari ini' || relative === 'Kemarin'
-                  ? `${relative}, ${formatDate(day)}`
-                  : formatDate(day)}
+                {recent
+                  ? `${relativeDay(day, props.today, locale)}, ${formatDate(day, locale)}`
+                  : formatDate(day, locale)}
               </h2>
-              <span className="tabular text-xs text-muted-foreground">{visits.length} kunjungan</span>
+              <span className="tabular text-xs text-muted-foreground">
+                {t('visits.list.dayCount', { count: visits.length })}
+              </span>
             </header>
             <ol className="divide-y">
               {visits.map((visit) => {
@@ -105,30 +106,30 @@ export function VisitsHistoryList(props: VisitsHistoryListProps) {
                           )}
                         </span>
                         <span className="block truncate text-[0.8125rem] text-muted-foreground">
-                          RM <span className="tabular">{visit.patient.mrn}</span> ·{' '}
-                          {SEX_LABELS[visit.patient.sex as keyof typeof SEX_LABELS]},{' '}
-                          {ageInYears(visit.patient.birth_date, props.today)} th · {visit.poli?.name} ·{' '}
-                          {visit.doctor?.full_name}
+                          {t('patients.mrn')} <span className="tabular">{visit.patient.mrn}</span> ·{' '}
+                          {t(`sex.${visit.patient.sex as 'male' | 'female'}`)},{' '}
+                          {t('patients.ageShort', { age: ageInYears(visit.patient.birth_date, props.today) })} ·{' '}
+                          {visit.poli?.name} · {visit.doctor?.full_name}
                         </span>
                         {props.clinical && (
                           <span className="block truncate text-[0.8125rem]">
                             {diagnosis ? (
                               <>
                                 <span className="tabular font-semibold text-foreground/70">{diagnosis.icd10_code}</span>{' '}
-                                {diagnosis.icd10?.name_id ?? diagnosis.icd10?.name}
+                                {icd10Name(diagnosis.icd10, locale)}
                               </>
                             ) : (
-                              <span className="text-muted-foreground">Belum ada diagnosis utama</span>
+                              <span className="text-muted-foreground">{t('visits.list.noDiagnosis')}</span>
                             )}
                           </span>
                         )}
                       </span>
                       <span className="hidden shrink-0 text-right sm:block">
                         <span className={cn('block text-xs font-medium', color.text)}>
-                          {VISIT_STATUS_LABELS[visit.status]}
+                          {t(`visitStatus.${visit.status}`)}
                         </span>
                         <span className="tabular block text-xs text-muted-foreground">
-                          {formatTime(visit.created_at)}
+                          {formatTime(visit.created_at, locale)}
                         </span>
                       </span>
                       <ChevronRightIcon
@@ -149,7 +150,7 @@ export function VisitsHistoryList(props: VisitsHistoryListProps) {
         pageSize={VISIT_HISTORY_PAGE_SIZE}
         total={props.total}
         params={props.params}
-        noun="kunjungan"
+        countLabel={t('visits.list.countLabel', { count: props.total })}
       />
     </div>
   );

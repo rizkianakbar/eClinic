@@ -1,9 +1,10 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { segmentedGroup, segmentedItem } from '@/components/ui/segmented';
-import { AUDIT_ACTION_LABELS, AUDIT_TABLE_LABELS } from './settings.constants';
+import { AUDIT_ACTIONS, AUDIT_TABLES } from './settings.constants';
 
 type SettingsActivityFiltersProps = {
   table: string | null;
@@ -14,6 +15,7 @@ type SettingsActivityFiltersProps = {
 
 /** Narrow the log by data, person and action. Applies on change; the date range stays. */
 export function SettingsActivityFilters(props: SettingsActivityFiltersProps) {
+  const t = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -32,41 +34,41 @@ export function SettingsActivityFilters(props: SettingsActivityFiltersProps) {
     <div className="flex flex-wrap items-center gap-2">
       <NativeSelect
         size="sm"
-        aria-label="Data"
+        aria-label={t('settings.activity.data')}
         value={props.table ?? ''}
         onChange={(event) => set('table', event.target.value || null)}>
-        <NativeSelectOption value="">Semua data</NativeSelectOption>
-        {Object.entries(AUDIT_TABLE_LABELS).map(([value, label]) => (
+        <NativeSelectOption value="">{t('settings.activity.allData')}</NativeSelectOption>
+        {AUDIT_TABLES.map((value) => (
           <NativeSelectOption key={value} value={value}>
-            {label}
+            {t(`audit.tables.${value}`)}
           </NativeSelectOption>
         ))}
       </NativeSelect>
       <NativeSelect
         size="sm"
-        aria-label="Oleh"
+        aria-label={t('settings.activity.by')}
         value={props.actor ?? ''}
         onChange={(event) => set('actor', event.target.value || null)}>
-        <NativeSelectOption value="">Semua orang</NativeSelectOption>
+        <NativeSelectOption value="">{t('settings.activity.everyone')}</NativeSelectOption>
         {props.staff.map((member) => (
           <NativeSelectOption key={member.id} value={member.id}>
             {member.full_name}
           </NativeSelectOption>
         ))}
-        <NativeSelectOption value="system">Sistem</NativeSelectOption>
+        <NativeSelectOption value="system">{t('audit.system')}</NativeSelectOption>
       </NativeSelect>
       <fieldset className={segmentedGroup}>
-        <legend className="sr-only">Aksi</legend>
+        <legend className="sr-only">{t('settings.activity.action')}</legend>
         <button type="button" className={segmentedItem(!props.action, 'h-7')} onClick={() => set('action', null)}>
-          Semua
+          {t('settings.activity.all')}
         </button>
-        {Object.entries(AUDIT_ACTION_LABELS).map(([value, label]) => (
+        {AUDIT_ACTIONS.map((value) => (
           <button
             key={value}
             type="button"
             className={segmentedItem(props.action === value, 'h-7')}
             onClick={() => set('action', value)}>
-            {label}
+            {t(`audit.actions.${value}`)}
           </button>
         ))}
       </fieldset>

@@ -23,7 +23,7 @@ describe('prescriptionItemSchema', () => {
       .error?.issues.map((issue) => issue.message);
 
     expect(messages).toEqual(
-      expect.arrayContaining(['Pilih obat.', 'Jumlah harus bilangan bulat.', 'Aturan pakai (signa) wajib diisi.']),
+      expect.arrayContaining(['rx.errors.pickMedicine', 'rx.errors.integer', 'rx.errors.signaRequired']),
     );
   });
 });
@@ -45,13 +45,13 @@ describe('compoundSchema', () => {
 
   it('needs at least one ingredient and no duplicates', () => {
     expect(compoundSchema.safeParse({ ...valid, ingredients: [] }).error?.issues[0]?.message).toBe(
-      'Tambahkan minimal satu bahan racikan.',
+      'rx.errors.oneIngredient',
     );
 
     expect(
       compoundSchema.safeParse({ ...valid, ingredients: [valid.ingredients[0], valid.ingredients[0]] }).error?.issues[0]
         ?.message,
-    ).toBe('Bahan racikan tidak boleh dobel.');
+    ).toBe('rx.errors.duplicateIngredients');
   });
 });
 
@@ -67,7 +67,7 @@ describe('form schemas', () => {
 
     expect(
       prescriptionItemFormSchema.safeParse({ medicine: null, qty: '1', signa: 'x' }).error?.issues[0]?.message,
-    ).toBe('Pilih obat.');
+    ).toBe('rx.errors.pickMedicine');
   });
 
   it('validates racikan ingredients through the server schema', () => {
@@ -81,7 +81,7 @@ describe('form schemas', () => {
       ],
     });
 
-    expect(result.error?.issues[0]?.message).toBe('Bahan racikan tidak boleh dobel.');
+    expect(result.error?.issues[0]?.message).toBe('rx.errors.duplicateIngredients');
   });
 });
 

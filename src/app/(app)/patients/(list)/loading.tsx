@@ -1,4 +1,5 @@
 import { HistoryIcon, UsersIcon } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 import { SegmentedSkeleton } from '@/components/ui/segmented-skeleton';
 import { SkeletonPage } from '@/components/ui/skeleton';
 import {
@@ -7,15 +8,15 @@ import {
   PatientsTotalsSkeleton,
 } from '@/features/patients/patients-skeleton';
 
-export default function Loading() {
+export default async function Loading() {
+  const t = await getTranslations('patients');
+
   return (
-    <SkeletonPage route label="Memuat pasien">
+    <SkeletonPage route label={t('loading.list')}>
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="flex flex-col gap-0.5">
-          <h1 className="text-[1.5rem] leading-tight font-semibold tracking-tight">Pasien</h1>
-          <p className="text-sm text-muted-foreground">
-            Semua pasien yang pernah terdaftar. Buka satu untuk melihat data dan riwayatnya.
-          </p>
+          <h1 className="text-[1.5rem] leading-tight font-semibold tracking-tight">{t('title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('description')}</p>
         </div>
         <PatientsTotalsSkeleton />
       </header>
@@ -23,11 +24,11 @@ export default function Loading() {
         options={[
           <>
             <UsersIcon aria-hidden />
-            Daftar pasien
+            {t('listView')}
           </>,
           <>
             <HistoryIcon aria-hidden />
-            Riwayat kunjungan
+            {t('historyView')}
           </>,
         ]}
       />

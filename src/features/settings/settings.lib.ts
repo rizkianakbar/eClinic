@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { ROLE_LABELS } from '@/features/auth/auth.constants';
+import { keyed } from '@/i18n/keyed';
 import type { Role } from '@/lib/auth';
-import { formatDateTime } from '@/lib/dates';
-import { AUDIT_VALUE_LABELS } from './settings.constants';
+import { AUDIT_VALUE_CODES } from './settings.constants';
 
 const ROLES = Object.keys(ROLE_LABELS) as [Role, ...Role[]];
 
@@ -15,20 +15,20 @@ const optionalText = (max: number, message: string) =>
     .refine((value) => value.length <= max, message)
     .transform((value) => value || null);
 
-const password = z.string().min(8, 'Kata sandi minimal 8 karakter.').max(72, 'Kata sandi maksimal 72 karakter.');
+const password = z.string().min(8, 'settings.errors.passwordMin').max(72, 'settings.errors.passwordMax');
 
 // Staff ----------------------------------------------------------------------
 
 export const staffSchema = z.object({
-  full_name: z.string().trim().min(1, 'Nama wajib diisi.').max(200, 'Nama terlalu panjang, maksimal 200 karakter.'),
-  role: z.enum(ROLES, { error: 'Pilih peran.' }),
+  full_name: z.string().trim().min(1, 'settings.errors.nameRequired').max(200, 'settings.errors.nameTooLong'),
+  role: z.enum(ROLES, { error: 'settings.errors.pickRole' }),
   nik: z
     .string()
     .nullish()
     .transform((value) => (value ?? '').trim())
-    .refine((value) => value === '' || /^\d{16}$/.test(value), 'NIK harus 16 digit angka.')
+    .refine((value) => value === '' || /^\d{16}$/.test(value), 'settings.errors.nik')
     .transform((value) => value || null),
-  sip_number: optionalText(50, 'Nomor SIP terlalu panjang, maksimal 50 karakter.'),
+  sip_number: optionalText(50, 'settings.errors.sipTooLong'),
 });
 
 export const staffCreateSchema = staffSchema.extend({
@@ -36,8 +36,8 @@ export const staffCreateSchema = staffSchema.extend({
     .string()
     .trim()
     .toLowerCase()
-    .min(1, 'Email wajib diisi.')
-    .pipe(z.email('Format email tidak valid, contoh: nama@klinik.com.')),
+    .min(1, 'settings.errors.emailRequired')
+    .pipe(z.email('settings.errors.emailFormat')),
   password,
 });
 
@@ -54,65 +54,61 @@ export function assignableRoles(actorRole: Role) {
   return ROLES.filter((role) => role !== 'owner' || actorRole === 'owner');
 }
 
-/** Maps Supabase Auth admin errors on create/update to an actionable message. */
+/** Maps Supabase Auth admin errors on create/update to a message key. */
 export function staffAuthErrorMessage(error: { code?: string }) {
   if (error.code === 'email_exists' || error.code === 'user_already_exists') {
-    return 'Email ini sudah dipakai akun lain. Gunakan email lain.';
+    return 'settings.errors.emailTaken';
   }
 
   if (error.code === 'weak_password') {
-    return 'Kata sandi terlalu lemah. Gunakan minimal 8 karakter campuran huruf dan angka.';
+    return 'settings.errors.weakPassword';
   }
 
-  return 'Akun staf gagal disimpan. Coba lagi, atau hubungi admin jika terus terjadi.';
+  return 'settings.errors.staffSaveFailed';
 }
 
 // Polis ----------------------------------------------------------------------
 
 export const poliSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Nama poli wajib diisi.')
-    .max(100, 'Nama poli terlalu panjang, maksimal 100 karakter.'),
-  bpjs_poli_code: optionalText(10, 'Kode poli BPJS maksimal 10 karakter.'),
+  name: z.string().trim().min(1, 'settings.errors.poliNameRequired').max(100, 'settings.errors.poliNameTooLong'),
+  bpjs_poli_code: optionalText(10, 'settings.errors.bpjsCodeTooLong'),
   // Consultation tariff billed automatically for visits to this poli.
   consultation_service_id: z
     .string()
     .nullish()
     .transform((value) => value || null)
-    .refine((value) => value === null || z.uuid().safeParse(value).success, 'Pilih tarif konsultasi.'),
+    .refine((value) => value === null || z.uuid().safeParse(value).success, 'settings.errors.pickConsultation'),
 });
 
 export type PoliInput = z.input<typeof poliSchema>;
 export type PoliValues = z.output<typeof poliSchema>;
 
-/** Maps a Postgres error on master-data writes to an actionable message. */
+/** Maps a master-data write error to a message key; `duplicateMessage` is the key for a taken name. */
 export function masterDataErrorMessage(error: { code?: string }, duplicateMessage: string) {
-  if (error.code === '23505') return duplicateMessage;
-  if (error.code === '42501') return 'Anda tidak punya akses untuk perubahan ini. Hubungi pemilik klinik.';
+  if (error.code === '23505' && duplicateMessage) return duplicateMessage;
+  if (error.code === '42501') return 'errors.noAccessMaster';
 
-  return 'Data gagal disimpan. Coba lagi, atau hubungi admin jika terus terjadi.';
+  return 'errors.saveFailed';
 }
 
 // Clinic profile -------------------------------------------------------------------
 
 export const clinicProfileSchema = z.object({
-  name: z.string().trim().min(1, 'Nama klinik wajib diisi.').max(200, 'Nama klinik maksimal 200 karakter.'),
-  address: optionalText(500, 'Alamat maksimal 500 karakter.'),
-  phone: optionalText(50, 'Telepon maksimal 50 karakter.'),
+  name: z.string().trim().min(1, 'settings.errors.clinicNameRequired').max(200, 'settings.errors.clinicNameTooLong'),
+  address: optionalText(500, 'settings.errors.addressTooLong'),
+  phone: optionalText(50, 'settings.errors.phoneTooLong'),
   email: z
     .string()
     .nullish()
     .transform((value) => (value ?? '').trim().toLowerCase())
-    .refine((value) => value === '' || z.email().safeParse(value).success, 'Format email tidak valid.')
+    .refine((value) => value === '' || z.email().safeParse(value).success, 'settings.errors.emailInvalid')
     .transform((value) => value || null),
-  license_no: optionalText(100, 'Nomor izin maksimal 100 karakter.'),
+  license_no: optionalText(100, 'settings.errors.licenseTooLong'),
   idle_logout_minutes: z.coerce
-    .number<string | number>({ error: 'Isi menit dengan angka.' })
-    .int('Menit harus bilangan bulat.')
-    .min(1, 'Minimal 1 menit.')
-    .max(240, 'Maksimal 240 menit.'),
+    .number<string | number>({ error: 'settings.errors.minutesNumber' })
+    .int('settings.errors.minutesInteger')
+    .min(1, 'settings.errors.minutesMin')
+    .max(240, 'settings.errors.minutesMax'),
 });
 
 export type ClinicProfileInput = z.input<typeof clinicProfileSchema>;
@@ -123,8 +119,8 @@ export const LOGO_MAX_BYTES = 1024 * 1024;
 
 /** Checks an uploaded logo before it reaches Storage (the bucket enforces the same limits). */
 export function logoFileError(file: { type: string; size: number }) {
-  if (!LOGO_TYPES.includes(file.type as (typeof LOGO_TYPES)[number])) return 'Logo harus PNG, JPG, atau WEBP.';
-  if (file.size > LOGO_MAX_BYTES) return 'Ukuran logo maksimal 1 MB.';
+  if (!LOGO_TYPES.includes(file.type as (typeof LOGO_TYPES)[number])) return 'settings.errors.logoType';
+  if (file.size > LOGO_MAX_BYTES) return 'settings.errors.logoSize';
 
   return null;
 }
@@ -165,9 +161,9 @@ export function parseIcd10Rows(rows: readonly (readonly string[])[]) {
     const name = rawName.trim();
 
     if (!code) {
-      skipped.push({ line, reason: `Kode "${rawCode.trim()}" bukan format ICD-10.` });
+      skipped.push({ line, reason: keyed('settings.errors.icd10BadCode', { code: rawCode.trim() }) });
     } else if (!name) {
-      skipped.push({ line, reason: `Nama penyakit untuk ${code} kosong.` });
+      skipped.push({ line, reason: keyed('settings.errors.icd10NoName', { code }) });
     } else {
       byCode.set(code, { code, name: name.slice(0, 500), name_id: rawNameId.trim().slice(0, 500) || null });
     }
@@ -182,32 +178,42 @@ const IGNORED_FIELDS = new Set(['updated_at', 'created_at', 'id', 'clinic_id']);
 
 const TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 
-function display(field: string, value: unknown) {
-  if (value === null || value === undefined || value === '') return 'kosong';
-  if (field === 'is_active') return value ? 'Aktif' : 'Nonaktif';
-  if (typeof value === 'boolean') return value ? 'Ya' : 'Tidak';
-  if (typeof value === 'string' && TIMESTAMP.test(value)) return formatDateTime(value);
+/** A before/after value, classified so the screen can word it in the reader's language. */
+export type AuditValue =
+  | { kind: 'empty' }
+  | { kind: 'active' | 'yes'; value: boolean }
+  | { kind: 'time'; value: string }
+  | { kind: 'role'; value: Role }
+  | { kind: 'code'; value: (typeof AUDIT_VALUE_CODES)[number] }
+  | { kind: 'text'; value: string };
+
+function classify(field: string, value: unknown): AuditValue {
+  if (value === null || value === undefined || value === '') return { kind: 'empty' };
+  if (field === 'is_active') return { kind: 'active', value: Boolean(value) };
+  if (typeof value === 'boolean') return { kind: 'yes', value };
+  if (typeof value === 'string' && TIMESTAMP.test(value)) return { kind: 'time', value };
 
   if (field === 'role' && typeof value === 'string' && Object.hasOwn(ROLE_LABELS, value))
-    return ROLE_LABELS[value as Role];
+    return { kind: 'role', value: value as Role };
 
-  if (typeof value === 'string' && Object.hasOwn(AUDIT_VALUE_LABELS, value)) return AUDIT_VALUE_LABELS[value];
+  if (typeof value === 'string' && (AUDIT_VALUE_CODES as readonly string[]).includes(value))
+    return { kind: 'code', value: value as (typeof AUDIT_VALUE_CODES)[number] };
 
   const text = typeof value === 'object' ? JSON.stringify(value) : String(value);
 
-  return text.length > 60 ? `${text.slice(0, 57)}...` : text;
+  return { kind: 'text', value: text.length > 60 ? `${text.slice(0, 57)}...` : text };
 }
 
 export type AuditChange = {
   field: string;
-  label: string;
-  from: string;
-  to: string /** A reference (…_id): which row, not a readable value. */;
+  from: AuditValue;
+  to: AuditValue;
+  /** A reference (…_id, …_by): which row, not a readable value. */
   ref: boolean;
 };
 
-/** Fields that changed in an update (timestamps and ids ignored), labelled for staff. */
-export function changedFields(before: unknown, after: unknown, labels: Record<string, string> = {}): AuditChange[] {
+/** Fields that changed in an update (timestamps and ids ignored). */
+export function changedFields(before: unknown, after: unknown): AuditChange[] {
   if (!before || !after || typeof before !== 'object' || typeof after !== 'object') return [];
 
   const oldRow = before as Record<string, unknown>;
@@ -217,9 +223,8 @@ export function changedFields(before: unknown, after: unknown, labels: Record<st
     .filter((key) => !IGNORED_FIELDS.has(key) && JSON.stringify(oldRow[key]) !== JSON.stringify(newRow[key]))
     .map((key) => ({
       field: key,
-      label: labels[key] ?? key.replace(/_/g, ' '),
-      from: display(key, oldRow[key]),
-      to: display(key, newRow[key]),
+      from: classify(key, oldRow[key]),
+      to: classify(key, newRow[key]),
       ref: key.endsWith('_id') || key.endsWith('_by'),
     }));
 }

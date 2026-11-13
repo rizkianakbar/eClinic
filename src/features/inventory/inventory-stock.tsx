@@ -1,12 +1,12 @@
 import { PackageSearchIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageLinks } from '@/components/ui/page-links';
 import { segmentedGroup, segmentedItem } from '@/components/ui/segmented';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDate } from '@/lib/dates';
 import { cn } from '@/lib/utils';
-import { STOCK_FILTER_LABELS, STOCK_LEVEL_LABELS } from './inventory.constants';
 import { MEDICINES_PAGE_SIZE, NEAR_EXPIRY_MONTHS, STOCK_FILTERS, type StockFilter, stockLevel } from './inventory.lib';
 import type { countStockAlerts, listStock } from './inventory.service';
 import { InventorySearch } from './inventory-search';
@@ -20,6 +20,9 @@ type InventoryStockProps = Awaited<ReturnType<typeof listStock>> & {
 };
 
 export function InventoryStock(props: InventoryStockProps) {
+  const t = useTranslations('inventory');
+  const locale = useLocale();
+
   const counts: Record<StockFilter, number | null> = {
     all: null,
     low: props.alerts.low,
@@ -39,7 +42,7 @@ export function InventoryStock(props: InventoryStockProps) {
               href={filterHref(filter)}
               aria-current={props.filter === filter ? 'true' : undefined}
               className={segmentedItem(props.filter === filter)}>
-              {STOCK_FILTER_LABELS[filter]}
+              {t(`filter.${filter}`)}
               {counts[filter] ? (
                 <span className="tabular rounded-full bg-status-cancelled px-1.5 text-[0.6875rem] leading-4 font-semibold text-white">
                   {counts[filter]}
@@ -48,31 +51,27 @@ export function InventoryStock(props: InventoryStockProps) {
             </Link>
           ))}
         </div>
-        <InventorySearch query={props.query} placeholder="Cari nama obat" />
+        <InventorySearch query={props.query} placeholder={t('searchMedicine')} />
       </div>
       {props.filter === 'expiring' && (
         <p className="text-sm text-muted-foreground">
-          Obat dengan batch yang kedaluwarsa dalam {NEAR_EXPIRY_MONTHS} bulan (sampai {formatDate(props.cutoff)}).
+          {t('stock.expiringNote', { months: NEAR_EXPIRY_MONTHS, date: formatDate(props.cutoff, locale) })}
         </p>
       )}
 
       {props.stock.length === 0 ? (
         <EmptyState
           icon={PackageSearchIcon}
-          title={props.query || props.filter !== 'all' ? 'Tidak ada obat yang cocok' : 'Belum ada obat aktif'}
-          description={
-            props.query || props.filter !== 'all'
-              ? 'Coba kata lain atau pilih filter Semua.'
-              : 'Tambahkan obat di Pengaturan → Obat.'
-          }
+          title={props.query || props.filter !== 'all' ? t('stock.noMatch') : t('stock.noActive')}
+          description={props.query || props.filter !== 'all' ? t('stock.noMatchHint') : t('stock.noActiveHint')}
         />
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Obat</TableHead>
-              <TableHead className="w-[46%] sm:w-[34%]">Stok</TableHead>
-              <TableHead className="hidden sm:table-cell">Kedaluwarsa terdekat</TableHead>
+              <TableHead>{t('stock.colMedicine')}</TableHead>
+              <TableHead className="w-[46%] sm:w-[34%]">{t('stock.colStock')}</TableHead>
+              <TableHead className="hidden sm:table-cell">{t('stock.colExpiry')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -96,8 +95,10 @@ export function InventoryStock(props: InventoryStockProps) {
                         'block text-[0.8125rem] sm:hidden',
                         expiringSoon ? 'font-medium text-status-cancelled' : 'text-muted-foreground',
                       )}>
-                      {item.earliestExpiry ? `ED ${formatDate(item.earliestExpiry)}` : 'Tidak ada batch'}
-                      {expiringSoon && ' · segera'}
+                      {item.earliestExpiry
+                        ? t('stock.ed', { date: formatDate(item.earliestExpiry, locale) })
+                        : t('stock.noBatch')}
+                      {expiringSoon && ` · ${t('stock.soonShort')}`}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -110,15 +111,15 @@ export function InventoryStock(props: InventoryStockProps) {
                           'inline-flex items-center gap-2',
                           expiringSoon && 'font-medium text-status-cancelled',
                         )}>
-                        {formatDate(item.earliestExpiry)}
+                        {formatDate(item.earliestExpiry, locale)}
                         {expiringSoon && (
                           <span className="rounded-md bg-status-cancelled-soft px-1.5 text-xs leading-5 font-semibold">
-                            Segera
+                            {t('stock.soon')}
                           </span>
                         )}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground">Tidak ada batch</span>
+                      <span className="text-muted-foreground">{t('stock.noBatch')}</span>
                     )}
                   </TableCell>
                 </TableRow>
@@ -136,7 +137,7 @@ export function InventoryStock(props: InventoryStockProps) {
           ...(props.filter !== 'all' && { filter: props.filter }),
           ...(props.query && { q: props.query }),
         }}
-        noun="obat"
+        countLabel={t('medicineCount', { count: props.total })}
       />
     </div>
   );
@@ -151,6 +152,7 @@ type StockLevelProps = {
 
 /** Quantity against the minimum: the bar fills to three times the minimum; the tick marks the minimum. */
 function StockLevel(props: StockLevelProps) {
+  const t = useTranslations('inventory');
   const scale = Math.max(props.min * 3, props.qty, 1);
   const tone = props.level === 'ok' ? 'bg-primary' : 'bg-status-cancelled';
 
@@ -160,7 +162,9 @@ function StockLevel(props: StockLevelProps) {
         <span className={cn('font-semibold', props.level !== 'ok' && 'text-status-cancelled')}>{props.qty}</span>{' '}
         <span className="text-muted-foreground">{props.unit}</span>
       </span>
-      <span className="relative h-1.5 flex-1 rounded-full bg-muted" title={`Minimum ${props.min} ${props.unit}`}>
+      <span
+        className="relative h-1.5 flex-1 rounded-full bg-muted"
+        title={t('stock.minimum', { min: props.min, unit: props.unit })}>
         <span
           className={cn('absolute inset-y-0 left-0 rounded-full', tone)}
           style={{ width: `${Math.max(2, (props.qty / scale) * 100)}%` }}
@@ -180,7 +184,7 @@ function StockLevel(props: StockLevelProps) {
               ? 'text-muted-foreground/70'
               : 'bg-status-cancelled-soft px-1.5 font-medium text-status-cancelled',
           )}>
-          {STOCK_LEVEL_LABELS[props.level]}
+          {t(`level.${props.level}`)}
         </span>
       </span>
     </div>

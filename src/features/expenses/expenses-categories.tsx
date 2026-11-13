@@ -1,6 +1,8 @@
+import { useTranslations } from 'next-intl';
 import { formatRupiah } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { expenseStyle } from './expenses.constants';
+import { useExpenseCategoryLabel } from './expenses.hooks';
 import type { expenseSummary } from './expenses.lib';
 
 type ExpensesCategoriesProps = {
@@ -9,18 +11,22 @@ type ExpensesCategoriesProps = {
 
 /** Where the money went: categories ranked, with their share of the period's total. */
 export function ExpensesCategories(props: ExpensesCategoriesProps) {
+  const t = useTranslations('expenses');
+  const categoryLabel = useExpenseCategoryLabel();
   const { summary } = props;
   const top = Math.max(1, summary.byCategory[0]?.total ?? 0);
 
   return (
     <section className="flex flex-col gap-2.5">
       <h2 className="flex items-baseline justify-between gap-3 text-sm font-semibold">
-        Per kategori
-        <span className="tabular text-xs font-medium text-muted-foreground">Total {formatRupiah(summary.total)}</span>
+        {t('byCategory')}
+        <span className="tabular text-xs font-medium text-muted-foreground">
+          {t('total', { total: formatRupiah(summary.total) })}
+        </span>
       </h2>
       <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
         {summary.byCategory.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-muted-foreground">Belum ada pengeluaran.</p>
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">{t('noneYet')}</p>
         ) : (
           <>
             <div className="px-4 pt-4" aria-hidden>
@@ -44,7 +50,7 @@ export function ExpensesCategories(props: ExpensesCategoriesProps) {
                       <span className={cn('flex size-6 shrink-0 items-center justify-center rounded-md', style.tone)}>
                         <style.icon className="size-3.5" aria-hidden />
                       </span>
-                      <span className="flex-1 font-medium">{row.category}</span>
+                      <span className="flex-1 font-medium">{categoryLabel(row.category)}</span>
                       <span className="tabular font-semibold">{formatRupiah(row.total)}</span>
                     </span>
                     <span className="flex items-center gap-2 pl-8">

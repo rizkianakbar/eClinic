@@ -1,5 +1,5 @@
+import { useTranslations } from 'next-intl';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ROLE_LABELS } from '@/features/auth/auth.constants';
 import { initials } from '@/features/patients/patients.lib';
 import type { Role, Session } from '@/lib/auth';
 import { cn } from '@/lib/utils';
@@ -26,6 +26,7 @@ const ROLE_TONES: Record<Role, string> = {
 };
 
 export function SettingsStaff(props: SettingsStaffProps) {
+  const t = useTranslations();
   const { session } = props;
   const active = props.staff.filter((member) => member.is_active).length;
 
@@ -33,9 +34,9 @@ export function SettingsStaff(props: SettingsStaffProps) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold">Staf</h2>
+          <h2 className="text-base font-semibold">{t('settings.staff.title')}</h2>
           <p className="text-sm text-muted-foreground">
-            {active} aktif dari {props.staff.length} akun. Staf nonaktif langsung kehilangan akses.
+            {t('settings.staff.summary', { active, total: props.staff.length })}
           </p>
         </div>
         <SettingsStaffDialog mode="create" actorRole={session.role} />
@@ -44,9 +45,9 @@ export function SettingsStaff(props: SettingsStaffProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Nama</TableHead>
-            <TableHead className="hidden sm:table-cell">Peran</TableHead>
-            <TableHead className="hidden md:table-cell">Status</TableHead>
+            <TableHead>{t('settings.staff.colName')}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t('settings.staff.colRole')}</TableHead>
+            <TableHead className="hidden md:table-cell">{t('settings.staff.colStatus')}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -65,10 +66,14 @@ export function SettingsStaff(props: SettingsStaffProps) {
                     <span className="min-w-0">
                       <span className="block truncate font-medium">
                         {member.full_name}
-                        {isSelf && <span className="ml-1.5 text-xs font-normal text-muted-foreground">(Anda)</span>}
+                        {isSelf && (
+                          <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                            {t('settings.staff.you')}
+                          </span>
+                        )}
                       </span>
                       <span className="block truncate text-[0.8125rem] text-muted-foreground">
-                        {member.email ?? 'Belum ada email'}
+                        {member.email ?? t('settings.staff.noEmail')}
                       </span>
                       {/* Phones: role (and status) fold under the e-mail. */}
                       <span className="mt-1 flex items-center gap-2 sm:hidden">
@@ -77,9 +82,11 @@ export function SettingsStaff(props: SettingsStaffProps) {
                             'inline-flex h-5 items-center rounded px-1.5 text-[0.6875rem] font-medium',
                             ROLE_TONES[member.role],
                           )}>
-                          {ROLE_LABELS[member.role]}
+                          {t(`roles.${member.role}`)}
                         </span>
-                        {!member.is_active && <span className="text-xs text-muted-foreground">Nonaktif</span>}
+                        {!member.is_active && (
+                          <span className="text-xs text-muted-foreground">{t('common.inactive')}</span>
+                        )}
                       </span>
                     </span>
                   </div>
@@ -90,7 +97,7 @@ export function SettingsStaff(props: SettingsStaffProps) {
                       'inline-flex h-6 items-center rounded-md px-2 text-xs font-medium',
                       ROLE_TONES[member.role],
                     )}>
-                    {ROLE_LABELS[member.role]}
+                    {t(`roles.${member.role}`)}
                   </span>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
@@ -102,13 +109,13 @@ export function SettingsStaff(props: SettingsStaffProps) {
                       )}
                       aria-hidden
                     />
-                    {member.is_active ? 'Aktif' : 'Nonaktif'}
+                    {member.is_active ? t('common.active') : t('common.inactive')}
                   </span>
                 </TableCell>
                 <TableCell className="text-right">
                   {locked ? (
                     <span className="text-xs text-muted-foreground">
-                      {isSelf ? 'Lewat Akun saya' : 'Hanya pemilik'}
+                      {isSelf ? t('settings.staff.viaAccount') : t('settings.staff.ownerOnly')}
                     </span>
                   ) : (
                     <SettingsStaffDialog
@@ -123,7 +130,7 @@ export function SettingsStaff(props: SettingsStaffProps) {
                             isActive={member.is_active}
                             action={setStaffActiveAction}
                             name={member.full_name}
-                            consequence="Staf ini langsung keluar dan tidak bisa login lagi."
+                            consequence={t('settings.staff.deactivateConsequence')}
                           />
                         </>
                       }

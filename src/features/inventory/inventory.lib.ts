@@ -26,28 +26,19 @@ export const MEDICINE_UNITS = [
 ] as const;
 
 export const medicineSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Nama obat wajib diisi.')
-    .max(200, 'Nama obat terlalu panjang, maksimal 200 karakter.'),
-  unit: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .min(1, 'Satuan wajib diisi, contoh: tablet.')
-    .max(30, 'Satuan terlalu panjang, maksimal 30 karakter.'),
-  price: rupiahField('Harga jual'),
+  name: z.string().trim().min(1, 'inventory.errors.nameRequired').max(200, 'inventory.errors.nameTooLong'),
+  unit: z.string().trim().toLowerCase().min(1, 'inventory.errors.unitRequired').max(30, 'inventory.errors.unitTooLong'),
+  price: rupiahField(),
   kfa_code: z
     .string()
     .nullish()
     .transform((value) => (value ?? '').trim())
-    .refine((value) => value === '' || /^[0-9A-Za-z]{1,20}$/.test(value), 'Kode KFA hanya huruf/angka, maksimal 20.')
+    .refine((value) => value === '' || /^[0-9A-Za-z]{1,20}$/.test(value), 'inventory.errors.kfa')
     .transform((value) => value || null),
   min_stock: z.coerce
-    .number<string | number>({ error: 'Stok minimum wajib diisi angka.' })
-    .int('Stok minimum harus bilangan bulat.')
-    .min(0, 'Stok minimum tidak boleh negatif.'),
+    .number<string | number>({ error: 'inventory.errors.minStockNumber' })
+    .int('inventory.errors.minStockInteger')
+    .min(0, 'inventory.errors.minStockNegative'),
 });
 
 export type MedicineInput = z.input<typeof medicineSchema>;
@@ -57,10 +48,10 @@ export const supplierSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(1, 'Nama supplier wajib diisi.')
-    .max(200, 'Nama supplier terlalu panjang, maksimal 200 karakter.'),
-  phone: optionalText(30, 'Nomor telepon terlalu panjang.'),
-  address: optionalText(500, 'Alamat terlalu panjang, maksimal 500 karakter.'),
+    .min(1, 'inventory.errors.supplierNameRequired')
+    .max(200, 'inventory.errors.supplierNameTooLong'),
+  phone: optionalText(30, 'inventory.errors.phoneTooLong'),
+  address: optionalText(500, 'inventory.errors.addressTooLong'),
 });
 
 export type SupplierInput = z.input<typeof supplierSchema>;
@@ -108,39 +99,39 @@ export function parseStockFilter(value: string | string[] | undefined): StockFil
 const pickedMedicine = z
   .object({ id: z.uuid(), name: z.string(), unit: z.string() })
   .nullable()
-  .refine((medicine) => medicine !== null, 'Pilih obat.');
+  .refine((medicine) => medicine !== null, 'inventory.errors.pickMedicine');
 
 /** Purchase form; output is the payload for receive_purchase(). Dates are checked against Jakarta "today". */
 export function purchaseFormSchema(today: string) {
   return z.object({
-    supplier_id: z.uuid('Pilih supplier.'),
-    invoice_no: optionalText(50, 'Nomor faktur maksimal 50 karakter.'),
+    supplier_id: z.uuid('inventory.errors.pickSupplier'),
+    invoice_no: optionalText(50, 'inventory.errors.invoiceNoTooLong'),
     purchase_date: z
       .string()
-      .min(1, 'Tanggal pembelian wajib diisi.')
-      .pipe(z.iso.date('Tanggal pembelian tidak valid.'))
-      .refine((value) => value <= today, 'Tanggal pembelian tidak boleh di masa depan.'),
-    note: optionalText(500, 'Catatan maksimal 500 karakter.'),
+      .min(1, 'inventory.errors.purchaseDateRequired')
+      .pipe(z.iso.date('inventory.errors.purchaseDateInvalid'))
+      .refine((value) => value <= today, 'inventory.errors.purchaseDateFuture'),
+    note: optionalText(500, 'inventory.errors.noteTooLong'),
     items: z
       .array(
         z.object({
           medicine: pickedMedicine,
-          batch_no: z.string().trim().min(1, 'No. batch wajib diisi.').max(50, 'No. batch maksimal 50 karakter.'),
+          batch_no: z.string().trim().min(1, 'inventory.errors.batchRequired').max(50, 'inventory.errors.batchTooLong'),
           expiry_date: z
             .string()
-            .min(1, 'Tanggal kedaluwarsa wajib diisi.')
-            .pipe(z.iso.date('Tanggal kedaluwarsa tidak valid.'))
-            .refine((value) => value > today, 'Obat sudah kedaluwarsa. Jangan terima batch ini.'),
+            .min(1, 'inventory.errors.expiryRequired')
+            .pipe(z.iso.date('inventory.errors.expiryInvalid'))
+            .refine((value) => value > today, 'inventory.errors.expired'),
           qty: z.coerce
-            .number<string | number>({ error: 'Jumlah wajib diisi angka.' })
-            .int('Jumlah harus bilangan bulat.')
-            .min(1, 'Jumlah minimal 1.')
-            .max(100000, 'Jumlah terlalu besar.'),
-          unit_cost: rupiahField('Harga beli'),
+            .number<string | number>({ error: 'inventory.errors.qtyNumber' })
+            .int('inventory.errors.qtyInteger')
+            .min(1, 'inventory.errors.qtyMin')
+            .max(100000, 'inventory.errors.qtyTooLarge'),
+          unit_cost: rupiahField(),
         }),
       )
-      .min(1, 'Tambahkan minimal satu obat.')
-      .max(100, 'Maksimal 100 baris per pembelian.'),
+      .min(1, 'inventory.errors.itemsEmpty')
+      .max(100, 'inventory.errors.itemsTooMany'),
   });
 }
 
@@ -169,13 +160,13 @@ export function purchaseTotal(items: readonly { qty: number; unit_cost: number }
 /** One row per batch; rows left blank are not part of the opname. */
 export const opnameFormSchema = z
   .object({
-    note: optionalText(500, 'Catatan maksimal 500 karakter.'),
+    note: optionalText(500, 'inventory.errors.noteTooLong'),
     rows: z.array(
       z.object({
         batch_id: z.uuid(),
         system_qty: z.number().int(),
         counted: z.string().trim(),
-        reason: z.string().trim().max(200, 'Alasan maksimal 200 karakter.'),
+        reason: z.string().trim().max(200, 'inventory.errors.reasonTooLong'),
       }),
     ),
   })
@@ -190,16 +181,19 @@ export const opnameFormSchema = z
       if (!/^\d+$/.test(row.counted)) {
         context.addIssue({
           code: 'custom',
-          message: 'Isi jumlah dengan bilangan bulat.',
+          message: 'inventory.errors.countedInteger',
           path: ['rows', index, 'counted'],
         });
       } else if (Number(row.counted) !== row.system_qty && row.reason === '') {
-        context.addIssue({ code: 'custom', message: 'Isi alasan selisih.', path: ['rows', index, 'reason'] });
+        context.addIssue({
+          code: 'custom',
+          message: 'inventory.errors.differenceReason',
+          path: ['rows', index, 'reason'],
+        });
       }
     });
 
-    if (counted === 0)
-      context.addIssue({ code: 'custom', message: 'Isi jumlah fisik minimal satu batch.', path: ['rows'] });
+    if (counted === 0) context.addIssue({ code: 'custom', message: 'inventory.errors.countOne', path: ['rows'] });
   })
   .transform((value) => ({
     note: value.note,
@@ -218,21 +212,23 @@ export const opnamePayloadSchema = z.object({
     .array(
       z.object({ batch_id: z.uuid(), counted_qty: z.number().int().min(0), reason: z.string().max(200).nullable() }),
     )
-    .min(1, 'Isi jumlah fisik minimal satu batch.')
+    .min(1, 'inventory.errors.countOne')
     .max(2000),
 });
 
+/** Database error code -> message key. */
 const STOCK_ERRORS: Record<string, string> = {
-  not_allowed: 'Anda tidak punya akses untuk mengubah stok.',
-  supplier_inactive: 'Supplier tidak aktif. Pilih supplier lain atau aktifkan di Pengaturan.',
-  purchase_date_invalid: 'Tanggal pembelian tidak boleh di masa depan.',
-  items_invalid: 'Ada baris pembelian yang belum lengkap. Periksa jumlah, harga, dan no. batch.',
-  medicine_inactive: 'Ada obat yang tidak aktif. Hapus barisnya atau aktifkan obat di Pengaturan.',
-  expiry_past: 'Ada batch yang sudah kedaluwarsa. Jangan terima batch tersebut.',
+  not_allowed: 'inventory.errors.notAllowed',
+  supplier_inactive: 'inventory.errors.supplierInactive',
+  purchase_date_invalid: 'inventory.errors.purchaseDateFuture',
+  items_invalid: 'inventory.errors.itemsInvalid',
+  medicine_inactive: 'inventory.errors.medicineInactive',
+  expiry_past: 'inventory.errors.expiryPast',
 };
 
+/** Maps a stock write error to a message key. */
 export function stockErrorMessage(error: { code?: string; message?: string }) {
   if (error.code === 'P0001' && error.message && STOCK_ERRORS[error.message]) return STOCK_ERRORS[error.message];
 
-  return 'Data stok gagal disimpan; stok tidak berubah. Coba lagi, atau hubungi admin jika terus terjadi.';
+  return 'inventory.errors.saveFailed';
 }

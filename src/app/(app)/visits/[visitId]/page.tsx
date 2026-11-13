@@ -1,20 +1,20 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { z } from 'zod';
 import { buttonVariants } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { CASHIER_ROLES } from '@/features/billing/billing.constants';
 import { EXAM_VIEWER_ROLES } from '@/features/exam/exam.constants';
 import { PATIENT_VIEWER_ROLES } from '@/features/patients/patients.constants';
-import { PAYER_LABELS } from '@/features/visits/visits.constants';
 import { getVisit } from '@/features/visits/visits.service';
 import { VisitsJourneyPosition } from '@/features/visits/visits-journey-line';
+import { pageTitle } from '@/i18n/metadata';
 import { requireRole } from '@/lib/auth';
 import { formatDate, formatTime } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: 'Kunjungan' };
+export const generateMetadata = pageTitle('visits.page.title');
 
 /**
  * A past or current visit. Doctors, nurses and the owner get the full medical
@@ -27,30 +27,34 @@ export default async function VisitPage(props: PageProps<'/visits/[visitId]'>) {
   if (!z.uuid().safeParse(visitId).success) notFound();
   if ((EXAM_VIEWER_ROLES as readonly string[]).includes(session.role)) redirect(`/exam/${visitId}`);
 
-  const visit = await getVisit(await createClient(), visitId);
+  const [visit, t, locale] = await Promise.all([
+    createClient().then((supabase) => getVisit(supabase, visitId)),
+    getTranslations(),
+    getLocale(),
+  ]);
 
   if (!visit?.patient) notFound();
 
   const canOpenBill = (CASHIER_ROLES as readonly string[]).includes(session.role) && visit.status !== 'cancelled';
 
   const facts: [string, string][] = [
-    ['Tanggal', formatDate(visit.visit_date)],
-    ['Didaftarkan', formatTime(visit.created_at)],
-    ['Poli', visit.poli?.name ?? '–'],
-    ['Dokter', visit.doctor?.full_name ?? '–'],
-    ['Nomor antrean', String(visit.queue_no)],
-    ['Pembayaran', PAYER_LABELS[visit.payer_type as keyof typeof PAYER_LABELS]],
+    [t('visits.page.date'), formatDate(visit.visit_date, locale)],
+    [t('visits.page.registered'), formatTime(visit.created_at, locale)],
+    [t('visits.page.poli'), visit.poli?.name ?? '–'],
+    [t('visits.page.doctor'), visit.doctor?.full_name ?? '–'],
+    [t('visits.page.queueNo'), String(visit.queue_no)],
+    [t('visits.page.payment'), t(`payer.${visit.payer_type as 'umum' | 'bpjs'}`)],
   ];
 
-  if (visit.cancel_reason) facts.push(['Alasan batal', visit.cancel_reason]);
+  if (visit.cancel_reason) facts.push([t('visits.page.cancelReason'), visit.cancel_reason]);
 
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-5">
         <PageHeader
           back={{ href: `/patients/${visit.patient.id}`, label: visit.patient.full_name }}
-          title={`Kunjungan ${formatDate(visit.visit_date)}`}
-          description={`${visit.patient.full_name} · RM ${visit.patient.mrn}`}
+          title={t('visits.page.heading', { date: formatDate(visit.visit_date, locale) })}
+          description={`${visit.patient.full_name} · ${t('patients.mrn')} ${visit.patient.mrn}`}
         />
         <VisitsJourneyPosition status={visit.status} className="w-full max-w-md" />
       </div>
@@ -62,13 +66,11 @@ export default async function VisitPage(props: PageProps<'/visits/[visitId]'>) {
           </div>
         ))}
       </dl>
-      <p className="text-sm text-muted-foreground">
-        Catatan medis (SOAP, diagnosis, resep) hanya dapat dibuka oleh dokter, perawat, dan pemilik klinik.
-      </p>
+      <p className="text-sm text-muted-foreground">{t('visits.page.recordsNote')}</p>
       {canOpenBill && (
         <div>
           <Link href={`/cashier/${visit.id}`} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-            Lihat tagihan
+            {t('visits.page.viewBill')}
           </Link>
         </div>
       )}

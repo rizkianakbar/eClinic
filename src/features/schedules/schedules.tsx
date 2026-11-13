@@ -1,5 +1,6 @@
 import { CalendarPlusIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { EmptyState } from '@/components/ui/empty-state';
 import type { listSchedules } from './schedules.service';
 import { SchedulesDialog } from './schedules-dialog';
@@ -16,25 +17,26 @@ type SchedulesProps = {
 };
 
 export function Schedules(props: SchedulesProps) {
+  const t = useTranslations('schedules');
   const { doctors, polis } = props;
 
   if (doctors.length === 0 || polis.length === 0) {
     return (
-      <p className="rounded-lg border p-4 text-sm text-muted-foreground">
-        Jadwal butuh minimal satu dokter aktif dan satu poli aktif.{' '}
-        {doctors.length === 0 && (
-          <Link href="/settings/staff" className="underline">
-            Tambah akun dokter
-          </Link>
-        )}
-        {doctors.length === 0 && polis.length === 0 && ' dan '}
-        {polis.length === 0 && (
-          <Link href="/settings/polis" className="underline">
-            tambah poli
-          </Link>
-        )}{' '}
-        terlebih dahulu.
-      </p>
+      <div className="flex flex-col gap-2 rounded-lg border p-4 text-sm text-muted-foreground">
+        <p>{t('needsBoth')}</p>
+        <p className="flex flex-wrap gap-x-4 gap-y-1">
+          {doctors.length === 0 && (
+            <Link href="/settings/staff" className="underline">
+              {t('addDoctor')}
+            </Link>
+          )}
+          {polis.length === 0 && (
+            <Link href="/settings/polis" className="underline">
+              {t('addPoli')}
+            </Link>
+          )}
+        </p>
+      </div>
     );
   }
 
@@ -46,21 +48,16 @@ export function Schedules(props: SchedulesProps) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-base font-semibold">Jadwal dokter</h2>
+          <h2 className="text-base font-semibold">{t('title')}</h2>
           <p className="text-sm text-muted-foreground">
-            {active.length} sesi aktif, buka {openDays} hari seminggu, kuota {quota} pasien per minggu. Kuota = pasien
-            maksimal per sesi.
+            {t('summary', { sessions: active.length, days: openDays, quota })}
           </p>
         </div>
         <SchedulesDialog mode="create" doctors={doctors} polis={polis} />
       </div>
 
       {props.schedules.length === 0 ? (
-        <EmptyState
-          icon={CalendarPlusIcon}
-          title="Belum ada jadwal dokter"
-          description="Tambahkan jadwal agar pasien bisa didaftarkan."
-        />
+        <EmptyState icon={CalendarPlusIcon} title={t('empty')} description={t('emptyHint')} />
       ) : (
         <SchedulesWeek schedules={props.schedules} today={props.today} doctors={doctors} polis={polis} />
       )}

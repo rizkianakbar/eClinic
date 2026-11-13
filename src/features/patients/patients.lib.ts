@@ -23,26 +23,22 @@ export function normalizePhone(input: string) {
 }
 
 export const patientSchema = z.object({
-  full_name: z
-    .string()
-    .trim()
-    .min(1, 'Nama pasien wajib diisi.')
-    .max(200, 'Nama terlalu panjang, maksimal 200 karakter.'),
-  nik: optionalDigits(/^\d{16}$/, 'NIK harus 16 digit angka. Kosongkan jika pasien belum punya NIK.'),
-  bpjs_number: optionalDigits(/^\d{13}$/, 'Nomor BPJS harus 13 digit angka. Kosongkan jika bukan peserta BPJS.'),
+  full_name: z.string().trim().min(1, 'patients.errors.nameRequired').max(200, 'patients.errors.nameTooLong'),
+  nik: optionalDigits(/^\d{16}$/, 'patients.errors.nik'),
+  bpjs_number: optionalDigits(/^\d{13}$/, 'patients.errors.bpjs'),
   birth_date: z
     .string()
-    .min(1, 'Tanggal lahir wajib diisi.')
-    .pipe(z.iso.date('Tanggal lahir tidak valid.'))
-    .refine((value) => value <= todayInJakarta(), 'Tanggal lahir tidak boleh di masa depan.'),
-  sex: z.enum(['male', 'female'], { error: 'Pilih jenis kelamin.' }),
+    .min(1, 'patients.errors.birthRequired')
+    .pipe(z.iso.date('patients.errors.birthInvalid'))
+    .refine((value) => value <= todayInJakarta(), 'patients.errors.birthFuture'),
+  sex: z.enum(['male', 'female'], { error: 'patients.errors.sex' }),
   phone: optionalString
     .transform(normalizePhone)
-    .refine((value) => value === '' || /^0\d{8,13}$/.test(value), 'Nomor HP tidak valid, contoh: 081234567890.')
+    .refine((value) => value === '' || /^0\d{8,13}$/.test(value), 'patients.errors.phone')
     .transform((value) => value || null),
   address: optionalString
     .transform((value) => value.trim())
-    .refine((value) => value.length <= 500, 'Alamat terlalu panjang, maksimal 500 karakter.')
+    .refine((value) => value.length <= 500, 'patients.errors.addressTooLong')
     .transform((value) => value || null),
 });
 
@@ -97,19 +93,19 @@ export function ageInYears(birthDate: string, today: string = todayInJakarta()) 
 export function patientWriteErrorMessage(error: { code?: string; message?: string }) {
   if (error.code === '23505') {
     if (error.message?.includes('patients_clinic_nik_key')) {
-      return 'NIK ini sudah terdaftar. Cari pasien dengan NIK tersebut, jangan daftarkan ulang.';
+      return 'patients.errors.nikTaken';
     }
 
     if (error.message?.includes('patients_clinic_bpjs_key')) {
-      return 'Nomor BPJS ini sudah terdaftar. Cari pasien dengan nomor tersebut, jangan daftarkan ulang.';
+      return 'patients.errors.bpjsTaken';
     }
   }
 
   if (error.code === '42501') {
-    return 'Anda tidak punya akses untuk mengubah data pasien. Hubungi admin klinik.';
+    return 'patients.errors.noAccess';
   }
 
-  return 'Data pasien gagal disimpan. Coba lagi, atau hubungi admin jika terus terjadi.';
+  return 'patients.errors.failed';
 }
 
 /** Two letters for an avatar: "dr. Budi Santoso (Uji)" -> "BS". Skips titles like "dr." and "Apt.". */
@@ -124,12 +120,13 @@ export function initials(name: string) {
 }
 
 /** Kemenkes life-stage groups, youngest first. */
+/** Life stages (names: messages patients.ageGroups.<key>). */
 export const AGE_GROUPS = [
-  { key: 'balita', label: 'Balita', range: '0–5', max: 5 },
-  { key: 'anak', label: 'Anak & remaja', range: '6–17', max: 17 },
-  { key: 'dewasa', label: 'Dewasa', range: '18–44', max: 44 },
-  { key: 'pralansia', label: 'Pra-lansia', range: '45–59', max: 59 },
-  { key: 'lansia', label: 'Lansia', range: '60+', max: Infinity },
+  { key: 'balita', range: '0–5', max: 5 },
+  { key: 'anak', range: '6–17', max: 17 },
+  { key: 'dewasa', range: '18–44', max: 44 },
+  { key: 'pralansia', range: '45–59', max: 59 },
+  { key: 'lansia', range: '60+', max: Infinity },
 ] as const;
 
 /**

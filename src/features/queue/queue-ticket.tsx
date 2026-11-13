@@ -1,7 +1,7 @@
 import { ActivityIcon, MegaphoneIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
-import { SEX_LABELS } from '@/features/patients/patients.constants';
 import { ageInYears } from '@/features/patients/patients.lib';
 import type { JourneyStatus } from '@/features/visits/visits.lib';
 import { STATION_COLORS } from '@/features/visits/visits-journey-line';
@@ -24,6 +24,8 @@ type QueueTicketProps = {
 /** One patient in the queue: the number in the station's colour, then who they are. */
 export function QueueTicket(props: QueueTicketProps) {
   const { visit } = props;
+  const t = useTranslations();
+  const locale = useLocale();
   const color = STATION_COLORS[props.station];
   const compact = props.size === 'compact';
   const called = Boolean(visit.called_at) && !visit.skipped_at && props.station === 'waiting';
@@ -32,7 +34,7 @@ export function QueueTicket(props: QueueTicketProps) {
   const meta = [
     !compact &&
       patient &&
-      `${SEX_LABELS[patient.sex as keyof typeof SEX_LABELS]}, ${ageInYears(patient.birth_date)} th`,
+      `${t(`sex.${patient.sex as 'male' | 'female'}`)}, ${t('patients.ageShort', { age: ageInYears(patient.birth_date) })}`,
     props.showPoli && visit.poli?.name,
     !compact && visit.doctor?.full_name,
   ].filter(Boolean);
@@ -65,17 +67,19 @@ export function QueueTicket(props: QueueTicketProps) {
         {called && (
           <p className={cn('flex items-center gap-1.5 text-[0.8125rem] font-medium', color.text)}>
             <MegaphoneIcon className="size-3.5" aria-hidden />
-            Dipanggil {formatTime(visit.called_at!)}
+            {t('queue.ticket.called', { time: formatTime(visit.called_at!, locale) })}
           </p>
         )}
         {props.station === 'waiting' && visit.vitals_recorded_at === null && (
           <p className="flex items-center gap-1.5 text-[0.8125rem] font-medium text-status-waiting">
             <ActivityIcon className="size-3.5" aria-hidden />
-            Perlu tanda vital sebelum dipanggil
+            {t('queue.ticket.needsVitals')}
           </p>
         )}
         {visit.skipped_at && (
-          <p className="text-[0.8125rem] font-medium text-status-cancelled">Dilewati {formatTime(visit.skipped_at)}</p>
+          <p className="text-[0.8125rem] font-medium text-status-cancelled">
+            {t('queue.ticket.skipped', { time: formatTime(visit.skipped_at, locale) })}
+          </p>
         )}
         {props.actions && <div className="mt-2 flex flex-wrap gap-1.5">{props.actions}</div>}
       </div>

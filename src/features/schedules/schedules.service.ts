@@ -58,7 +58,7 @@ export async function updateSchedule(
     .maybeSingle();
 
   if (error) return { ok: false, error: scheduleErrorMessage(error) };
-  if (!data) return { ok: false, error: 'Jadwal tidak ditemukan. Muat ulang halaman lalu coba lagi.' };
+  if (!data) return { ok: false, error: 'schedules.errors.notFound' };
 
   return { ok: true, data: undefined };
 }

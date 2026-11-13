@@ -1,17 +1,20 @@
+import { getLocale, getTranslations } from 'next-intl/server';
 import { LiveIndicator } from '@/components/ui/live-indicator';
 import { PageHeader } from '@/components/ui/page-header';
 import { SkeletonPage } from '@/components/ui/skeleton';
 import { HomePharmacySkeleton } from '@/features/home/home-skeleton';
 import { formatDate, todayInJakarta } from '@/lib/dates';
 
-export default function Loading() {
+export default async function Loading() {
+  const [t, locale] = await Promise.all([getTranslations(), getLocale()]);
+
   return (
-    <SkeletonPage route label="Memuat resep masuk">
+    <SkeletonPage route label={t('home.pharmacy.loading')}>
       <PageHeader
-        title="Resep masuk"
+        title={t('nav.pharmacy')}
         description={
           <span className="inline-flex flex-wrap items-center gap-x-2">
-            {formatDate(todayInJakarta())}
+            {formatDate(todayInJakarta(), locale)}
             <LiveIndicator />
           </span>
         }

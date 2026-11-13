@@ -3,6 +3,7 @@
 import { ArrowRightIcon, MegaphoneIcon, StethoscopeIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 import { type ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 import { Arrival, ArrivalScope } from '@/components/ui/arrival';
@@ -11,7 +12,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import type { VitalsReading } from '@/features/exam/exam.lib';
 import { ExamVitalsDialog } from '@/features/exam/exam-vitals-dialog';
-import { SEX_LABELS } from '@/features/patients/patients.constants';
 import { ageInYears } from '@/features/patients/patients.lib';
 import type { JourneyStatus } from '@/features/visits/visits.lib';
 import { STATION_COLORS } from '@/features/visits/visits-journey-line';
@@ -48,6 +48,7 @@ type Scope = 'mine' | 'all';
 /** Today's queue as the walk through the clinic: waiting room, then each station. */
 export function QueueBoard(props: QueueBoardProps) {
   const { actor, visitDate } = props;
+  const t = useTranslations();
   const isDoctor = actor.role === 'doctor';
   const [scope, setScope] = useState<Scope>(isDoctor ? 'mine' : 'all');
   const [poliId, setPoliId] = useState('all');
@@ -56,7 +57,7 @@ export function QueueBoard(props: QueueBoardProps) {
   if (board.isPending) return <QueueBoardSkeleton doctor={isDoctor} />;
 
   if (board.isError) {
-    return <EmptyState title="Antrean gagal dimuat" description={board.error.message} />;
+    return <EmptyState title={t('queue.board.loadFailed')} description={board.error.message} />;
   }
 
   const all = board.data;
@@ -74,30 +75,31 @@ export function QueueBoard(props: QueueBoardProps) {
       <div className="flex flex-wrap items-center gap-2">
         <p className="order-last ml-auto flex gap-4 text-sm text-muted-foreground">
           <span>
-            Pulang <span className="tabular font-semibold text-foreground">{lanes.done.length}</span>
+            {t('queue.board.done')} <span className="tabular font-semibold text-foreground">{lanes.done.length}</span>
           </span>
           <span>
-            Batal <span className="tabular font-semibold text-foreground">{lanes.cancelled.length}</span>
+            {t('queue.board.cancelled')}{' '}
+            <span className="tabular font-semibold text-foreground">{lanes.cancelled.length}</span>
           </span>
         </p>
         {isDoctor && (
           <SegmentedControl
-            label="Tampilkan"
+            label={t('queue.board.show')}
             value={scope}
             onChange={setScope}
             options={[
-              { value: 'mine', label: 'Pasien saya' },
-              { value: 'all', label: 'Semua dokter' },
+              { value: 'mine', label: t('queue.board.mine') },
+              { value: 'all', label: t('queue.board.allDoctors') },
             ]}
           />
         )}
         {polis.length > 1 && (
           <SegmentedControl
-            label="Poli"
+            label={t('queue.board.poli')}
             value={poliId}
             onChange={setPoliId}
             options={[
-              { value: 'all', label: 'Semua poli' },
+              { value: 'all', label: t('queue.board.allPolis') },
               ...polis.map((poli) => ({ value: poli.id, label: poli.name })),
             ]}
           />
@@ -109,14 +111,17 @@ export function QueueBoard(props: QueueBoardProps) {
         {visits.length === 0 ? (
           <EmptyState
             icon={StethoscopeIcon}
-            title={scope === 'mine' ? 'Belum ada pasien untuk Anda hari ini' : 'Belum ada pasien hari ini'}
-            description="Pasien muncul di sini begitu didaftarkan di Pendaftaran."
+            title={scope === 'mine' ? t('queue.board.emptyMine') : t('queue.board.emptyAll')}
+            description={t('queue.board.emptyHint')}
           />
         ) : (
           <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
-            <Lane station="waiting" title="Ruang tunggu" count={lanes.called.length + lanes.waiting.length}>
+            <Lane
+              station="waiting"
+              title={t('journey.waiting.label')}
+              count={lanes.called.length + lanes.waiting.length}>
               {lanes.called.length + lanes.waiting.length + lanes.skipped.length === 0 && (
-                <LaneEmpty>Ruang tunggu kosong</LaneEmpty>
+                <LaneEmpty>{t('queue.board.waitingEmpty')}</LaneEmpty>
               )}
               {[...lanes.called, ...lanes.waiting].map((visit) => (
                 <Arrival key={visit.id}>
@@ -125,16 +130,16 @@ export function QueueBoard(props: QueueBoardProps) {
               ))}
               {lanes.skipped.length > 0 && (
                 <>
-                  <p className="px-1 pt-2 text-xs font-medium text-muted-foreground">Dilewati, bisa dipanggil ulang</p>
+                  <p className="px-1 pt-2 text-xs font-medium text-muted-foreground">{t('queue.board.skipped')}</p>
                   {lanes.skipped.map((visit) => (
                     <WaitingTicket key={visit.id} visit={visit} {...ticketProps} />
                   ))}
                 </>
               )}
             </Lane>
-            <StationLane station="in_exam" title="Ruang periksa" visits={lanes.inExam} {...ticketProps} />
-            <StationLane station="to_pharmacy" title="Farmasi" visits={lanes.toPharmacy} {...ticketProps} />
-            <StationLane station="to_cashier" title="Kasir" visits={lanes.toCashier} {...ticketProps} />
+            <StationLane station="in_exam" visits={lanes.inExam} {...ticketProps} />
+            <StationLane station="to_pharmacy" visits={lanes.toPharmacy} {...ticketProps} />
+            <StationLane station="to_cashier" visits={lanes.toCashier} {...ticketProps} />
           </div>
         )}
       </ArrivalScope>
@@ -152,6 +157,10 @@ type DoctorRoomProps = {
 
 /** The doctor's one next move, big: continue, start, or call the next number. */
 export function DoctorRoom(props: DoctorRoomProps) {
+  const t = useTranslations('queue');
+  const tj = useTranslations('journey');
+  const ts = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
   const room = doctorRoom(props.visits, props.actor.userId);
   const call = useQueueAction(props.visitDate, callVisitAction);
@@ -160,7 +169,7 @@ export function DoctorRoom(props: DoctorRoomProps) {
   const pending = call.isPending || skip.isPending || start.isPending;
 
   const callNumber = (visit: QueueVisit) =>
-    call.mutate(visit.id, { onSuccess: () => toast.success(`Nomor ${visit.queue_no} dipanggil.`) });
+    call.mutate(visit.id, { onSuccess: () => toast.success(t('actions.called', { number: visit.queue_no })) });
 
   let label: string;
   let visit: QueueVisit | undefined;
@@ -168,18 +177,18 @@ export function DoctorRoom(props: DoctorRoomProps) {
   let actions: ReactNode = null;
 
   if (room.examining) {
-    label = 'Sedang Anda periksa';
+    label = t('room.examining');
     visit = room.examining;
     station = 'in_exam';
 
     actions = (
       <Link href={`/exam/${visit.id}`} className={buttonVariants({ size: 'lg' })}>
-        Lanjutkan pemeriksaan
+        {t('room.continue')}
         <ArrowRightIcon />
       </Link>
     );
   } else if (room.called) {
-    label = 'Sudah dipanggil, menunggu masuk';
+    label = t('room.called');
     visit = room.called;
 
     const called = visit;
@@ -192,27 +201,27 @@ export function DoctorRoom(props: DoctorRoomProps) {
             disabled={pending}
             onClick={() => start.mutate(called.id, { onSuccess: () => router.push(`/exam/${called.id}`) })}>
             <StethoscopeIcon />
-            Pasien masuk, mulai periksa
+            {t('room.enterStart')}
           </Button>
         ) : (
           <ExamVitalsDialog
             visitId={called.id}
             patientName={called.patient?.full_name ?? ''}
             size="lg"
-            label="Catat tanda vital dulu"
+            label={t('room.recordVitalsFirst')}
           />
         )}
         <Button size="lg" variant="outline" disabled={pending} onClick={() => callNumber(called)}>
           <MegaphoneIcon />
-          Panggil ulang
+          {t('actions.recall')}
         </Button>
         <Button size="lg" variant="ghost" disabled={pending} onClick={() => skip.mutate(called.id)}>
-          Lewati
+          {t('actions.skip')}
         </Button>
       </>
     );
   } else if (room.next) {
-    label = 'Berikutnya';
+    label = t('room.next');
     visit = room.next;
 
     const next = visit;
@@ -220,11 +229,11 @@ export function DoctorRoom(props: DoctorRoomProps) {
     actions = (
       <Button size="lg" disabled={pending} onClick={() => callNumber(next)}>
         <MegaphoneIcon />
-        Panggil nomor {next.queue_no}
+        {t('room.callNumber', { number: next.queue_no })}
       </Button>
     );
   } else if (room.awaitingVitals[0]) {
-    label = 'Menunggu tanda vital';
+    label = t('room.awaitingVitals');
     visit = room.awaitingVitals[0];
 
     const first = visit;
@@ -234,18 +243,18 @@ export function DoctorRoom(props: DoctorRoomProps) {
         visitId={first.id}
         patientName={first.patient?.full_name ?? ''}
         size="lg"
-        label="Catat tanda vital"
+        label={t('room.recordVitals')}
       />
     );
   } else {
-    label = 'Ruang periksa Anda';
+    label = t('room.title');
   }
 
   const color = STATION_COLORS[station];
 
   return (
     <section
-      aria-label="Ruang periksa Anda"
+      aria-label={t('room.title')}
       className="relative overflow-hidden rounded-2xl border bg-[linear-gradient(135deg,#f6fbf9,#ffffff_55%)] p-5 shadow-[0_1px_2px_rgb(20_32_29/0.04)] sm:p-6">
       <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
         <div className="flex min-w-0 flex-[1_1_18rem] items-center gap-4 sm:gap-5">
@@ -272,14 +281,14 @@ export function DoctorRoom(props: DoctorRoomProps) {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {visit.patient &&
-                    `${SEX_LABELS[visit.patient.sex as keyof typeof SEX_LABELS]}, ${ageInYears(visit.patient.birth_date)} tahun · `}
-                  {visit.poli?.name} · {visit.payer_type === 'bpjs' ? 'BPJS' : 'Umum'}
-                  {station === 'in_exam' && ` · diperiksa sejak ${formatTime(visit.updated_at)}`}
+                    `${ts(`sex.${visit.patient.sex as 'male' | 'female'}`)}, ${ts('patients.ageLong', { age: ageInYears(visit.patient.birth_date) })} · `}
+                  {visit.poli?.name} · {ts(`payer.${visit.payer_type as 'umum' | 'bpjs'}`)}
+                  {station === 'in_exam' && t('room.examSince', { time: formatTime(visit.updated_at, locale) })}
                 </p>
                 {props.vitals && <QueueVitalChips reading={props.vitals.get(visit.id)} className="mt-2" />}
               </>
             ) : (
-              <p className="text-[1.125rem] font-semibold">Belum ada pasien menunggu</p>
+              <p className="text-[1.125rem] font-semibold">{t('room.noPatient')}</p>
             )}
           </div>
         </div>
@@ -288,12 +297,14 @@ export function DoctorRoom(props: DoctorRoomProps) {
       {room.waitingCount > 0 && (
         <p className="mt-4 flex flex-wrap gap-x-4 gap-y-1 border-t pt-3 text-sm text-muted-foreground">
           <span>
-            <span className="tabular font-semibold text-foreground">{room.waitingCount}</span> pasien Anda di ruang
-            tunggu
+            {t.rich('room.waitingCount', {
+              count: room.waitingCount,
+              b: (chunks) => <span className="tabular font-semibold text-foreground">{chunks}</span>,
+            })}
           </span>
           {room.awaitingVitals.length > 0 && (
             <span className="font-medium text-status-waiting">
-              {room.awaitingVitals.length} belum diperiksa tanda vital, belum bisa dipanggil
+              {t('room.awaitingVitalsCount', { count: room.awaitingVitals.length })}
             </span>
           )}
         </p>
@@ -342,12 +353,6 @@ function LaneEmpty(props: LaneEmptyProps) {
   );
 }
 
-const EMPTY_LANE: Partial<Record<JourneyStatus, string>> = {
-  in_exam: 'Belum ada yang diperiksa',
-  to_pharmacy: 'Tidak ada resep diproses',
-  to_cashier: 'Tidak ada yang menunggu bayar',
-};
-
 type TicketContext = {
   actor: Actor;
   visitDate: string;
@@ -355,16 +360,17 @@ type TicketContext = {
 };
 
 type StationLaneProps = TicketContext & {
-  station: JourneyStatus;
-  title: string;
+  station: 'in_exam' | 'to_pharmacy' | 'to_cashier';
   visits: QueueVisit[];
 };
 
 function StationLane(props: StationLaneProps) {
+  const t = useTranslations();
+
   return (
-    <Lane station={props.station} title={props.title} count={props.visits.length}>
+    <Lane station={props.station} title={t(`journey.${props.station}.label`)} count={props.visits.length}>
       {props.visits.length === 0 ? (
-        <LaneEmpty>{EMPTY_LANE[props.station] ?? 'Kosong'}</LaneEmpty>
+        <LaneEmpty>{t(`queue.board.emptyLane.${props.station}`)}</LaneEmpty>
       ) : (
         props.visits.map((visit) => (
           <Arrival key={visit.id}>
@@ -388,6 +394,7 @@ type WaitingTicketProps = TicketContext & {
 
 export function WaitingTicket(props: WaitingTicketProps) {
   const { visit, actor, visitDate } = props;
+  const t = useTranslations('queue.actions');
   const router = useRouter();
   const call = useQueueAction(visitDate, callVisitAction);
   const skip = useQueueAction(visitDate, skipVisitAction);
@@ -402,7 +409,7 @@ export function WaitingTicket(props: WaitingTicketProps) {
           size="xs"
           disabled={pending}
           onClick={() => start.mutate(visit.id, { onSuccess: () => router.push(`/exam/${visit.id}`) })}>
-          Mulai periksa
+          {t('startExam')}
         </Button>
       )}
       {canCall(actor, visit) && (
@@ -411,22 +418,22 @@ export function WaitingTicket(props: WaitingTicketProps) {
           variant="outline"
           disabled={pending}
           onClick={() =>
-            call.mutate(visit.id, { onSuccess: () => toast.success(`Nomor ${visit.queue_no} dipanggil.`) })
+            call.mutate(visit.id, { onSuccess: () => toast.success(t('called', { number: visit.queue_no })) })
           }>
           <MegaphoneIcon />
-          {visit.called_at || visit.skipped_at ? 'Panggil ulang' : 'Panggil'}
+          {visit.called_at || visit.skipped_at ? t('recall') : t('call')}
         </Button>
       )}
       {canSkip(actor, visit) && called && (
         <Button size="xs" variant="ghost" disabled={pending} onClick={() => skip.mutate(visit.id)}>
-          Lewati
+          {t('skip')}
         </Button>
       )}
       {canRecordVitals(actor, visit) && (
         <ExamVitalsDialog
           visitId={visit.id}
           patientName={visit.patient?.full_name ?? ''}
-          label={hasVitals(visit) ? 'Vital' : 'Catat vital'}
+          label={hasVitals(visit) ? t('vitals') : t('recordVitals')}
           primary={!hasVitals(visit)}
         />
       )}

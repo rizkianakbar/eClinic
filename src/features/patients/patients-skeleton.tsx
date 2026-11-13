@@ -1,5 +1,6 @@
 import { CakeIcon, ChevronLeftIcon, IdCardIcon, MapPinIcon, PhoneIcon, ShieldCheckIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { SegmentedSkeleton } from '@/components/ui/segmented-skeleton';
 import { placeholders, Skeleton, SkeletonButton, SkeletonLine, SkeletonStats } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,13 +9,15 @@ import { AGE_GROUPS } from './patients.lib';
 
 /** The three totals beside the Pasien title. */
 export function PatientsTotalsSkeleton() {
+  const t = useTranslations('patients.totals');
+
   return (
     <SkeletonStats
       className="flex divide-y-0"
       items={[
-        { label: 'Pasien aktif', hint: 'terdaftar' },
-        { label: 'Baru bulan ini', hint: 'pasien baru' },
-        { label: 'Peserta BPJS' },
+        { label: t('active'), hint: t('activeHint') },
+        { label: t('newThisMonth'), hint: t('newHint') },
+        { label: t('bpjs') },
       ]}
     />
   );
@@ -22,19 +25,21 @@ export function PatientsTotalsSkeleton() {
 
 /** The patient table (PatientsList): filter, search, and rows of the real height. */
 export function PatientsListSkeleton() {
+  const t = useTranslations();
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <SegmentedSkeleton options={['Semua', 'BPJS', 'Umum']} />
-        <InventorySearchSkeleton placeholder="Cari nama, NIK, nomor HP, atau no. RM" />
+        <SegmentedSkeleton options={[t('patients.filter.all'), t('payer.bpjs'), t('payer.umum')]} />
+        <InventorySearchSkeleton placeholder={t('patients.listSearch')} />
       </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Pasien</TableHead>
-            <TableHead className="hidden md:table-cell">Kontak</TableHead>
-            <TableHead className="hidden sm:table-cell">Kunjungan terakhir</TableHead>
-            <TableHead className="hidden text-right xl:table-cell">Kunjungan</TableHead>
+            <TableHead>{t('patients.list.patient')}</TableHead>
+            <TableHead className="hidden md:table-cell">{t('patients.list.contact')}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t('patients.list.lastVisit')}</TableHead>
+            <TableHead className="hidden text-right xl:table-cell">{t('patients.list.visits')}</TableHead>
             <TableHead className="w-8" />
           </TableRow>
         </TableHeader>
@@ -79,14 +84,16 @@ export function PatientsListSkeleton() {
 
 /** The side panel (PatientsComposition): real section titles and labels, the figures loading. */
 export function PatientsCompositionSkeleton() {
+  const t = useTranslations();
+
   return (
     <aside className="flex flex-col gap-6 lg:sticky lg:top-20">
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-sm font-semibold">Komposisi pasien</h2>
+        <h2 className="text-sm font-semibold">{t('patients.composition.title')}</h2>
         <div className="flex flex-col divide-y rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           {[
-            ['Jenis kelamin', 'Laki-laki', 'Perempuan'],
-            ['Pembayaran', 'BPJS', 'Umum'],
+            [t('patients.composition.sex'), t('sex.male'), t('sex.female')],
+            [t('patients.composition.payer'), t('payer.bpjs'), t('payer.umum')],
           ].map(([title, left, right]) => (
             <div key={title} className="flex flex-col gap-2.5 p-4">
               <p className="text-xs font-medium text-muted-foreground">{title}</p>
@@ -103,14 +110,15 @@ export function PatientsCompositionSkeleton() {
             </div>
           ))}
           <div className="flex flex-col gap-2.5 p-4">
-            <p className="text-xs font-medium text-muted-foreground">Kelompok umur</p>
+            <p className="text-xs font-medium text-muted-foreground">{t('patients.composition.ages')}</p>
             <ul className="flex flex-col gap-2">
               {AGE_GROUPS.map((group) => (
                 <li
                   key={group.key}
                   className="grid grid-cols-[8rem_minmax(0,1fr)_2rem] items-center gap-2 text-[0.8125rem]">
                   <span className="truncate">
-                    {group.label} <span className="text-xs text-muted-foreground">{group.range}</span>
+                    {t(`patients.ageGroups.${group.key}`)}{' '}
+                    <span className="text-xs text-muted-foreground">{group.range}</span>
                   </span>
                   <span className="h-1.5 rounded-full bg-muted" />
                   <span className="flex justify-end">
@@ -125,7 +133,7 @@ export function PatientsCompositionSkeleton() {
       <section className="flex flex-col gap-2.5">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           <CakeIcon className="size-4 text-[#d4588a]" aria-hidden />
-          Ulang tahun hari ini
+          {t('patients.composition.birthdays')}
         </h2>
         <div className="rounded-xl border bg-card px-4 py-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           <SkeletonLine className="w-56" />
@@ -168,6 +176,8 @@ export function VisitHistorySkeleton() {
 
 /** One patient's page: header, the profile card (real labels), and the visit timeline. */
 export function PatientDetailSkeleton() {
+  const t = useTranslations('patients');
+
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-4">
@@ -175,7 +185,7 @@ export function PatientDetailSkeleton() {
           href="/patients"
           className="-ml-1 -my-1.5 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
           <ChevronLeftIcon className="size-4" aria-hidden />
-          Pasien
+          {t('title')}
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-4">
@@ -198,10 +208,10 @@ export function PatientDetailSkeleton() {
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[21rem_minmax(0,1fr)]">
         <aside className="flex flex-col gap-2.5 lg:sticky lg:top-20">
-          <h2 className="text-sm font-semibold">Profil</h2>
+          <h2 className="text-sm font-semibold">{t('detail.profile')}</h2>
           <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
             <dl className="grid grid-cols-2 gap-px border-b bg-border">
-              {['Total kunjungan', 'Terakhir', 'Pasien sejak', 'Pakai BPJS'].map((label) => (
+              {[t('detail.totalVisits'), t('detail.last'), t('detail.since'), t('detail.bpjsVisits')].map((label) => (
                 <div key={label} className="flex flex-col gap-1 bg-card px-4 py-3.5">
                   <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
                   <dd className="flex h-7 items-center">
@@ -214,10 +224,10 @@ export function PatientDetailSkeleton() {
               {(
                 [
                   [IdCardIcon, 'NIK'],
-                  [ShieldCheckIcon, 'Nomor BPJS'],
-                  [CakeIcon, 'Tanggal lahir'],
-                  [PhoneIcon, 'Nomor HP'],
-                  [MapPinIcon, 'Alamat'],
+                  [ShieldCheckIcon, t('form.bpjs')],
+                  [CakeIcon, t('form.birthDate')],
+                  [PhoneIcon, t('form.phone')],
+                  [MapPinIcon, t('form.address')],
                 ] as const
               ).map(([Icon, label]) => (
                 <div key={label} className="flex items-start gap-3 px-4 py-3">
@@ -236,7 +246,7 @@ export function PatientDetailSkeleton() {
 
         <section className="flex min-w-0 flex-col gap-2.5">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
-            Riwayat kunjungan
+            {t('detail.history')}
             <Skeleton className="h-5 w-6 rounded-md" />
           </h2>
           <ol className="flex flex-col">

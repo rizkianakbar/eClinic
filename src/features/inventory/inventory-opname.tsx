@@ -1,3 +1,4 @@
+import { useLocale, useTranslations } from 'next-intl';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDate, formatDateTime } from '@/lib/dates';
 import { cn } from '@/lib/utils';
@@ -9,26 +10,30 @@ type InventoryOpnameProps = {
 
 /** A posted stock opname (read-only). */
 export function InventoryOpname(props: InventoryOpnameProps) {
+  const t = useTranslations('inventory');
+  const locale = useLocale();
   const { opname } = props;
 
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h2 className="text-[1.125rem] font-semibold tracking-tight">Stok opname {formatDate(opname.opname_date)}</h2>
+        <h2 className="text-[1.125rem] font-semibold tracking-tight">
+          {t('opname.title', { date: formatDate(opname.opname_date, locale) })}
+        </h2>
         <p className="text-sm text-muted-foreground">
-          {opname.poster?.full_name} · {formatDateTime(opname.created_at)}
+          {opname.poster?.full_name} · {formatDateTime(opname.created_at, locale)}
           {opname.note && ` · ${opname.note}`}
         </p>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Obat</TableHead>
-            <TableHead>Batch</TableHead>
-            <TableHead className="text-right">Sistem</TableHead>
-            <TableHead className="text-right">Fisik</TableHead>
-            <TableHead className="text-right">Selisih</TableHead>
-            <TableHead>Alasan</TableHead>
+            <TableHead>{t('opname.colMedicine')}</TableHead>
+            <TableHead>{t('opname.colBatch')}</TableHead>
+            <TableHead className="text-right">{t('opname.colSystem')}</TableHead>
+            <TableHead className="text-right">{t('opname.colCounted')}</TableHead>
+            <TableHead className="text-right">{t('opname.colDifference')}</TableHead>
+            <TableHead>{t('opname.colReason')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -39,7 +44,7 @@ export function InventoryOpname(props: InventoryOpnameProps) {
                 {item.batch?.batch_no}
                 {item.batch && (
                   <span className="ml-1 font-sans text-xs text-muted-foreground">
-                    ED {formatDate(item.batch.expiry_date)}
+                    {t('stock.ed', { date: formatDate(item.batch.expiry_date, locale) })}
                   </span>
                 )}
               </TableCell>

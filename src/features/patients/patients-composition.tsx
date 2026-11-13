@@ -1,5 +1,6 @@
 import { CakeIcon, UserPlusIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { relativeDay, toJakartaDate } from '@/lib/dates';
 import { cn } from '@/lib/utils';
 import { AGE_GROUPS, initials, type PatientStats } from './patients.lib';
@@ -14,25 +15,27 @@ const percent = (part: number, total: number) => (total > 0 ? Math.round((part /
 /** Who the clinic's patients are, whose birthday it is, and who is new. */
 export function PatientsComposition(props: PatientsCompositionProps) {
   const { stats } = props;
+  const t = useTranslations();
+  const locale = useLocale();
   const largestAge = Math.max(1, ...Object.values(stats.ages));
 
   return (
     <aside className="flex flex-col gap-6 lg:sticky lg:top-20">
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-sm font-semibold">Komposisi pasien</h2>
+        <h2 className="text-sm font-semibold">{t('patients.composition.title')}</h2>
         <div className="flex flex-col divide-y rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           <Split
-            title="Jenis kelamin"
-            left={{ label: 'Laki-laki', value: stats.male, tone: 'bg-[#3a7bd5]' }}
-            right={{ label: 'Perempuan', value: stats.female, tone: 'bg-[#d4588a]' }}
+            title={t('patients.composition.sex')}
+            left={{ label: t('sex.male'), value: stats.male, tone: 'bg-[#3a7bd5]' }}
+            right={{ label: t('sex.female'), value: stats.female, tone: 'bg-[#d4588a]' }}
           />
           <Split
-            title="Pembayaran"
-            left={{ label: 'BPJS', value: stats.bpjs, tone: 'bg-bpjs' }}
-            right={{ label: 'Umum', value: stats.total - stats.bpjs, tone: 'bg-primary' }}
+            title={t('patients.composition.payer')}
+            left={{ label: t('payer.bpjs'), value: stats.bpjs, tone: 'bg-bpjs' }}
+            right={{ label: t('payer.umum'), value: stats.total - stats.bpjs, tone: 'bg-primary' }}
           />
           <div className="flex flex-col gap-2.5 p-4">
-            <p className="text-xs font-medium text-muted-foreground">Kelompok umur</p>
+            <p className="text-xs font-medium text-muted-foreground">{t('patients.composition.ages')}</p>
             <ul className="flex flex-col gap-2">
               {AGE_GROUPS.map((group) => {
                 const count = stats.ages[group.key];
@@ -42,7 +45,8 @@ export function PatientsComposition(props: PatientsCompositionProps) {
                     key={group.key}
                     className="grid grid-cols-[8rem_minmax(0,1fr)_2rem] items-center gap-2 text-[0.8125rem]">
                     <span className="truncate">
-                      {group.label} <span className="text-xs text-muted-foreground">{group.range}</span>
+                      {t(`patients.ageGroups.${group.key}`)}{' '}
+                      <span className="text-xs text-muted-foreground">{group.range}</span>
                     </span>
                     <span className="h-1.5 overflow-hidden rounded-full bg-muted">
                       <span
@@ -62,16 +66,14 @@ export function PatientsComposition(props: PatientsCompositionProps) {
       <section className="flex flex-col gap-2.5">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           <CakeIcon className="size-4 text-[#d4588a]" aria-hidden />
-          Ulang tahun hari ini
+          {t('patients.composition.birthdays')}
           <span className="tabular rounded-md bg-muted px-1.5 text-xs leading-5 font-medium text-muted-foreground">
             {stats.birthdays.length}
           </span>
         </h2>
         <div className="rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           {stats.birthdays.length === 0 ? (
-            <p className="px-4 py-4 text-[0.8125rem] text-muted-foreground">
-              Tidak ada pasien yang berulang tahun hari ini.
-            </p>
+            <p className="px-4 py-4 text-[0.8125rem] text-muted-foreground">{t('patients.composition.noBirthdays')}</p>
           ) : (
             <ul>
               {stats.birthdays.map((patient) => (
@@ -79,7 +81,7 @@ export function PatientsComposition(props: PatientsCompositionProps) {
                   key={patient.id}
                   id={patient.id}
                   name={patient.full_name}
-                  detail={`${patient.age} tahun hari ini`}
+                  detail={t('patients.composition.yearsToday', { age: patient.age })}
                 />
               ))}
             </ul>
@@ -90,11 +92,11 @@ export function PatientsComposition(props: PatientsCompositionProps) {
       <section className="flex flex-col gap-2.5">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           <UserPlusIcon className="size-4 text-primary" aria-hidden />
-          Pasien baru 7 hari terakhir
+          {t('patients.composition.recent')}
         </h2>
         <div className="rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           {stats.recent.length === 0 ? (
-            <p className="px-4 py-4 text-[0.8125rem] text-muted-foreground">Belum ada pasien baru minggu ini.</p>
+            <p className="px-4 py-4 text-[0.8125rem] text-muted-foreground">{t('patients.composition.noRecent')}</p>
           ) : (
             <ul>
               {stats.recent.map((patient) => (
@@ -102,7 +104,9 @@ export function PatientsComposition(props: PatientsCompositionProps) {
                   key={patient.id}
                   id={patient.id}
                   name={patient.full_name}
-                  detail={`Terdaftar ${relativeDay(toJakartaDate(new Date(patient.created_at)), props.today).toLowerCase()}`}
+                  detail={t('patients.composition.registered', {
+                    when: relativeDay(toJakartaDate(new Date(patient.created_at)), props.today, locale).toLowerCase(),
+                  })}
                 />
               ))}
             </ul>

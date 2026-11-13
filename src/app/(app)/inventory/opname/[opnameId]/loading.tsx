@@ -1,9 +1,12 @@
+import { getTranslations } from 'next-intl/server';
 import { SkeletonPage } from '@/components/ui/skeleton';
 import { InventoryOpnameSkeleton } from '@/features/inventory/inventory-skeleton';
 
-export default function Loading() {
+export default async function Loading() {
+  const t = await getTranslations('inventory.loading');
+
   return (
-    <SkeletonPage route label="Memuat stok opname">
+    <SkeletonPage route label={t('opname')}>
       <InventoryOpnameSkeleton />
     </SkeletonPage>
   );

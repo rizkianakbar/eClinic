@@ -106,14 +106,19 @@ export async function listPharmacyDesk(supabase: SupabaseClient) {
           .filter((item) => !item.compound_id)
           .map((item) => ({
             id: item.id,
+            kind: 'item' as const,
             name: item.medicine?.name ?? '',
-            amount: `${item.qty} ${item.medicine?.unit ?? ''}`,
+            qty: item.qty,
+            unit: item.medicine?.unit ?? '',
             short: short.has(item.id),
           })),
+        // Racikan: the screen words it ("Racikan puyer", "3 bahan") in the reader's language.
         ...compounds.map((compound) => ({
           id: compound.id,
-          name: `Racikan ${compound.form}`,
-          amount: `${items.filter((item) => item.compound_id === compound.id).length} bahan`,
+          kind: 'compound' as const,
+          name: compound.form,
+          qty: items.filter((item) => item.compound_id === compound.id).length,
+          unit: '',
           short: items.some((item) => item.compound_id === compound.id && short.has(item.id)),
         })),
       ],

@@ -1,12 +1,12 @@
-import type { Metadata } from 'next';
 import { Schedules } from '@/features/schedules/schedules';
 import { listDoctors, listSchedules } from '@/features/schedules/schedules.service';
 import { listPolis } from '@/features/settings/settings.service';
+import { pageTitle } from '@/i18n/metadata';
 import { requireRole } from '@/lib/auth';
 import { isoWeekday, todayInJakarta } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: 'Jadwal dokter' };
+export const generateMetadata = pageTitle('settings.tabs.schedules');
 
 export default async function SchedulesPage() {
   await requireRole('owner', 'admin');

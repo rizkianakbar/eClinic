@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { PageLinks } from '@/components/ui/page-links';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,10 +17,13 @@ type InventoryMedicinesProps = Awaited<ReturnType<typeof listMedicines>> & {
 };
 
 export function InventoryMedicines(props: InventoryMedicinesProps) {
+  const t = useTranslations('inventory');
+  const tc = useTranslations('common');
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <InventorySearch query={props.query} placeholder="Cari nama obat" />
+        <InventorySearch query={props.query} placeholder={t('searchMedicine')} />
         <div className="flex gap-2">
           <DataImportDialog kind="medicines" />
           <InventoryMedicineDialog mode="create" />
@@ -28,19 +32,19 @@ export function InventoryMedicines(props: InventoryMedicinesProps) {
 
       {props.medicines.length === 0 ? (
         <p className="rounded-lg border p-4 text-sm text-muted-foreground">
-          {props.query ? 'Obat tidak ditemukan.' : 'Belum ada obat. Tambahkan obat pertama.'}
+          {props.query ? t('medicines.notFound') : t('medicines.empty')}
         </p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nama</TableHead>
-              <TableHead className="hidden md:table-cell">Satuan</TableHead>
-              <TableHead className="hidden text-right md:table-cell">Harga jual</TableHead>
-              <TableHead className="hidden text-right md:table-cell">Stok min.</TableHead>
-              <TableHead className="hidden md:table-cell">KFA</TableHead>
-              <TableHead className="hidden md:table-cell">Status</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
+              <TableHead>{t('medicines.colName')}</TableHead>
+              <TableHead className="hidden md:table-cell">{t('medicines.colUnit')}</TableHead>
+              <TableHead className="hidden text-right md:table-cell">{t('medicines.colPrice')}</TableHead>
+              <TableHead className="hidden text-right md:table-cell">{t('medicines.colMin')}</TableHead>
+              <TableHead className="hidden md:table-cell">{t('medicines.colKfa')}</TableHead>
+              <TableHead className="hidden md:table-cell">{t('medicines.colStatus')}</TableHead>
+              <TableHead className="text-right">{t('medicines.colActions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -50,9 +54,10 @@ export function InventoryMedicines(props: InventoryMedicinesProps) {
                   <span className="font-medium">{medicine.name}</span>
                   {/* Phones and small tablets: the details fold into one line under the name. */}
                   <span className="tabular block text-[0.8125rem] text-muted-foreground md:hidden">
-                    {formatRupiah(medicine.price)} / {medicine.unit} · min {medicine.min_stock}
-                    {medicine.kfa_code && ` · KFA ${medicine.kfa_code}`}
-                    {!medicine.is_active && ' · nonaktif'}
+                    {formatRupiah(medicine.price)} / {medicine.unit} ·{' '}
+                    {t('medicines.minShort', { min: medicine.min_stock })}
+                    {medicine.kfa_code && ` · ${t('medicines.kfaShort', { code: medicine.kfa_code })}`}
+                    {!medicine.is_active && ` · ${t('medicines.inactiveShort')}`}
                   </span>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">{medicine.unit}</TableCell>
@@ -61,7 +66,7 @@ export function InventoryMedicines(props: InventoryMedicinesProps) {
                 <TableCell className="hidden md:table-cell">{medicine.kfa_code ?? '-'}</TableCell>
                 <TableCell className="hidden md:table-cell">
                   <Badge variant={medicine.is_active ? 'secondary' : 'outline'}>
-                    {medicine.is_active ? 'Aktif' : 'Nonaktif'}
+                    {medicine.is_active ? tc('active') : tc('inactive')}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
@@ -72,7 +77,7 @@ export function InventoryMedicines(props: InventoryMedicinesProps) {
                       isActive={medicine.is_active}
                       action={setMedicineActiveAction}
                       name={medicine.name}
-                      consequence="Obat ini tidak bisa diresepkan atau dibeli lagi."
+                      consequence={t('medicines.deactivateConsequence')}
                     />
                   </div>
                 </TableCell>
@@ -87,7 +92,7 @@ export function InventoryMedicines(props: InventoryMedicinesProps) {
         pageSize={MEDICINES_PAGE_SIZE}
         total={props.total}
         params={props.query ? { q: props.query } : undefined}
-        noun="obat"
+        countLabel={t('medicineCount', { count: props.total })}
       />
     </div>
   );

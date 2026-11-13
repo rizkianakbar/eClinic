@@ -1,4 +1,5 @@
 import { ActivityIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import type { getTopDiseases } from './reports.service';
 
@@ -8,14 +9,14 @@ type ReportsTopDiseasesProps = {
 
 /** Primary diagnoses of non-cancelled visits, most frequent first. */
 export function ReportsTopDiseases(props: ReportsTopDiseasesProps) {
+  const t = useTranslations('reports.top');
+
   if (props.rows.length === 0) {
     return (
       <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed px-6 py-12 text-center">
         <ActivityIcon className="mb-1 size-6 text-muted-foreground" aria-hidden />
-        <p className="text-sm font-medium">Belum ada diagnosis utama pada periode ini</p>
-        <p className="text-[0.8125rem] text-muted-foreground">
-          Diagnosis tercatat saat dokter menandatangani rekam medis.
-        </p>
+        <p className="text-sm font-medium">{t('empty')}</p>
+        <p className="text-[0.8125rem] text-muted-foreground">{t('emptyHint')}</p>
       </div>
     );
   }
@@ -26,9 +27,12 @@ export function ReportsTopDiseases(props: ReportsTopDiseasesProps) {
   return (
     <section className="flex flex-col gap-2.5">
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-semibold">Diagnosis utama terbanyak</h3>
+        <h3 className="text-sm font-semibold">{t('title')}</h3>
         <span className="text-xs text-muted-foreground">
-          <span className="tabular font-semibold text-foreground">{total}</span> kasus dari 10 besar
+          {t.rich('cases', {
+            count: total,
+            b: (chunks) => <span className="tabular font-semibold text-foreground">{chunks}</span>,
+          })}
         </span>
       </div>
       <ol className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">

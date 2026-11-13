@@ -31,9 +31,9 @@ describe('medicineSchema', () => {
 
     expect(messages).toEqual(
       expect.arrayContaining([
-        'Nama obat wajib diisi.',
-        'Satuan wajib diisi, contoh: tablet.',
-        'Harga jual wajib diisi dengan angka, contoh: 15000.',
+        'inventory.errors.nameRequired',
+        'inventory.errors.unitRequired',
+        'validation.amountNumber',
       ]),
     );
   });
@@ -110,15 +110,15 @@ describe('purchaseFormSchema', () => {
   it('refuses expired batches and future purchase dates', () => {
     const expired = schema.safeParse({ ...valid, items: [{ ...valid.items[0], expiry_date: '2026-11-12' }] });
 
-    expect(expired.error?.issues[0]?.message).toBe('Obat sudah kedaluwarsa. Jangan terima batch ini.');
+    expect(expired.error?.issues[0]?.message).toBe('inventory.errors.expired');
 
     const future = schema.safeParse({ ...valid, purchase_date: '2026-11-13' });
 
-    expect(future.error?.issues[0]?.message).toBe('Tanggal pembelian tidak boleh di masa depan.');
+    expect(future.error?.issues[0]?.message).toBe('inventory.errors.purchaseDateFuture');
   });
 
   it('requires at least one line', () => {
-    expect(schema.safeParse({ ...valid, items: [] }).error?.issues[0]?.message).toBe('Tambahkan minimal satu obat.');
+    expect(schema.safeParse({ ...valid, items: [] }).error?.issues[0]?.message).toBe('inventory.errors.itemsEmpty');
   });
 });
 
@@ -142,13 +142,16 @@ describe('opnameFormSchema', () => {
       rows: [{ batch_id: B1, system_qty: 50, counted: '48', reason: '' }],
     });
 
-    expect(missing.error?.issues[0]).toMatchObject({ message: 'Isi alasan selisih.', path: ['rows', 0, 'reason'] });
+    expect(missing.error?.issues[0]).toMatchObject({
+      message: 'inventory.errors.differenceReason',
+      path: ['rows', 0, 'reason'],
+    });
   });
 
   it('requires at least one counted batch', () => {
     expect(
       opnameFormSchema.safeParse({ note: '', rows: [{ batch_id: B1, system_qty: 5, counted: '', reason: '' }] }).error
         ?.issues[0]?.message,
-    ).toBe('Isi jumlah fisik minimal satu batch.');
+    ).toBe('inventory.errors.countOne');
   });
 });

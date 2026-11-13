@@ -1,3 +1,4 @@
+import { getLocale, getTranslations } from 'next-intl/server';
 import { LiveIndicator } from '@/components/ui/live-indicator';
 import { PageHeader } from '@/components/ui/page-header';
 import { SkeletonPage } from '@/components/ui/skeleton';
@@ -6,15 +7,15 @@ import { getSession } from '@/lib/auth';
 import { formatDate, todayInJakarta } from '@/lib/dates';
 
 export default async function Loading() {
-  const session = await getSession();
+  const [session, t, locale] = await Promise.all([getSession(), getTranslations(), getLocale()]);
 
   return (
-    <SkeletonPage route label="Memuat antrean">
+    <SkeletonPage route label={t('queue.loading')}>
       <PageHeader
-        title="Antrean"
+        title={t('nav.queue')}
         description={
           <span className="inline-flex items-center gap-2">
-            {formatDate(todayInJakarta())}
+            {formatDate(todayInJakarta(), locale)}
             <LiveIndicator />
           </span>
         }

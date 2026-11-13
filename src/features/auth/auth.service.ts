@@ -11,7 +11,7 @@ export async function changeOwnPassword(supabase: SupabaseClient, values: Change
   const { data: user } = await supabase.auth.getUser();
   const email = user.user?.email;
 
-  if (!email) return { ok: false, error: 'Sesi berakhir. Masuk lagi lalu coba ganti kata sandi.' };
+  if (!email) return { ok: false, error: 'auth.errors.sessionEnded' };
 
   const check = await supabase.auth.signInWithPassword({ email, password: values.current_password });
 

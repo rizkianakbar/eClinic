@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -25,6 +26,7 @@ type QueueCancelDialogProps = {
 };
 
 export function QueueCancelDialog(props: QueueCancelDialogProps) {
+  const t = useTranslations('queue.cancel');
   const [open, setOpen] = useState(false);
 
   const cancel = useQueueAction(props.visitDate, (values: CancelVisitValues) =>
@@ -46,14 +48,14 @@ export function QueueCancelDialog(props: QueueCancelDialogProps) {
         if (!next) form.reset();
       }}>
       <Button variant="ghost" size="xs" onClick={() => setOpen(true)}>
-        Batalkan
+        {t('button')}
       </Button>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Batalkan antrean {props.visit.queue_no} ({props.visit.patient?.full_name})?
+            {t('title', { number: props.visit.queue_no, name: props.visit.patient?.full_name ?? '' })}
           </DialogTitle>
-          <DialogDescription>Kunjungan tidak dihapus; status menjadi Batal dengan alasan ini.</DialogDescription>
+          <DialogDescription>{t('description')}</DialogDescription>
         </DialogHeader>
         <form
           noValidate
@@ -61,24 +63,24 @@ export function QueueCancelDialog(props: QueueCancelDialogProps) {
           onSubmit={form.handleSubmit((values) =>
             cancel.mutate(values, {
               onSuccess: () => {
-                toast.success(`Antrean ${props.visit.queue_no} dibatalkan.`);
+                toast.success(t('done', { number: props.visit.queue_no }));
                 setOpen(false);
                 form.reset();
               },
             }),
           )}>
-          <FormField label="Alasan" htmlFor="cancel_reason" error={errors.reason?.message}>
+          <FormField label={t('reason')} htmlFor="cancel_reason" error={errors.reason?.message}>
             <Input
               id="cancel_reason"
               autoFocus
-              placeholder="contoh: pasien pulang, salah poli"
+              placeholder={t('placeholder')}
               aria-invalid={Boolean(errors.reason)}
               {...form.register('reason')}
             />
           </FormField>
           <DialogFooter>
             <Button type="submit" variant="destructive" disabled={cancel.isPending}>
-              {cancel.isPending ? 'Membatalkan...' : 'Batalkan antrean'}
+              {cancel.isPending ? t('submitting') : t('submit')}
             </Button>
           </DialogFooter>
         </form>

@@ -3,9 +3,9 @@
 import { CornerDownLeftIcon, SearchIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type KeyboardEvent, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { type KeyboardEvent, type ReactNode, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { SEX_LABELS } from './patients.constants';
 import { type SearchPatient, usePatientSearch } from './patients.hooks';
 import { ageInYears, formatIdNumber, initials, parsePatientSearch } from './patients.lib';
 import { PatientsSheet } from './patients-sheet';
@@ -26,6 +26,7 @@ type PatientSearchProps = {
 
 /** Keyboard-first: type or scan (MRN), arrows to move, Enter to open. */
 export function PatientSearch(props: PatientSearchProps) {
+  const t = useTranslations();
   const router = useRouter();
   const palette = props.variant === 'palette';
   const [query, setQuery] = useState('');
@@ -72,8 +73,8 @@ export function PatientSearch(props: PatientSearchProps) {
           inputMode="search"
           enterKeyHint="search"
           autoComplete="off"
-          aria-label="Cari pasien"
-          placeholder="Nama, NIK, nomor HP, atau no. RM"
+          aria-label={t('patients.search.label')}
+          placeholder={t('patients.search.placeholder')}
           className={cn(
             'w-full min-w-0 bg-card pr-3 pl-11 text-base text-foreground outline-none placeholder:text-muted-foreground/70',
             palette
@@ -91,7 +92,7 @@ export function PatientSearch(props: PatientSearchProps) {
 
       {!searching && (
         <p className={cn('text-[0.8125rem] text-muted-foreground', palette && 'px-3 pb-1')}>
-          Bisa juga memindai kartu berobat. Pilih dengan <Kbd>↑</Kbd> <Kbd>↓</Kbd>, buka dengan <Kbd>Enter</Kbd>.
+          {t.rich('patients.search.hint', { k: (chunks) => <Kbd>{chunks}</Kbd> })}
         </p>
       )}
 
@@ -101,14 +102,14 @@ export function PatientSearch(props: PatientSearchProps) {
             'flex flex-col items-center gap-3 py-6 text-center',
             !palette && 'rounded-xl border border-dashed',
           )}>
-          <p className="text-sm text-muted-foreground">Tidak ada pasien yang cocok dengan “{query.trim()}”.</p>
+          <p className="text-sm text-muted-foreground">{t('patients.search.noMatch', { query: query.trim() })}</p>
           <PatientsSheet mode="create" trigger="link" onSaved={props.onNavigate} />
         </div>
       )}
 
       {results.length > 0 && (
         <ul
-          aria-label="Hasil pencarian"
+          aria-label={t('patients.search.results')}
           className={cn('flex flex-col', palette ? 'border-t pt-2' : 'overflow-hidden rounded-xl border bg-card p-1')}>
           {results.map((patient, index) => {
             const selected = props.selectedId === patient.id;
@@ -133,7 +134,8 @@ export function PatientSearch(props: PatientSearchProps) {
                     )}
                   </span>
                   <span className="block truncate text-[0.8125rem] text-muted-foreground">
-                    {SEX_LABELS[patient.sex as keyof typeof SEX_LABELS]}, {ageInYears(patient.birth_date)} th
+                    {t(`sex.${patient.sex as 'male' | 'female'}`)},{' '}
+                    {t('patients.ageShort', { age: ageInYears(patient.birth_date) })}
                     {patient.nik && <> · NIK {formatIdNumber(patient.nik)}</>}
                   </span>
                 </span>
@@ -143,7 +145,7 @@ export function PatientSearch(props: PatientSearchProps) {
                   </span>
                 ) : (
                   <span className="tabular hidden text-[0.8125rem] font-medium text-muted-foreground sm:block">
-                    RM {patient.mrn}
+                    {t('patients.mrn')} {patient.mrn}
                   </span>
                 )}
                 <CornerDownLeftIcon
@@ -184,7 +186,7 @@ export function PatientSearch(props: PatientSearchProps) {
 }
 
 type KbdProps = {
-  children: string;
+  children: ReactNode;
 };
 
 function Kbd(props: KbdProps) {

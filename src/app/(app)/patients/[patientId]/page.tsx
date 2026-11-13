@@ -2,35 +2,31 @@ import { CakeIcon, ChevronLeftIcon, IdCardIcon, MapPinIcon, PhoneIcon, ShieldChe
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { getLocale, getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { z } from 'zod';
 import { Tag } from '@/components/ui/tag';
 import { EXAM_VIEWER_ROLES } from '@/features/exam/exam.constants';
 import { jakartaClock } from '@/features/home/home.lib';
-import { PATIENT_EDITOR_ROLES, PATIENT_VIEWER_ROLES, SEX_LABELS } from '@/features/patients/patients.constants';
+import { PATIENT_EDITOR_ROLES, PATIENT_VIEWER_ROLES } from '@/features/patients/patients.constants';
 import { ageInYears, formatIdNumber, formatPhone, initials } from '@/features/patients/patients.lib';
 import { getPatient } from '@/features/patients/patients.service';
 import { PatientsSheet } from '@/features/patients/patients-sheet';
-import { PAYER_LABELS, VISIT_STATUS_LABELS } from '@/features/visits/visits.constants';
 import { listPatientPrimaryDiagnoses, listPatientVisits, listTodaySessions } from '@/features/visits/visits.service';
 import { VisitsHistory } from '@/features/visits/visits-history';
 import { VisitsJourneyPosition } from '@/features/visits/visits-journey-line';
 import { VisitsRegisterSheet } from '@/features/visits/visits-register-sheet';
+import { INTL_LOCALE } from '@/i18n/locales';
 import { requireRole } from '@/lib/auth';
 import { formatDate, relativeDay, todayInJakarta } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils';
 
-export const metadata: Metadata = { title: 'Data pasien' };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations('patients'))('detail.title') };
+}
 
 const has = (roles: readonly string[], role: string) => roles.includes(role);
-
-const shortDate = new Intl.DateTimeFormat('id-ID', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-  timeZone: 'UTC',
-});
 
 export default async function PatientPage(props: PageProps<'/patients/[patientId]'>) {
   const session = await requireRole(...PATIENT_VIEWER_ROLES);
@@ -41,8 +37,15 @@ export default async function PatientPage(props: PageProps<'/patients/[patientId
   const canEdit = has(PATIENT_EDITOR_ROLES, session.role);
   const clinical = has(EXAM_VIEWER_ROLES, session.role);
   const today = todayInJakarta();
-
   const supabase = await createClient();
+  const [t, locale] = await Promise.all([getTranslations(), getLocale()]);
+
+  const shortDate = new Intl.DateTimeFormat(INTL_LOCALE[locale], {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
 
   const [patient, sessions, visits, diagnoses] = await Promise.all([
     getPatient(supabase, patientId),
@@ -71,7 +74,7 @@ export default async function PatientPage(props: PageProps<'/patients/[patientId
           href="/patients"
           className="-ml-1 -my-1.5 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
           <ChevronLeftIcon className="size-4" aria-hidden />
-          Pasien
+          {t('patients.title')}
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-4">
@@ -82,18 +85,21 @@ export default async function PatientPage(props: PageProps<'/patients/[patientId
               <h1 className="truncate text-[1.5rem] leading-tight font-semibold tracking-tight">{patient.full_name}</h1>
               <div className="flex flex-wrap items-center gap-1.5 text-xs">
                 <Tag>
-                  {SEX_LABELS[patient.sex as keyof typeof SEX_LABELS]}, {ageInYears(patient.birth_date)} tahun
+                  {t(`sex.${patient.sex as 'male' | 'female'}`)},{' '}
+                  {t('patients.ageLong', { age: ageInYears(patient.birth_date) })}
                 </Tag>
                 <Tag>
-                  RM <span className="tabular font-semibold">{patient.mrn}</span>
+                  {t('patients.mrn')} <span className="tabular font-semibold">{patient.mrn}</span>
                 </Tag>
                 {patient.bpjs_number ? (
-                  <Tag className="border-transparent bg-bpjs-soft text-bpjs">Peserta BPJS</Tag>
+                  <Tag className="border-transparent bg-bpjs-soft text-bpjs">{t('patients.detail.bpjsMember')}</Tag>
                 ) : (
-                  <Tag>Umum</Tag>
+                  <Tag>{t('payer.umum')}</Tag>
                 )}
                 {!patient.is_active && (
-                  <Tag className="border-transparent bg-status-cancelled-soft text-status-cancelled">Nonaktif</Tag>
+                  <Tag className="border-transparent bg-status-cancelled-soft text-status-cancelled">
+                    {t('patients.detail.inactive')}
+                  </Tag>
                 )}
               </div>
             </div>
@@ -109,7 +115,7 @@ export default async function PatientPage(props: PageProps<'/patients/[patientId
                   nik: patient.nik ?? '',
                   bpjs_number: patient.bpjs_number ?? '',
                   birth_date: patient.birth_date,
-                  sex: patient.sex as keyof typeof SEX_LABELS,
+                  sex: patient.sex as 'male' | 'female',
                   phone: patient.phone ?? '',
                   address: patient.address ?? '',
                 }}
@@ -132,46 +138,62 @@ export default async function PatientPage(props: PageProps<'/patients/[patientId
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[21rem_minmax(0,1fr)]">
         {/* One profile card: the numbers first, then who the patient is. */}
         <aside className="flex flex-col gap-2.5 lg:sticky lg:top-20">
-          <h2 className="text-sm font-semibold">Profil</h2>
+          <h2 className="text-sm font-semibold">{t('patients.detail.profile')}</h2>
           <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
             <dl className="grid grid-cols-2 gap-px border-b bg-border">
-              <Stat label="Total kunjungan" value={String(counted.length)} hint="kali" />
               <Stat
-                label="Terakhir"
-                value={counted[0] ? relativeDay(counted[0].visit_date, today) : 'Belum pernah'}
+                label={t('patients.detail.totalVisits')}
+                value={String(counted.length)}
+                hint={t('patients.detail.timesHint')}
+              />
+              <Stat
+                label={t('patients.detail.last')}
+                value={counted[0] ? relativeDay(counted[0].visit_date, today, locale) : t('patients.detail.never')}
                 hint={counted[0] ? shortDate.format(new Date(counted[0].visit_date)) : undefined}
               />
-              <Stat label="Pasien sejak" value={first ? shortDate.format(new Date(first.visit_date)) : '–'} />
-              <Stat label="Pakai BPJS" value={String(bpjsVisits)} hint={`dari ${counted.length}`} />
+              <Stat
+                label={t('patients.detail.since')}
+                value={first ? shortDate.format(new Date(first.visit_date)) : '–'}
+              />
+              <Stat
+                label={t('patients.detail.bpjsVisits')}
+                value={String(bpjsVisits)}
+                hint={t('patients.detail.ofVisits', { count: counted.length })}
+              />
             </dl>
             <dl className="flex flex-col divide-y">
               <Fact
                 icon={<IdCardIcon />}
                 label="NIK"
                 value={patient.nik && formatIdNumber(patient.nik)}
-                empty="Belum ada"
+                empty={t('patients.detail.notSet')}
                 mono
               />
               <Fact
                 icon={<ShieldCheckIcon />}
-                label="Nomor BPJS"
+                label={t('patients.form.bpjs')}
                 value={patient.bpjs_number && formatIdNumber(patient.bpjs_number)}
-                empty="Bukan peserta"
+                empty={t('patients.detail.notMember')}
                 mono
               />
               <Fact
                 icon={<CakeIcon />}
-                label="Tanggal lahir"
-                value={`${formatDate(patient.birth_date)} (${ageInYears(patient.birth_date)} th)`}
+                label={t('patients.form.birthDate')}
+                value={`${formatDate(patient.birth_date, locale)} (${t('patients.ageShort', { age: ageInYears(patient.birth_date) })})`}
               />
               <Fact
                 icon={<PhoneIcon />}
-                label="Nomor HP"
+                label={t('patients.form.phone')}
                 value={patient.phone && formatPhone(patient.phone)}
-                empty="Belum ada"
+                empty={t('patients.detail.notSet')}
                 mono
               />
-              <Fact icon={<MapPinIcon />} label="Alamat" value={patient.address} empty="Belum ada" />
+              <Fact
+                icon={<MapPinIcon />}
+                label={t('patients.form.address')}
+                value={patient.address}
+                empty={t('patients.detail.notSet')}
+              />
             </dl>
           </div>
         </aside>
@@ -179,7 +201,7 @@ export default async function PatientPage(props: PageProps<'/patients/[patientId
         <div className="flex min-w-0 flex-col gap-6">
           {todayVisit && (
             <section className="flex flex-col gap-2.5">
-              <h2 className="text-sm font-semibold">Hari ini</h2>
+              <h2 className="text-sm font-semibold">{t('patients.detail.today')}</h2>
               <Link
                 href={visitHref(todayVisit.id)}
                 className="flex flex-col gap-4 rounded-xl border border-primary/20 bg-[linear-gradient(135deg,#f3faf7,#ffffff_60%)] p-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)] transition-colors hover:border-primary/40">
@@ -189,13 +211,13 @@ export default async function PatientPage(props: PageProps<'/patients/[patientId
                   </span>
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-primary">
-                      Nomor antrean · {VISIT_STATUS_LABELS[todayVisit.status]}
+                      {t('patients.detail.queueStatus', { status: t(`visitStatus.${todayVisit.status}`) })}
                     </p>
                     <p className="truncate font-medium">
                       {todayVisit.poli?.name} · {todayVisit.doctor?.full_name}
                     </p>
                     <p className="text-[0.8125rem] text-muted-foreground">
-                      {PAYER_LABELS[todayVisit.payer_type as keyof typeof PAYER_LABELS]}
+                      {t(`payer.${todayVisit.payer_type as 'umum' | 'bpjs'}`)}
                     </p>
                   </div>
                 </div>
@@ -206,16 +228,14 @@ export default async function PatientPage(props: PageProps<'/patients/[patientId
 
           <section className="flex min-w-0 flex-col gap-2.5">
             <h2 className="flex items-center gap-2 text-sm font-semibold">
-              Riwayat kunjungan
+              {t('patients.detail.history')}
               <span className="tabular rounded-md bg-muted px-1.5 text-xs leading-5 font-medium text-muted-foreground">
                 {visits.length}
               </span>
             </h2>
             <VisitsHistory visits={visits} diagnoses={diagnoses} hrefFor={visitHref} />
             {!clinical && visits.length > 0 && (
-              <p className="text-xs text-muted-foreground">
-                Diagnosis dan catatan medis hanya terlihat oleh dokter, perawat, dan pemilik.
-              </p>
+              <p className="text-xs text-muted-foreground">{t('patients.detail.clinicalNote')}</p>
             )}
           </section>
         </div>

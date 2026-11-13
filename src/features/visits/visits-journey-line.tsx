@@ -1,4 +1,5 @@
 import { CheckIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { JOURNEY, type JourneyStatus } from './visits.lib';
 
@@ -35,6 +36,8 @@ type VisitsJourneyCountsProps = {
  * at each right now. Reads left to right like the walk through the building.
  */
 export function VisitsJourneyCounts(props: VisitsJourneyCountsProps) {
+  const t = useTranslations('journey');
+
   return (
     <ol className="grid grid-cols-5">
       {JOURNEY.map((station, index) => {
@@ -65,9 +68,11 @@ export function VisitsJourneyCounts(props: VisitsJourneyCountsProps) {
                   'text-[0.94rem] leading-tight font-bold sm:text-[1.02rem]',
                   busy ? color.text : 'text-foreground',
                 )}>
-                {station.label}
+                {t(`${station.status}.label`)}
               </span>
-              <span className="hidden text-[0.88rem] text-muted-foreground sm:block">{station.hint}</span>
+              <span className="hidden text-[0.88rem] text-muted-foreground sm:block">
+                {t(`${station.status}.hint`)}
+              </span>
             </span>
           </li>
         );
@@ -84,6 +89,8 @@ type VisitsJourneyPositionProps = {
 
 /** Where this one patient is now: passed stations ticked, the current one marked "di sini". */
 export function VisitsJourneyPosition(props: VisitsJourneyPositionProps) {
+  const t = useTranslations();
+
   if (props.status === 'cancelled') {
     return (
       <p
@@ -91,7 +98,7 @@ export function VisitsJourneyPosition(props: VisitsJourneyPositionProps) {
           'rounded-lg bg-status-cancelled-soft px-3 py-2 font-semibold text-status-cancelled',
           props.className,
         )}>
-        Kunjungan dibatalkan
+        {t('visits.journey.cancelled')}
       </p>
     );
   }
@@ -103,7 +110,7 @@ export function VisitsJourneyPosition(props: VisitsJourneyPositionProps) {
       : JOURNEY.findIndex((station) => station.status === (props.status === 'registered' ? 'waiting' : props.status));
 
   return (
-    <ol aria-label="Posisi pasien" className={cn('grid grid-cols-5', props.className)}>
+    <ol aria-label={t('visits.journey.position')} className={cn('grid grid-cols-5', props.className)}>
       {JOURNEY.map((station, index) => {
         const color = STATION_COLORS[station.status];
         const passed = index < current;
@@ -138,10 +145,10 @@ export function VisitsJourneyPosition(props: VisitsJourneyPositionProps) {
                 'text-[0.82rem] leading-tight',
                 here ? cn('font-bold', color.text) : passed ? 'font-semibold text-foreground' : 'text-muted-foreground',
               )}>
-              <span aria-hidden>{station.short}</span>
+              <span aria-hidden>{t(`journey.${station.status}.short`)}</span>
               <span className="sr-only">
-                {station.label}
-                {here && ' (posisi sekarang)'}
+                {t(`journey.${station.status}.label`)}
+                {here && t('visits.journey.here')}
               </span>
             </span>
           </li>

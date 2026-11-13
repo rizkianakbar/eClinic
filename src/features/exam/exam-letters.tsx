@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FileTextIcon, PlusIcon, PrinterIcon } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -36,10 +37,13 @@ type ExamLettersProps = {
 const printLetter = (id: string) => window.open(`/print/letter/${id}`, '_blank');
 
 export function ExamLetters(props: ExamLettersProps) {
+  const t = useTranslations();
+  const locale = useLocale();
+
   return (
     <div className="flex flex-col gap-2">
       {props.letters.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Belum ada surat untuk kunjungan ini.</p>
+        <p className="text-sm text-muted-foreground">{t('exam.letters.none')}</p>
       ) : (
         <ul className="overflow-hidden rounded-lg border text-sm">
           {props.letters.map((letter) => (
@@ -48,22 +52,29 @@ export function ExamLetters(props: ExamLettersProps) {
                 <FileTextIcon className="size-4" aria-hidden />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="font-medium">{letter.type === 'sick' ? 'Surat keterangan sakit' : 'Surat rujukan'}</p>
+                <p className="font-medium">
+                  {letter.type === 'sick' ? t('exam.letters.sick') : t('exam.letters.referral')}
+                </p>
                 <p className="text-[0.8125rem] text-muted-foreground">
                   {letter.letter_no} ·{' '}
                   {letter.type === 'sick' && letter.rest_from && letter.rest_days
-                    ? `istirahat ${letter.rest_days} hari, ${formatDate(letter.rest_from)} – ${formatDate(restUntil(letter.rest_from, letter.rest_days))}`
+                    ? t('exam.letters.rest', {
+                        days: letter.rest_days,
+                        from: formatDate(letter.rest_from, locale),
+                        to: formatDate(restUntil(letter.rest_from, letter.rest_days), locale),
+                      })
                     : letter.destination}
                 </p>
               </div>
               <Button size="xs" variant="outline" onClick={() => printLetter(letter.id)}>
                 <PrinterIcon />
-                Cetak
+                {t('common.print')}
               </Button>
             </li>
           ))}
         </ul>
       )}
+      {props.canIssue && locale === 'en' && <p className="text-xs text-muted-foreground">{t('exam.letters.note')}</p>}
       {props.canIssue && (
         <div className="flex flex-wrap gap-2">
           <SickLetterDialog visitId={props.visitId} today={props.today} />
@@ -77,6 +88,7 @@ export function ExamLetters(props: ExamLettersProps) {
 type SickLetterDialogProps = { visitId: string; today: string };
 
 function SickLetterDialog(props: SickLetterDialogProps) {
+  const t = useTranslations('exam.letters');
   const [open, setOpen] = useState(false);
   const create = useActionMutation((values: SickLetterValues) => createSickLetterAction(props.visitId, values));
   const empty: SickLetterInput = { rest_from: props.today, rest_days: '1', show_diagnosis: false };
@@ -97,11 +109,11 @@ function SickLetterDialog(props: SickLetterDialogProps) {
       }}>
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
         <PlusIcon />
-        Surat sakit
+        {t('sickShort')}
       </Button>
       <DialogContent variant="drawer">
         <DialogHeader>
-          <DialogTitle>Surat keterangan sakit</DialogTitle>
+          <DialogTitle>{t('sick')}</DialogTitle>
         </DialogHeader>
         <form
           noValidate
@@ -109,26 +121,26 @@ function SickLetterDialog(props: SickLetterDialogProps) {
           onSubmit={form.handleSubmit((values) =>
             create.mutate(values, {
               onSuccess: (letter) => {
-                toast.success('Surat dibuat.');
+                toast.success(t('created'));
                 setOpen(false);
                 printLetter(letter.id);
               },
             }),
           )}>
-          <FormField label="Mulai istirahat" htmlFor="rest_from" error={errors.rest_from?.message}>
+          <FormField label={t('restFrom')} htmlFor="rest_from" error={errors.rest_from?.message}>
             <Input id="rest_from" type="date" min={props.today} {...form.register('rest_from')} />
           </FormField>
-          <FormField label="Lama istirahat" htmlFor="rest_days" error={errors.rest_days?.message} hint="hari">
+          <FormField label={t('restDays')} htmlFor="rest_days" error={errors.rest_days?.message} hint={t('days')}>
             <Input id="rest_days" type="number" min={1} max={30} {...form.register('rest_days')} />
           </FormField>
           <label className="flex items-center gap-2 text-sm sm:col-span-2">
             <input type="checkbox" className="size-4 accent-primary" {...form.register('show_diagnosis')} />
-            Cantumkan diagnosis utama
-            <span className="text-muted-foreground">(surat sering diberikan ke kantor/sekolah)</span>
+            {t('showDiagnosis')}
+            <span className="text-muted-foreground">{t('showDiagnosisHint')}</span>
           </label>
           <DialogFooter className="sm:col-span-2">
             <Button type="submit" disabled={create.isPending}>
-              {create.isPending ? 'Membuat...' : 'Buat & cetak'}
+              {create.isPending ? t('creating') : t('createPrint')}
             </Button>
           </DialogFooter>
         </form>
@@ -140,6 +152,8 @@ function SickLetterDialog(props: SickLetterDialogProps) {
 type ReferralLetterDialogProps = { visitId: string; defaults: ExamLettersProps['referralDefaults'] };
 
 function ReferralLetterDialog(props: ReferralLetterDialogProps) {
+  const t = useTranslations('exam.letters');
+  const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
   const create = useActionMutation((values: ReferralLetterValues) => createReferralLetterAction(props.visitId, values));
   const empty: ReferralLetterInput = { destination: '', specialty: '', reason: '', ...props.defaults };
@@ -160,11 +174,11 @@ function ReferralLetterDialog(props: ReferralLetterDialogProps) {
       }}>
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
         <PlusIcon />
-        Surat rujukan
+        {t('referral')}
       </Button>
       <DialogContent variant="drawer" className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Surat rujukan</DialogTitle>
+          <DialogTitle>{t('referral')}</DialogTitle>
         </DialogHeader>
         <form
           noValidate
@@ -172,42 +186,34 @@ function ReferralLetterDialog(props: ReferralLetterDialogProps) {
           onSubmit={form.handleSubmit((values) =>
             create.mutate(values, {
               onSuccess: (letter) => {
-                toast.success('Surat rujukan dibuat.');
+                toast.success(t('referralCreated'));
                 setOpen(false);
                 printLetter(letter.id);
               },
             }),
           )}>
-          <FormField label="Faskes tujuan" htmlFor="destination" error={errors.destination?.message}>
-            <Input id="destination" placeholder="contoh: RSUD Kota Depok" {...form.register('destination')} />
+          <FormField label={t('destination')} htmlFor="destination" error={errors.destination?.message}>
+            <Input id="destination" placeholder={t('destinationPlaceholder')} {...form.register('destination')} />
           </FormField>
-          <FormField
-            label="Poli/spesialis tujuan"
-            htmlFor="specialty"
-            error={errors.specialty?.message}
-            hint="opsional">
-            <Input id="specialty" placeholder="contoh: Penyakit Dalam" {...form.register('specialty')} />
+          <FormField label={t('specialty')} htmlFor="specialty" error={errors.specialty?.message} hint={tc('optional')}>
+            <Input id="specialty" placeholder={t('specialtyPlaceholder')} {...form.register('specialty')} />
           </FormField>
-          <FormField label="Alasan rujukan" htmlFor="reason" error={errors.reason?.message} className="sm:col-span-2">
+          <FormField label={t('reason')} htmlFor="reason" error={errors.reason?.message} className="sm:col-span-2">
             <Textarea id="reason" rows={2} {...form.register('reason')} />
           </FormField>
           <FormField
-            label="Anamnesis & pemeriksaan"
+            label={t('summary')}
             htmlFor="clinical_summary"
             error={errors.clinical_summary?.message}
             className="sm:col-span-2">
             <Textarea id="clinical_summary" rows={3} {...form.register('clinical_summary')} />
           </FormField>
-          <FormField
-            label="Terapi yang sudah diberikan"
-            htmlFor="therapy"
-            error={errors.therapy?.message}
-            className="sm:col-span-2">
+          <FormField label={t('therapy')} htmlFor="therapy" error={errors.therapy?.message} className="sm:col-span-2">
             <Textarea id="therapy" rows={2} {...form.register('therapy')} />
           </FormField>
           <DialogFooter className="sm:col-span-2">
             <Button type="submit" disabled={create.isPending}>
-              {create.isPending ? 'Membuat...' : 'Buat & cetak'}
+              {create.isPending ? t('creating') : t('createPrint')}
             </Button>
           </DialogFooter>
         </form>

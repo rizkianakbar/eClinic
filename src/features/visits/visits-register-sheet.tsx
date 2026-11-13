@@ -1,6 +1,7 @@
 'use client';
 
 import { CalendarPlusIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -19,18 +20,19 @@ type VisitsRegisterSheetProps = {
 
 /** Register today's visit from the patient's page, in a drawer. */
 export function VisitsRegisterSheet(props: VisitsRegisterSheetProps) {
+  const t = useTranslations('visits.register');
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button size="sm" onClick={() => setOpen(true)}>
         <CalendarPlusIcon />
-        Daftarkan kunjungan
+        {t('button')}
       </Button>
       <DialogContent variant="drawer">
         <DialogHeader>
-          <DialogTitle>Daftarkan kunjungan</DialogTitle>
-          <DialogDescription>{props.patientName}, hari ini.</DialogDescription>
+          <DialogTitle>{t('button')}</DialogTitle>
+          <DialogDescription>{t('today', { name: props.patientName })}</DialogDescription>
         </DialogHeader>
         <VisitsRegisterForm
           patientId={props.patientId}
@@ -42,7 +44,7 @@ export function VisitsRegisterSheet(props: VisitsRegisterSheetProps) {
           onRegistered={(visit) => {
             setOpen(false);
 
-            toast.success(`Nomor antrean ${visit.queueNo}`, {
+            toast.success(t('queueNumber', { number: visit.queueNo }), {
               description: `${visit.session.poliName} · ${visit.session.doctorName}`,
               duration: 10_000,
             });

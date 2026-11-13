@@ -1,9 +1,12 @@
+import { getTranslations } from 'next-intl/server';
 import { SkeletonPage } from '@/components/ui/skeleton';
 import { InventoryPurchaseSkeleton } from '@/features/inventory/inventory-skeleton';
 
-export default function Loading() {
+export default async function Loading() {
+  const t = await getTranslations('inventory.loading');
+
   return (
-    <SkeletonPage route label="Memuat faktur">
+    <SkeletonPage route label={t('purchase')}>
       <InventoryPurchaseSkeleton />
     </SkeletonPage>
   );

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { type DateRange, parseRange, parseReportTab, type ReportTab, rangeDays } from '@/features/reports/reports.lib';
 import {
@@ -17,11 +17,12 @@ import { ReportBodySkeleton } from '@/features/reports/reports-skeleton';
 import { ReportsTabs } from '@/features/reports/reports-tabs';
 import { ReportsTopDiseases } from '@/features/reports/reports-top-diseases';
 import { ReportsVisits } from '@/features/reports/reports-visits';
+import { pageTitle } from '@/i18n/metadata';
 import { requireRole } from '@/lib/auth';
 import { formatDate, todayInJakarta } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: 'Laporan' };
+export const generateMetadata = pageTitle('reports.title');
 
 export default async function ReportsPage(props: PageProps<'/reports'>) {
   await requireRole('owner');
@@ -31,14 +32,19 @@ export default async function ReportsPage(props: PageProps<'/reports'>) {
   const range = parseRange(searchParams, today);
   const tab = parseReportTab(searchParams.tab);
   const days = rangeDays(range);
+  const [t, locale] = await Promise.all([getTranslations('reports'), getLocale()]);
 
   return (
     <>
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="flex flex-col gap-0.5">
-          <h1 className="text-[1.5rem] leading-tight font-semibold tracking-tight">Laporan</h1>
+          <h1 className="text-[1.5rem] leading-tight font-semibold tracking-tight">{t('title')}</h1>
           <p className="text-sm text-muted-foreground">
-            {formatDate(range.from)} – {formatDate(range.to)} · {days.length} hari
+            {t('subtitle', {
+              from: formatDate(range.from, locale),
+              to: formatDate(range.to, locale),
+              count: days.length,
+            })}
           </p>
         </div>
         <ReportsExportLinks report={tab} range={range} />

@@ -2,10 +2,12 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { BanIcon, CheckIcon, Undo2Icon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useMessage } from '@/i18n/message';
 import { useActionMutation } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { setNoMedicineAction } from './prescriptions.actions';
@@ -28,6 +30,9 @@ type PrescriptionsNoMedicineProps = {
  * Signing requires either a medicine or this decision.
  */
 export function PrescriptionsNoMedicine(props: PrescriptionsNoMedicineProps) {
+  const t = useTranslations('rx.noMedicine');
+  const tc = useTranslations('common');
+  const message = useMessage();
   const [open, setOpen] = useState(false);
   const save = useActionMutation((input: NoMedicineInput | null) => setNoMedicineAction(props.visitId, input));
 
@@ -50,13 +55,13 @@ export function PrescriptionsNoMedicine(props: PrescriptionsNoMedicineProps) {
           <CheckIcon className="size-3.5" strokeWidth={3} aria-hidden />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="font-medium">Tidak perlu obat</span>
+          <span className="font-medium">{t('title')}</span>
           <span className="text-muted-foreground"> · {props.reason}</span>
         </span>
         {props.editable && (
           <Button size="xs" variant="ghost" disabled={save.isPending} onClick={() => save.mutate(null)}>
             <Undo2Icon />
-            Batalkan
+            {t('undo')}
           </Button>
         )}
       </div>
@@ -69,7 +74,7 @@ export function PrescriptionsNoMedicine(props: PrescriptionsNoMedicineProps) {
     return (
       <Button variant="ghost" size="sm" className="w-fit text-muted-foreground" onClick={() => setOpen(true)}>
         <BanIcon />
-        Tidak perlu obat
+        {t('title')}
       </Button>
     );
   }
@@ -80,40 +85,44 @@ export function PrescriptionsNoMedicine(props: PrescriptionsNoMedicineProps) {
       className="reveal flex flex-col gap-2 rounded-lg border border-dashed px-3 py-3"
       onSubmit={form.handleSubmit((values) => save.mutate(values, { onSuccess: () => setOpen(false) }))}>
       <label htmlFor="no_medicine_reason" className="text-sm font-medium">
-        Tidak perlu obat, karena…
+        {t('because')}
       </label>
       <div className="flex flex-wrap gap-1">
-        {NO_MEDICINE_REASONS.map((option) => (
-          <button
-            key={option}
-            type="button"
-            className={cn(
-              'h-7 rounded-md border px-2 text-xs transition-colors',
-              reason === option ? 'border-foreground bg-foreground text-background' : 'bg-card hover:bg-muted',
-            )}
-            onClick={() => form.setValue('reason', option, { shouldValidate: true })}>
-            {option}
-          </button>
-        ))}
+        {NO_MEDICINE_REASONS.map((key) => {
+          const option = t(`reasons.${key}`);
+
+          return (
+            <button
+              key={key}
+              type="button"
+              className={cn(
+                'h-7 rounded-md border px-2 text-xs transition-colors',
+                reason === option ? 'border-foreground bg-foreground text-background' : 'bg-card hover:bg-muted',
+              )}
+              onClick={() => form.setValue('reason', option, { shouldValidate: true })}>
+              {option}
+            </button>
+          );
+        })}
       </div>
       <div className="flex flex-wrap items-start gap-2">
         <Input
           id="no_medicine_reason"
           autoComplete="off"
-          placeholder="Atau tulis alasannya"
+          placeholder={t('placeholder')}
           className="min-w-56 flex-1"
           aria-invalid={Boolean(form.formState.errors.reason)}
           {...form.register('reason')}
         />
         <Button type="submit" variant="outline" disabled={save.isPending}>
-          Simpan
+          {tc('save')}
         </Button>
         <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-          Batal
+          {tc('cancel')}
         </Button>
       </div>
       {form.formState.errors.reason && (
-        <p className="text-[0.8125rem] text-destructive">{form.formState.errors.reason.message}</p>
+        <p className="text-[0.8125rem] text-destructive">{message(form.formState.errors.reason.message ?? '')}</p>
       )}
     </form>
   );

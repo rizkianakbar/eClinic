@@ -23,18 +23,18 @@ export function parseRange(params: { from?: string | string[]; to?: string | str
   return { from: `${today.slice(0, 7)}-01`, to: today };
 }
 
-/** Quick ranges for the filter. */
+/** Quick ranges for the filter; `key` names them in messages (reports.range.*). */
 export function rangePresets(today: string) {
   const thisMonth = `${today.slice(0, 7)}-01`;
   const lastMonthStart = addMonths(thisMonth, -1);
   const lastMonthEnd = new Date(Date.parse(`${thisMonth}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
 
   return [
-    { label: 'Hari ini', from: today, to: today },
-    { label: '7 hari', from: addDays(today, -6), to: today },
-    { label: 'Bulan ini', from: thisMonth, to: today },
-    { label: 'Bulan lalu', from: lastMonthStart, to: lastMonthEnd },
-  ];
+    { key: 'today', from: today, to: today },
+    { key: 'week', from: addDays(today, -6), to: today },
+    { key: 'thisMonth', from: thisMonth, to: today },
+    { key: 'lastMonth', from: lastMonthStart, to: lastMonthEnd },
+  ] as const;
 }
 
 export const REPORT_TABS = ['revenue', 'doctor-fees', 'profit-loss', 'visits', 'top-diseases'] as const;

@@ -26,7 +26,7 @@ describe('scheduleSchema', () => {
     const result = scheduleSchema.safeParse({ ...valid, start_time: '12:00', end_time: '12:00' });
 
     expect(result.error?.issues[0]).toMatchObject({
-      message: 'Jam selesai harus setelah jam mulai.',
+      message: 'schedules.errors.endAfterStart',
       path: ['end_time'],
     });
   });
@@ -35,16 +35,18 @@ describe('scheduleSchema', () => {
     const result = scheduleSchema.safeParse({ ...valid, days: [], doctor_id: '', poli_id: '' });
     const messages = result.error?.issues.map((issue) => issue.message);
 
-    expect(messages).toEqual(expect.arrayContaining(['Pilih minimal satu hari.', 'Pilih dokter.', 'Pilih poli.']));
+    expect(messages).toEqual(
+      expect.arrayContaining(['schedules.errors.oneDay', 'schedules.errors.pickDoctor', 'schedules.errors.pickPoli']),
+    );
   });
 
   it('bounds the quota', () => {
     expect(scheduleSchema.safeParse({ ...valid, quota: '0' }).error?.issues[0]?.message).toBe(
-      'Kuota minimal 1 pasien.',
+      'schedules.errors.quotaMin',
     );
 
     expect(scheduleSchema.safeParse({ ...valid, quota: '501' }).error?.issues[0]?.message).toBe(
-      'Kuota maksimal 500 pasien.',
+      'schedules.errors.quotaMax',
     );
   });
 });
@@ -57,7 +59,7 @@ describe('toHourMinute', () => {
 
 describe('scheduleErrorMessage', () => {
   it('explains an overlapping session', () => {
-    expect(scheduleErrorMessage({ code: '23P01' })).toMatch(/bentrok/);
+    expect(scheduleErrorMessage({ code: '23P01' })).toBe('schedules.errors.overlap');
   });
 });
 

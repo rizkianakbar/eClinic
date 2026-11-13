@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CalendarXIcon, ChevronRightIcon, CornerDownLeftIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -10,10 +11,10 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { segmentedGroup, segmentedRadioItem } from '@/components/ui/segmented';
 import { initials } from '@/features/patients/patients.lib';
 import { toHourMinute } from '@/features/schedules/schedules.lib';
+import { useMessage } from '@/i18n/message';
 import { useActionMutation } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { createVisitAction } from './visits.actions';
-import { PAYER_LABELS } from './visits.constants';
 import {
   type CreateVisitInput,
   type CreateVisitValues,
@@ -45,6 +46,8 @@ type VisitsRegisterFormProps = {
 
 /** Keyboard-first: the submit button has focus, so Enter registers the default session. */
 export function VisitsRegisterForm(props: VisitsRegisterFormProps) {
+  const t = useTranslations();
+  const message = useMessage();
   const register = useActionMutation(createVisitAction);
 
   const form = useForm<CreateVisitInput, unknown, CreateVisitValues>({
@@ -88,7 +91,7 @@ export function VisitsRegisterForm(props: VisitsRegisterFormProps) {
             <span className="block truncate font-medium">{session.doctorName}</span>
             <span className="block truncate text-[0.8125rem] text-muted-foreground">
               {session.poliName} · {toHourMinute(session.startTime)}–{toHourMinute(session.endTime)}
-              {ended && ' · jam praktik lewat'}
+              {ended && t('visits.sessions.hoursOver')}
             </span>
           </span>
           <span className="flex items-center gap-2">
@@ -99,7 +102,7 @@ export function VisitsRegisterForm(props: VisitsRegisterFormProps) {
               />
             </span>
             <span className={cn('tabular text-xs text-muted-foreground', full && 'font-medium text-destructive')}>
-              {full ? 'Penuh' : `sisa ${session.quota - session.taken}`}
+              {full ? t('visits.sessions.full') : t('visits.sessions.left', { count: session.quota - session.taken })}
             </span>
           </span>
         </span>
@@ -115,16 +118,14 @@ export function VisitsRegisterForm(props: VisitsRegisterFormProps) {
     return (
       <EmptyState
         icon={CalendarXIcon}
-        title="Tidak ada jadwal dokter hari ini"
+        title={t('visits.sessions.none')}
         description={
-          props.canManageSchedules
-            ? 'Tambahkan jadwal praktik agar pasien bisa didaftarkan.'
-            : 'Hubungi admin klinik untuk mengatur jadwal.'
+          props.canManageSchedules ? t('visits.sessions.noneHint.manage') : t('visits.sessions.noneHint.ask')
         }
         action={
           props.canManageSchedules && (
             <Link href="/settings/schedules" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-              Atur jadwal dokter
+              {t('visits.sessions.manage')}
             </Link>
           )
         }
@@ -147,12 +148,12 @@ export function VisitsRegisterForm(props: VisitsRegisterFormProps) {
                 session,
                 payer: values.payer_type,
               });
-            else toast.success(`Terdaftar di ${session.poliName}. Nomor antrean ${visit.queueNo}.`);
+            else toast.success(t('visits.register.registered', { poli: session.poliName, number: visit.queueNo }));
           },
         });
       })}>
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-sm font-medium">Dokter</legend>
+        <legend className="mb-2 text-sm font-medium">{t('visits.register.doctor')}</legend>
         {(() => {
           // Sessions whose hours are over fold away, so the doctors still practising come first.
           const ended = props.now ? props.sessions.filter((session) => sessionEnded(session, props.now!)) : [];
@@ -170,7 +171,7 @@ export function VisitsRegisterForm(props: VisitsRegisterFormProps) {
                 <details className="group">
                   <summary className="flex w-fit cursor-pointer list-none items-center gap-1 py-1 text-[0.8125rem] font-medium text-muted-foreground hover:text-foreground">
                     <ChevronRightIcon className="size-3.5 transition-transform group-open:rotate-90" aria-hidden />
-                    Jam praktik sudah lewat ({ended.length})
+                    {t('visits.register.endedGroup', { count: ended.length })}
                   </summary>
                   <div className={cn(grid, 'mt-2')}>{ended.map(renderSession)}</div>
                 </details>
@@ -178,11 +179,13 @@ export function VisitsRegisterForm(props: VisitsRegisterFormProps) {
             </>
           );
         })()}
-        {errors.schedule_id && <p className="text-[0.8125rem] text-destructive">{errors.schedule_id.message}</p>}
+        {errors.schedule_id && (
+          <p className="text-[0.8125rem] text-destructive">{message(errors.schedule_id.message ?? '')}</p>
+        )}
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-sm font-medium">Pembayaran</legend>
+        <legend className="mb-2 text-sm font-medium">{t('visits.register.payment')}</legend>
         <div className={cn(segmentedGroup, panel && 'grid w-full grid-cols-2')}>
           {(['umum', 'bpjs'] as const).map((payer) => (
             <label key={payer} className={cn(segmentedRadioItem, 'px-5')}>
@@ -193,17 +196,17 @@ export function VisitsRegisterForm(props: VisitsRegisterFormProps) {
                 className="sr-only"
                 {...form.register('payer_type')}
               />
-              {PAYER_LABELS[payer]}
+              {t(`payer.${payer}`)}
             </label>
           ))}
         </div>
         {!props.hasBpjsNumber && (
-          <p className="text-[0.8125rem] text-muted-foreground">BPJS bisa dipilih setelah nomor BPJS pasien diisi.</p>
+          <p className="text-[0.8125rem] text-muted-foreground">{t('visits.register.bpjsHint')}</p>
         )}
       </fieldset>
 
       <Button type="submit" size="lg" autoFocus disabled={register.isPending} className={panel ? 'w-full' : 'w-fit'}>
-        {register.isPending ? 'Mendaftarkan…' : 'Daftarkan ke antrean'}
+        {register.isPending ? t('visits.register.submitting') : t('visits.register.submit')}
         <kbd className="ml-1 flex items-center gap-0.5 rounded bg-white/15 px-1.5 font-sans text-[0.6875rem] font-medium">
           <CornerDownLeftIcon className="size-3" aria-hidden />
           Enter

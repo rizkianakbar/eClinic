@@ -1,6 +1,8 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { INTL_LOCALE } from '@/i18n/locales';
 import { formatRupiah, formatRupiahCompact } from '@/lib/money';
 import { cn } from '@/lib/utils';
 
@@ -21,25 +23,28 @@ type HomeOwnerTrendProps = {
   metrics: Metric[];
 };
 
-const weekday = new Intl.DateTimeFormat('id-ID', { weekday: 'short', timeZone: 'UTC' });
-const dayLabel = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-
 /**
  * The headline numbers are the chart's tabs (Vercel/Stripe analytics):
  * pick a metric, the 14-day chart below follows. Today's bar is solid.
  */
 export function HomeOwnerTrend(props: HomeOwnerTrendProps) {
+  const t = useTranslations('home.trend');
+  const locale = useLocale();
+  const weekday = new Intl.DateTimeFormat(INTL_LOCALE[locale], { weekday: 'short', timeZone: 'UTC' });
+  const dayLabel = new Intl.DateTimeFormat(INTL_LOCALE[locale], { day: 'numeric', month: 'short', timeZone: 'UTC' });
   const [selected, setSelected] = useState(props.metrics[0].key);
   const metric = props.metrics.find((entry) => entry.key === selected) ?? props.metrics[0];
   const peak = Math.max(1, ...metric.series.map((entry) => entry.value));
-  const format = (value: number) => (metric.unit === 'rupiah' ? formatRupiahCompact(value) : String(value));
-  const formatFull = (value: number) => (metric.unit === 'rupiah' ? formatRupiah(value) : `${value} pasien`);
+  const format = (value: number) => (metric.unit === 'rupiah' ? formatRupiahCompact(value, locale) : String(value));
+
+  const formatFull = (value: number) =>
+    metric.unit === 'rupiah' ? formatRupiah(value) : t('patients', { count: value });
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
       <div
         role="tablist"
-        aria-label="Pilih angka"
+        aria-label={t('pick')}
         className="grid border-b"
         style={{ gridTemplateColumns: `repeat(${props.metrics.length}, minmax(0, 1fr))` }}>
         {props.metrics.map((entry) => {
@@ -86,7 +91,7 @@ export function HomeOwnerTrend(props: HomeOwnerTrendProps) {
                     {entry.delta >= 0 ? '▲' : '▼'} {Math.abs(entry.delta)}%
                   </span>
                 )}
-                {entry.delta !== null ? 'dari kemarin · ' : ''}
+                {entry.delta !== null ? t('fromYesterday') : ''}
                 {entry.hint}
               </span>
             </button>
@@ -111,7 +116,7 @@ export function HomeOwnerTrend(props: HomeOwnerTrendProps) {
               />
             </div>
           ))}
-          <ol className="relative flex h-full items-end gap-1.5" aria-label={`${metric.label}, 14 hari terakhir`}>
+          <ol className="relative flex h-full items-end gap-1.5" aria-label={t('lastDays', { label: metric.label })}>
             {metric.series.map((entry, index) => {
               const today = index === metric.series.length - 1;
 
@@ -152,7 +157,7 @@ export function HomeOwnerTrend(props: HomeOwnerTrendProps) {
                 // Phones: every third day, counted back from today, so the labels never crowd.
                 (metric.series.length - 1 - index) % 3 !== 0 && 'max-sm:invisible',
               )}>
-              {index === metric.series.length - 1 ? 'Hari ini' : weekday.format(new Date(entry.day))}
+              {index === metric.series.length - 1 ? t('today') : weekday.format(new Date(entry.day))}
             </li>
           ))}
         </ol>

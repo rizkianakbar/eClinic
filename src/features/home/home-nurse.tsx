@@ -1,4 +1,5 @@
 import { ActivityIcon, CheckIcon } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Arrival, ArrivalScope } from '@/components/ui/arrival';
 import { Elapsed } from '@/components/ui/elapsed';
 import { Panel, PanelEmpty } from '@/components/ui/panel';
@@ -15,19 +16,21 @@ type HomeNurseProps = {
 
 /** Triage: who in the waiting room still needs vitals before the doctor sees them. */
 export function HomeNurse(props: HomeNurseProps) {
+  const t = useTranslations('home.nurse');
+  const locale = useLocale();
   const todo = props.waiting.filter((visit) => !props.vitals.has(visit.id));
   const done = props.waiting.filter((visit) => props.vitals.has(visit.id));
 
   return (
     <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <Panel
-        title="Perlu tanda vital"
+        title={t('needsVitals')}
         count={todo.length}
         dot="bg-line-waiting"
-        link={{ href: '/queue', label: 'Antrean' }}>
+        link={{ href: '/queue', label: t('queue') }}>
         <ArrivalScope>
           {todo.length === 0 ? (
-            <PanelEmpty icon={<ActivityIcon />} title="Semua pasien menunggu sudah dicatat" />
+            <PanelEmpty icon={<ActivityIcon />} title={t('allDone')} />
           ) : (
             <ul>
               {todo.map((visit, index) => (
@@ -55,9 +58,9 @@ export function HomeNurse(props: HomeNurseProps) {
         </ArrivalScope>
       </Panel>
 
-      <Panel title="Sudah dicatat" count={done.length}>
+      <Panel title={t('recorded')} count={done.length}>
         {done.length === 0 ? (
-          <PanelEmpty title="Belum ada" />
+          <PanelEmpty title={t('none')} />
         ) : (
           <ul>
             {done.map((visit) => (
@@ -65,7 +68,7 @@ export function HomeNurse(props: HomeNurseProps) {
                 <CheckIcon className="size-4 text-primary" aria-hidden />
                 <span className="min-w-0 flex-1 truncate">{visit.patient?.full_name}</span>
                 <span className="tabular text-[0.8125rem] text-muted-foreground">
-                  {formatTime(props.vitals.get(visit.id)!)}
+                  {formatTime(props.vitals.get(visit.id)!, locale)}
                 </span>
               </li>
             ))}

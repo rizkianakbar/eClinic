@@ -1,17 +1,20 @@
 import { ChevronLeftIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { placeholders, Skeleton, SkeletonButton, SkeletonLine } from '@/components/ui/skeleton';
 import { VisitsJourneyPosition } from '@/features/visits/visits-journey-line';
 
 /** Menyiapkan resep for one visit: the patient card, the prescription lines, and the summary beside them. */
 export function PharmacyDispenseSkeleton() {
+  const t = useTranslations();
+
   return (
     <div className="flex flex-col gap-6">
       <Link
         href="/pharmacy"
         className="-mb-2 -ml-1 -my-1.5 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
         <ChevronLeftIcon className="size-4" aria-hidden />
-        Resep masuk
+        {t('nav.pharmacy')}
       </Link>
       <header className="flex flex-wrap items-center justify-between gap-x-10 gap-y-5 rounded-2xl border bg-card px-5 py-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
         <div className="flex min-w-0 items-center gap-4">
@@ -65,9 +68,9 @@ export function PharmacyDispenseSkeleton() {
 
         <aside className="flex flex-col gap-4 xl:sticky xl:top-19">
           <section className="rounded-2xl border bg-card p-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
-            <h2 className="mb-3 text-sm font-semibold">Ringkasan</h2>
+            <h2 className="mb-3 text-sm font-semibold">{t('pharmacy.form.summary')}</h2>
             <dl className="flex flex-col gap-2 text-sm">
-              {['Diserahkan', 'Tidak diberikan'].map((label) => (
+              {[t('pharmacy.form.given'), t('pharmacy.form.notGiven')].map((label) => (
                 <div key={label} className="flex justify-between">
                   <dt className="text-muted-foreground">{label}</dt>
                   <SkeletonLine className="w-20" />
@@ -81,7 +84,7 @@ export function PharmacyDispenseSkeleton() {
             <SkeletonButton size="lg" className="mt-4 w-full" />
           </section>
           <section className="rounded-2xl border bg-card p-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
-            <h2 className="mb-3 text-sm font-semibold">Setelah diserahkan</h2>
+            <h2 className="mb-3 text-sm font-semibold">{t('pharmacy.form.after')}</h2>
             <ol className="flex flex-col gap-3">
               {placeholders(3).map((key) => (
                 <li key={key} className="flex gap-2.5">

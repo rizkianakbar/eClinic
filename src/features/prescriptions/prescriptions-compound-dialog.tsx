@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon, XIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -10,10 +11,10 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { useMessage } from '@/i18n/message';
 import { useActionMutation } from '@/lib/query';
 import { addCompoundAction } from './prescriptions.actions';
 import {
-  COMPOUND_FORM_LABELS,
   type CompoundFormInput,
   type CompoundValues,
   compoundFormSchema,
@@ -35,6 +36,8 @@ type PrescriptionsCompoundDialogProps = {
 /** Racikan: ingredients with total amounts, divided into N puyer/kapsul. */
 export function PrescriptionsCompoundDialog(props: PrescriptionsCompoundDialogProps) {
   const [open, setOpen] = useState(false);
+  const t = useTranslations();
+  const message = useMessage();
   const add = useActionMutation((values: CompoundValues) => addCompoundAction(props.visitId, values));
 
   const form = useForm<CompoundFormInput, unknown, CompoundValues>({
@@ -54,11 +57,11 @@ export function PrescriptionsCompoundDialog(props: PrescriptionsCompoundDialogPr
       }}>
       <Button type="button" variant="outline" onClick={() => setOpen(true)}>
         <PlusIcon />
-        Racikan
+        {t('rx.compound.button')}
       </Button>
       <DialogContent variant="drawer" className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Tambah racikan</DialogTitle>
+          <DialogTitle>{t('rx.compound.title')}</DialogTitle>
         </DialogHeader>
         <form
           noValidate
@@ -66,14 +69,14 @@ export function PrescriptionsCompoundDialog(props: PrescriptionsCompoundDialogPr
           onSubmit={form.handleSubmit((values) =>
             add.mutate(values, {
               onSuccess: () => {
-                toast.success('Racikan ditambahkan.');
+                toast.success(t('rx.compound.added'));
                 setOpen(false);
                 form.reset(EMPTY);
               },
             }),
           )}>
           <fieldset className="flex flex-col gap-2">
-            <legend className="mb-2 text-sm font-medium">Bahan (jumlah total untuk seluruh racikan)</legend>
+            <legend className="mb-2 text-sm font-medium">{t('rx.compound.ingredients')}</legend>
             {ingredients.fields.map((field, index) => (
               <div key={field.id} className="flex items-start gap-2">
                 <div className="flex-1">
@@ -90,14 +93,16 @@ export function PrescriptionsCompoundDialog(props: PrescriptionsCompoundDialogPr
                     )}
                   />
                   {errors.ingredients?.[index]?.medicine && (
-                    <p className="text-sm text-destructive">{errors.ingredients[index]?.medicine?.message}</p>
+                    <p className="text-sm text-destructive">
+                      {message(errors.ingredients[index]?.medicine?.message ?? '')}
+                    </p>
                   )}
                 </div>
                 <div className="w-24">
                   <Input
-                    aria-label="Jumlah"
+                    aria-label={t('rx.editor.qty')}
                     inputMode="numeric"
-                    placeholder="Jumlah"
+                    placeholder={t('rx.editor.qty')}
                     aria-invalid={Boolean(errors.ingredients?.[index]?.qty)}
                     {...form.register(`ingredients.${index}.qty`)}
                   />
@@ -106,7 +111,7 @@ export function PrescriptionsCompoundDialog(props: PrescriptionsCompoundDialogPr
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  aria-label="Hapus bahan"
+                  aria-label={t('rx.compound.removeIngredient')}
                   disabled={ingredients.fields.length === 1}
                   onClick={() => ingredients.remove(index)}>
                   <XIcon />
@@ -115,7 +120,7 @@ export function PrescriptionsCompoundDialog(props: PrescriptionsCompoundDialogPr
             ))}
             {(errors.ingredients?.root?.message ?? errors.ingredients?.message) && (
               <p className="text-sm text-destructive">
-                {errors.ingredients?.root?.message ?? errors.ingredients?.message}
+                {message(errors.ingredients?.root?.message ?? errors.ingredients?.message ?? '')}
               </p>
             )}
             <div>
@@ -125,25 +130,25 @@ export function PrescriptionsCompoundDialog(props: PrescriptionsCompoundDialogPr
                 size="sm"
                 onClick={() => ingredients.append({ medicine: null, qty: '' })}>
                 <PlusIcon />
-                Bahan
+                {t('rx.compound.addIngredient')}
               </Button>
             </div>
           </fieldset>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <FormField label="Bentuk" htmlFor="compound_form" error={errors.form?.message}>
+            <FormField label={t('rx.compound.form')} htmlFor="compound_form" error={errors.form?.message}>
               <NativeSelect id="compound_form" className="w-full" {...form.register('form')}>
-                {Object.entries(COMPOUND_FORM_LABELS).map(([value, label]) => (
+                {(['puyer', 'kapsul'] as const).map((value) => (
                   <NativeSelectOption key={value} value={value}>
-                    {label}
+                    {t(`compoundForm.${value}`)}
                   </NativeSelectOption>
                 ))}
               </NativeSelect>
             </FormField>
-            <FormField label="Dibagi menjadi" htmlFor="compound_quantity" error={errors.quantity?.message}>
+            <FormField label={t('rx.compound.divided')} htmlFor="compound_quantity" error={errors.quantity?.message}>
               <Input id="compound_quantity" inputMode="numeric" {...form.register('quantity')} />
             </FormField>
-            <FormField label="Aturan pakai" htmlFor="compound_signa" error={errors.signa?.message}>
+            <FormField label={t('rx.editor.signa')} htmlFor="compound_signa" error={errors.signa?.message}>
               <Input id="compound_signa" list="signa_suggestions" {...form.register('signa')} />
             </FormField>
           </div>
@@ -155,7 +160,7 @@ export function PrescriptionsCompoundDialog(props: PrescriptionsCompoundDialogPr
 
           <DialogFooter>
             <Button type="submit" disabled={add.isPending}>
-              {add.isPending ? 'Menyimpan...' : 'Simpan racikan'}
+              {add.isPending ? t('common.saving') : t('rx.compound.save')}
             </Button>
           </DialogFooter>
         </form>

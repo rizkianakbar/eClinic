@@ -1,6 +1,7 @@
 import 'server-only';
 import { redirect } from 'next/navigation';
 import { cache } from 'react';
+import { type AppLocale, DEFAULT_LOCALE, isLocale } from '@/i18n/locales';
 import type { Database } from './supabase/database.types';
 import { createClient } from './supabase/server';
 
@@ -14,6 +15,8 @@ export type Session = {
   /** Clinic setting: sign out after this many idle minutes (shared PCs). */
   idleLogoutMinutes: number;
   clinicName: string;
+  /** Screen language (profiles.locale). */
+  locale: AppLocale;
 };
 
 /** The signed-in, active staff member, or null. Cached per request. */
@@ -26,7 +29,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('clinic_id, role, full_name, is_active, clinic:clinics(name, idle_logout_minutes)')
+    .select('clinic_id, role, full_name, is_active, locale, clinic:clinics(name, idle_logout_minutes)')
     .eq('id', userId)
     .maybeSingle();
 
@@ -39,6 +42,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
     fullName: profile.full_name,
     idleLogoutMinutes: profile.clinic?.idle_logout_minutes ?? 15,
     clinicName: profile.clinic?.name ?? 'e-clinic',
+    locale: isLocale(profile.locale) ? profile.locale : DEFAULT_LOCALE,
   };
 });
 

@@ -43,6 +43,7 @@ describe('isoWeekday', () => {
 describe('formatTime', () => {
   it('shows Jakarta clock time', () => {
     expect(formatTime('2026-11-12T02:30:00Z')).toBe('09.30');
+    expect(formatTime('2026-11-12T02:30:00Z', 'en')).toBe('09:30');
   });
 });
 
@@ -66,9 +67,11 @@ describe('relativeDay', () => {
     expect(daysBetween('2026-11-01', '2026-11-12')).toBe(11);
     expect(relativeDay('2026-11-12', '2026-11-12')).toBe('Hari ini');
     expect(relativeDay('2026-11-11', '2026-11-12')).toBe('Kemarin');
-    expect(relativeDay('2026-11-07', '2026-11-12')).toBe('5 hari lalu');
-    expect(relativeDay('2026-10-22', '2026-11-12')).toBe('3 minggu lalu');
-    expect(relativeDay('2026-08-12', '2026-11-12')).toBe('3 bulan lalu');
-    expect(relativeDay('2024-11-12', '2026-11-12')).toBe('2 tahun lalu');
+    expect(relativeDay('2026-11-07', '2026-11-12')).toBe('5 hari yang lalu');
+    expect(relativeDay('2026-10-22', '2026-11-12')).toBe('3 minggu yang lalu');
+    expect(relativeDay('2026-08-12', '2026-11-12')).toBe('3 bulan yang lalu');
+    expect(relativeDay('2024-11-12', '2026-11-12')).toBe('2 tahun yang lalu');
+    expect(relativeDay('2026-11-11', '2026-11-12', 'en')).toBe('Yesterday');
+    expect(relativeDay('2026-11-07', '2026-11-12', 'en')).toBe('5 days ago');
   });
 });

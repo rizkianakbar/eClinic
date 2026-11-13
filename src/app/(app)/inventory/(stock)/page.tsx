@@ -1,13 +1,13 @@
-import type { Metadata } from 'next';
 import { PHARMACY_ROLES } from '@/features/inventory/inventory.constants';
 import { nearExpiryCutoff, parsePage, parseStockFilter } from '@/features/inventory/inventory.lib';
 import { countStockAlerts, listStock } from '@/features/inventory/inventory.service';
 import { InventoryStock } from '@/features/inventory/inventory-stock';
+import { pageTitle } from '@/i18n/metadata';
 import { requireRole } from '@/lib/auth';
 import { todayInJakarta } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: 'Stok obat' };
+export const generateMetadata = pageTitle('nav.inventory');
 
 export default async function StockPage(props: PageProps<'/inventory'>) {
   await requireRole(...PHARMACY_ROLES);

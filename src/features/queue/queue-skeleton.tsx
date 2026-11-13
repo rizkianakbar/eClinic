@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { Panel } from '@/components/ui/panel';
 import { SegmentedSkeleton } from '@/components/ui/segmented-skeleton';
@@ -66,33 +67,35 @@ type QueueBoardSkeletonProps = {
 
 /** The queue board: (the doctor's room,) the filter row, and the four station lanes. */
 export function QueueBoardSkeleton(props: QueueBoardSkeletonProps) {
+  const t = useTranslations();
+
   return (
     <div className="flex flex-col gap-6">
       {props.doctor && <DoctorRoomSkeleton />}
       <div className="flex flex-wrap items-center gap-2">
         <p className="order-last ml-auto flex gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
-            Pulang <Skeleton className="h-3 w-3 rounded" />
+            {t('queue.board.done')} <Skeleton className="h-3 w-3 rounded" />
           </span>
           <span className="flex items-center gap-1">
-            Batal <Skeleton className="h-3 w-3 rounded" />
+            {t('queue.board.cancelled')} <Skeleton className="h-3 w-3 rounded" />
           </span>
         </p>
-        {props.doctor && <SegmentedSkeleton options={['Pasien saya', 'Semua dokter']} />}
+        {props.doctor && <SegmentedSkeleton options={[t('queue.board.mine'), t('queue.board.allDoctors')]} />}
       </div>
       <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
-        <LaneSkeleton station="waiting" title="Ruang tunggu">
+        <LaneSkeleton station="waiting" title={t('journey.waiting.label')}>
           {placeholders(3).map((key) => (
             <QueueTicketSkeleton key={key} actions />
           ))}
         </LaneSkeleton>
-        <LaneSkeleton station="in_exam" title="Ruang periksa">
+        <LaneSkeleton station="in_exam" title={t('journey.in_exam.label')}>
           <QueueTicketSkeleton compact />
         </LaneSkeleton>
-        <LaneSkeleton station="to_pharmacy" title="Farmasi">
+        <LaneSkeleton station="to_pharmacy" title={t('journey.to_pharmacy.label')}>
           <QueueTicketSkeleton compact />
         </LaneSkeleton>
-        <LaneSkeleton station="to_cashier" title="Kasir">
+        <LaneSkeleton station="to_cashier" title={t('journey.to_cashier.label')}>
           <QueueTicketSkeleton compact />
         </LaneSkeleton>
       </div>
@@ -137,24 +140,26 @@ function DeskRowSkeleton() {
 
 /** The doctor's home (QueueDesk): room, day figures, waiting list, and today's finished patients. */
 export function QueueDeskSkeleton() {
+  const t = useTranslations('queue.desk');
+
   return (
     <div className="flex flex-col gap-6">
       <DoctorRoomSkeleton />
       <div className="grid grid-cols-6 overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)] lg:grid-cols-4">
-        <DayFigureSkeleton label="Jadwal hari ini" className="col-span-6 border-b lg:col-span-1 lg:border-b-0" />
-        <DayFigureSkeleton label="Kuota terisi" className="col-span-2 lg:col-span-1 lg:border-l" />
-        <DayFigureSkeleton label="Menunggu saya" className="col-span-2 border-l lg:col-span-1" />
-        <DayFigureSkeleton label="Selesai diperiksa" className="col-span-2 border-l lg:col-span-1" />
+        <DayFigureSkeleton label={t('schedule')} className="col-span-6 border-b lg:col-span-1 lg:border-b-0" />
+        <DayFigureSkeleton label={t('quota')} className="col-span-2 lg:col-span-1 lg:border-l" />
+        <DayFigureSkeleton label={t('waitingForMe')} className="col-span-2 border-l lg:col-span-1" />
+        <DayFigureSkeleton label={t('seen')} className="col-span-2 border-l lg:col-span-1" />
       </div>
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
-        <Panel title="Antrean saya" dot="bg-line-waiting" link={{ href: '/queue', label: 'Papan antrean' }}>
+        <Panel title={t('myQueue')} dot="bg-line-waiting" link={{ href: '/queue', label: t('board') }}>
           <ol className="divide-y">
             {placeholders(3).map((key) => (
               <DeskRowSkeleton key={key} />
             ))}
           </ol>
         </Panel>
-        <Panel title="Pasien saya hari ini">
+        <Panel title={t('myPatients')}>
           <ul className="divide-y">
             {placeholders(3).map((key) => (
               <li key={key} className="flex items-center gap-3 px-4 py-2.5">

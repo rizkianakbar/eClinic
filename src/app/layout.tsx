@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import Script from 'next/script';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Providers } from './providers';
 import './globals.css';
 
@@ -11,11 +13,15 @@ const jakarta = Plus_Jakarta_Sans({
   weight: ['400', '500', '600', '700', '800'],
 });
 
-export const metadata: Metadata = {
-  title: { default: 'e-clinic', template: '%s · e-clinic' },
-  description: 'Sistem manajemen klinik pratama',
-  applicationName: 'e-clinic',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('app');
+
+  return {
+    title: { default: 'e-clinic', template: '%s · e-clinic' },
+    description: t('description'),
+    applicationName: 'e-clinic',
+  };
+}
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -29,12 +35,15 @@ export const viewport: Viewport = {
 // Applies the saved text size before first paint (no flash of the wrong size).
 const TEXT_SIZE_SCRIPT = `try{var s=localStorage.getItem("e-clinic:text-size");if(s==="large"||s==="xlarge")document.documentElement.dataset.textSize=s}catch(e){}`;
 
-export default function RootLayout(props: LayoutProps<'/'>) {
+export default async function RootLayout(props: LayoutProps<'/'>) {
   return (
-    <html lang="id" className={`${jakarta.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang={await getLocale()} className={`${jakarta.variable} h-full antialiased`} suppressHydrationWarning>
       {/* Browser extensions add attributes to <body> before hydration. */}
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
-        <Providers>{props.children}</Providers>
+        {/* Messages come from the request config (i18n/request.ts) in the user's language. */}
+        <NextIntlClientProvider>
+          <Providers>{props.children}</Providers>
+        </NextIntlClientProvider>
         <Script id="text-size" strategy="beforeInteractive">
           {TEXT_SIZE_SCRIPT}
         </Script>

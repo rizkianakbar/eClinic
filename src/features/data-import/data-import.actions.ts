@@ -12,10 +12,10 @@ function readForm(formData: FormData): { kind: ImportKind; file: File } | { erro
   const kind = String(formData.get('kind') ?? '');
   const file = formData.get('file');
 
-  if (!isImportKind(kind)) return { error: 'Jenis data tidak dikenal. Muat ulang halaman.' };
-  if (!(file instanceof File) || file.size === 0) return { error: 'Pilih file Excel terlebih dahulu.' };
-  if (!/\.(xlsx|csv)$/i.test(file.name)) return { error: 'File harus Excel (.xlsx) atau CSV.' };
-  if (file.size > IMPORT_MAX_BYTES) return { error: 'Ukuran file maksimal 4 MB. Bagi menjadi beberapa file.' };
+  if (!isImportKind(kind)) return { error: 'dataImport.errors.unknownKind' };
+  if (!(file instanceof File) || file.size === 0) return { error: 'dataImport.errors.pickFile' };
+  if (!/\.(xlsx|csv)$/i.test(file.name)) return { error: 'dataImport.errors.fileType' };
+  if (file.size > IMPORT_MAX_BYTES) return { error: 'dataImport.errors.fileSize' };
 
   return { kind, file };
 }

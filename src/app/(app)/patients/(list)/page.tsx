@@ -1,6 +1,7 @@
 import { HistoryIcon, UsersIcon } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { segmentedGroup, segmentedItem } from '@/components/ui/segmented';
 import { EXAM_VIEWER_ROLES } from '@/features/exam/exam.constants';
@@ -23,7 +24,9 @@ import { requireRole } from '@/lib/auth';
 import { todayInJakarta } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: 'Pasien' };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations('patients'))('title') };
+}
 
 const PAYERS: readonly PatientPayerFilter[] = ['all', 'bpjs', 'umum'];
 
@@ -38,6 +41,7 @@ export default async function PatientsPage(props: PageProps<'/patients'>) {
   const payer = PAYERS.find((value) => value === params.payer) ?? 'all';
   const history = params.view === 'riwayat';
   const today = todayInJakarta();
+  const t = await getTranslations('patients');
   const supabase = await createClient();
   // Started now, awaited by the two panels that need it: they stream in after the list instead of holding it up.
   const stats = getPatientStats(supabase, today);
@@ -46,26 +50,24 @@ export default async function PatientsPage(props: PageProps<'/patients'>) {
     <>
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="flex flex-col gap-0.5">
-          <h1 className="text-[1.5rem] leading-tight font-semibold tracking-tight">Pasien</h1>
-          <p className="text-sm text-muted-foreground">
-            Semua pasien yang pernah terdaftar. Buka satu untuk melihat data dan riwayatnya.
-          </p>
+          <h1 className="text-[1.5rem] leading-tight font-semibold tracking-tight">{t('title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('description')}</p>
         </div>
         <Suspense fallback={<PatientsTotalsSkeleton />}>
           <PatientsTotals stats={stats} />
         </Suspense>
       </header>
-      <nav aria-label="Tampilan" className={segmentedGroup}>
+      <nav aria-label={t('view')} className={segmentedGroup}>
         <Link href="/patients" aria-current={history ? undefined : 'page'} className={segmentedItem(!history)}>
           <UsersIcon aria-hidden />
-          Daftar pasien
+          {t('listView')}
         </Link>
         <Link
           href="/patients?view=riwayat"
           aria-current={history ? 'page' : undefined}
           className={segmentedItem(history)}>
           <HistoryIcon aria-hidden />
-          Riwayat kunjungan
+          {t('historyView')}
         </Link>
       </nav>
       {history ? (
@@ -103,18 +105,15 @@ type VisitHistoryProps = {
 };
 
 /** Riwayat kunjungan: the period and search stay in place while the list for them streams in below. */
-function VisitHistory(props: VisitHistoryProps) {
+async function VisitHistory(props: VisitHistoryProps) {
+  const t = await getTranslations('patients');
   const range = parseRange(props.searchParams, props.today);
   const keep = { view: 'riwayat', ...(props.query && { q: props.query }) };
 
   return (
     <div className="flex flex-col gap-4">
       <ReportsRangeFilter range={range} today={props.today} keep={keep} />
-      <InventorySearch
-        query={props.query}
-        placeholder="Cari pasien: nama, no. RM, NIK, atau no. BPJS"
-        className="max-w-md"
-      />
+      <InventorySearch query={props.query} placeholder={t('historySearch')} className="max-w-md" />
       <Suspense key={`${range.from}:${range.to}:${props.query}:${props.page}`} fallback={<VisitHistorySkeleton />}>
         <VisitHistoryList
           range={range}
@@ -154,14 +153,15 @@ async function VisitHistoryList(props: VisitHistoryListProps) {
 
 async function PatientsTotals(props: { stats: Promise<Stats> }) {
   const stats = await props.stats;
+  const t = await getTranslations('patients.totals');
   const bpjsShare = stats.total > 0 ? Math.round((stats.bpjs / stats.total) * 100) : 0;
 
   return (
     <dl className="flex items-stretch divide-x rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
       {[
-        ['Pasien aktif', String(stats.total), 'terdaftar'],
-        ['Baru bulan ini', String(stats.newThisMonth), 'pasien baru'],
-        ['Peserta BPJS', String(stats.bpjs), `${bpjsShare}% dari semua`],
+        [t('active'), String(stats.total), t('activeHint')],
+        [t('newThisMonth'), String(stats.newThisMonth), t('newHint')],
+        [t('bpjs'), String(stats.bpjs), t('bpjsHint', { share: bpjsShare })],
       ].map(([label, value, hint]) => (
         <div key={label} className="flex flex-col gap-0.5 px-4 py-2.5">
           <dt className="text-xs text-muted-foreground">{label}</dt>

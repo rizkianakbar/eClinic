@@ -1,3 +1,5 @@
+import { useLocale } from 'next-intl';
+import { type AppLocale, INTL_LOCALE } from '@/i18n/locales';
 import { formatRupiah, formatRupiahCompact } from '@/lib/money';
 import { cn } from '@/lib/utils';
 
@@ -7,13 +9,30 @@ type ReportsBarChartProps = {
   label: string;
 };
 
-const short = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-const weekday = new Intl.DateTimeFormat('id-ID', { weekday: 'short', timeZone: 'UTC' });
+const formatters = new Map<AppLocale, { short: Intl.DateTimeFormat; weekday: Intl.DateTimeFormat }>();
+
+/** Axis and tooltip date formats, built once per language. */
+function chartDates(locale: AppLocale) {
+  let entry = formatters.get(locale);
+
+  if (!entry) {
+    entry = {
+      short: new Intl.DateTimeFormat(INTL_LOCALE[locale], { day: 'numeric', month: 'short', timeZone: 'UTC' }),
+      weekday: new Intl.DateTimeFormat(INTL_LOCALE[locale], { weekday: 'short', timeZone: 'UTC' }),
+    };
+
+    formatters.set(locale, entry);
+  }
+
+  return entry;
+}
 
 /** Daily bars over the report period, with gridline values and a tooltip per bar. */
 export function ReportsBarChart(props: ReportsBarChartProps) {
+  const locale = useLocale();
+  const { short, weekday } = chartDates(locale);
   const peak = Math.max(1, ...props.series.map((entry) => entry.value));
-  const format = (value: number) => (props.unit === 'rupiah' ? formatRupiahCompact(value) : String(value));
+  const format = (value: number) => (props.unit === 'rupiah' ? formatRupiahCompact(value, locale) : String(value));
   const full = (value: number) => (props.unit === 'rupiah' ? formatRupiah(value) : String(value));
   // Label at most ~10 days along the axis so they never crowd.
   const every = Math.max(1, Math.ceil(props.series.length / 10));

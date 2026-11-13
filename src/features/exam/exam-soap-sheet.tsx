@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { SOAP_FIELDS } from './exam.constants';
@@ -45,16 +46,17 @@ type SoapTextProps = {
 
 /** Read-only SOAP, skipping empty parts. */
 export function SoapText(props: SoapTextProps) {
+  const t = useTranslations('exam.soap');
   const parts = SOAP_FIELDS.filter((field) => props.note[field.name]).map((field) => field.name);
 
-  if (parts.length === 0) return <p className="text-sm text-muted-foreground">Catatan kosong.</p>;
+  if (parts.length === 0) return <p className="text-sm text-muted-foreground">{t('empty')}</p>;
 
   return (
     <ExamSoapSheet
       only={parts}
       render={(field) => (
         <>
-          <p className="text-xs font-medium text-muted-foreground">{field.label}</p>
+          <p className="text-xs font-medium text-muted-foreground">{t(`${field.name}.label`)}</p>
           <p className="text-sm leading-relaxed whitespace-pre-wrap">{props.note[field.name]}</p>
         </>
       )}

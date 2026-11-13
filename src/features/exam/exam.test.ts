@@ -38,22 +38,22 @@ describe('vitalsSchema', () => {
   });
 
   it('requires at least one measurement', () => {
-    expect(vitalsSchema.safeParse(blankVitals).error?.issues[0]?.message).toBe('Isi minimal satu tanda vital.');
+    expect(vitalsSchema.safeParse(blankVitals).error?.issues[0]?.message).toBe('exam.errors.oneVital');
   });
 
   it('requires both blood pressure values', () => {
     const result = vitalsSchema.safeParse({ ...blankVitals, systolic: '120' });
 
-    expect(result.error?.issues[0]?.message).toBe('Tekanan darah perlu sistolik dan diastolik.');
+    expect(result.error?.issues[0]?.message).toBe('exam.errors.bothPressures');
   });
 
   it('checks ranges and whole numbers', () => {
     expect(vitalsSchema.safeParse({ ...blankVitals, spo2: '101' }).error?.issues[0]?.message).toBe(
-      'SpO2 harus antara 50 dan 100.',
+      'exam.errors.range|{"min":50,"max":100}',
     );
 
     expect(vitalsSchema.safeParse({ ...blankVitals, pulse: '80.5' }).error?.issues[0]?.message).toBe(
-      'Nadi harus bilangan bulat.',
+      'exam.errors.notInteger',
     );
   });
 
@@ -99,8 +99,8 @@ describe('parseIcd10Search', () => {
 
 describe('examErrorMessage', () => {
   it('maps guard keys', () => {
-    expect(examErrorMessage({ code: 'P0001', message: 'record_locked' })).toMatch(/amandemen/);
-    expect(examErrorMessage({ code: '23505' })).toBe('Diagnosis ini sudah dipilih.');
+    expect(examErrorMessage({ code: 'P0001', message: 'record_locked' })).toBe('exam.errors.record_locked');
+    expect(examErrorMessage({ code: '23505' })).toBe('exam.errors.duplicateDiagnosis');
   });
 });
 
@@ -116,11 +116,11 @@ describe('letters', () => {
 
     expect(
       schema.safeParse({ rest_from: '2026-11-11', rest_days: '1', show_diagnosis: false }).error?.issues[0]?.message,
-    ).toMatch(/sebelum hari ini/);
+    ).toBe('exam.errors.restFromPast');
 
     expect(
       schema.safeParse({ rest_from: '2026-11-12', rest_days: '31', show_diagnosis: false }).error?.issues[0]?.message,
-    ).toBe('Maksimal 30 hari.');
+    ).toBe('exam.errors.restDaysMax');
   });
 
   it('computes the last day of rest', () => {
@@ -133,7 +133,7 @@ describe('letters', () => {
       .safeParse({ destination: '', specialty: '', reason: '', clinical_summary: '', therapy: '' })
       .error?.issues.map((issue) => issue.message);
 
-    expect(messages).toEqual(expect.arrayContaining(['Faskes tujuan wajib diisi.', 'Alasan rujukan wajib diisi.']));
+    expect(messages).toEqual(expect.arrayContaining(['exam.errors.destinationRequired', 'exam.errors.reasonRequired']));
   });
 });
 

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { type AppLocale, INTL_LOCALE } from '@/i18n/locales';
 
 const rupiahFormatter = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -33,21 +34,33 @@ export function parseRupiah(input: string) {
  * Zod field for a rupiah input: accepts "Rp 15.000", "15000" or an already-parsed
  * number (so actions can re-validate parsed form values); outputs integer rupiah.
  */
-export function rupiahField(label: string, options: { max?: number } = {}) {
+export function rupiahField(options: { max?: number } = {}) {
   const max = options.max ?? 1_000_000_000;
 
   return z
     .union([z.string(), z.number()])
     .transform((value) => (typeof value === 'number' ? value : parseRupiah(value)))
-    .refine((value) => value !== null, `${label} wajib diisi dengan angka, contoh: 15000.`)
+    .refine((value) => value !== null, 'validation.amountNumber')
     .transform((value) => value as number)
-    .refine((value) => value >= 0, `${label} tidak boleh negatif.`)
-    .refine((value) => value <= max, `${label} terlalu besar.`);
+    .refine((value) => value >= 0, 'validation.amountNegative')
+    .refine((value) => value <= max, 'validation.amountTooLarge');
 }
 
-const compactFormatter = new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 1 });
+const compactFormatters = new Map<AppLocale, Intl.NumberFormat>();
 
-/** Short rupiah for chart axes: 650000 -> "Rp 650 rb", 1250000 -> "Rp 1,3 jt". */
-export function formatRupiahCompact(amount: number) {
-  return `Rp\u00a0${compactFormatter.format(amount).replace(/\s/g, '\u00a0')}`;
+/** Short rupiah for chart axes: 650000 -> "Rp 650 rb", 1250000 -> "Rp 1,3 jt" (en: "Rp 650K", "Rp 1.3M"). */
+export function formatRupiahCompact(amount: number, locale: AppLocale = 'id') {
+  let formatter = compactFormatters.get(locale);
+
+  if (!formatter) {
+    // en-US, not en-GB: "1.3M" rather than "1.3m".
+    formatter = new Intl.NumberFormat(locale === 'en' ? 'en-US' : INTL_LOCALE[locale], {
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    });
+
+    compactFormatters.set(locale, formatter);
+  }
+
+  return `Rp\u00a0${formatter.format(amount).replace(/\s/g, '\u00a0')}`;
 }

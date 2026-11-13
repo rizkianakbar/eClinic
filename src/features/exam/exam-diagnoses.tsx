@@ -1,6 +1,7 @@
 'use client';
 
 import { PlusIcon, StarIcon, XIcon } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { type KeyboardEvent, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { useActionMutation } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { addDiagnosisAction, removeDiagnosisAction, setPrimaryDiagnosisAction } from './exam.actions';
 import { useIcd10Search } from './exam.hooks';
-import { parseIcd10Search } from './exam.lib';
+import { icd10Name, parseIcd10Search } from './exam.lib';
 import type { listDiagnoses } from './exam.service';
 
 type ExamDiagnosesProps = {
@@ -20,6 +21,8 @@ type ExamDiagnosesProps = {
 };
 
 export function ExamDiagnoses(props: ExamDiagnosesProps) {
+  const t = useTranslations('exam.diagnoses');
+  const locale = useLocale();
   const add = useActionMutation((code: string) => addDiagnosisAction(props.visitId, code));
   const setPrimary = useActionMutation(setPrimaryDiagnosisAction);
   const remove = useActionMutation(removeDiagnosisAction);
@@ -28,7 +31,7 @@ export function ExamDiagnoses(props: ExamDiagnosesProps) {
   return (
     <div className="flex flex-col gap-2">
       {props.diagnoses.length === 0 ? (
-        !props.editable && <p className="text-sm text-muted-foreground">Belum ada diagnosis.</p>
+        !props.editable && <p className="text-sm text-muted-foreground">{t('none')}</p>
       ) : (
         <ul className="overflow-hidden rounded-lg border">
           {props.diagnoses.map((diagnosis) => (
@@ -37,21 +40,21 @@ export function ExamDiagnoses(props: ExamDiagnosesProps) {
                 {diagnosis.icd10_code}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-medium">{diagnosis.icd10?.name_id ?? diagnosis.icd10?.name}</span>
-                {diagnosis.icd10?.name_id && (
+                <span className="block font-medium">{icd10Name(diagnosis.icd10, locale)}</span>
+                {locale === 'id' && diagnosis.icd10?.name_id && (
                   <span className="block truncate text-xs text-muted-foreground">{diagnosis.icd10.name}</span>
                 )}
               </span>
               {diagnosis.is_primary ? (
                 <Badge variant="secondary">
                   <StarIcon className="fill-current" />
-                  Utama
+                  {t('primary')}
                 </Badge>
               ) : (
                 props.editable && (
                   <Button size="xs" variant="ghost" disabled={busy} onClick={() => setPrimary.mutate(diagnosis.id)}>
                     <StarIcon />
-                    Jadikan utama
+                    {t('makePrimary')}
                   </Button>
                 )
               )}
@@ -59,7 +62,7 @@ export function ExamDiagnoses(props: ExamDiagnosesProps) {
                 <Button
                   size="icon-xs"
                   variant="ghost"
-                  aria-label={`Hapus diagnosis ${diagnosis.icd10_code}`}
+                  aria-label={t('remove', { code: diagnosis.icd10_code })}
                   disabled={busy}
                   onClick={() => remove.mutate(diagnosis.id)}>
                   <XIcon />
@@ -81,6 +84,8 @@ type Icd10PickerProps = {
 
 /** Type a disease name or code; arrows to move, Enter to add. */
 function Icd10Picker(props: Icd10PickerProps) {
+  const t = useTranslations('exam.diagnoses');
+  const locale = useLocale();
   const anchor = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [highlighted, setHighlighted] = useState(0);
@@ -116,8 +121,8 @@ function Icd10Picker(props: Icd10PickerProps) {
         />
         <Input
           type="search"
-          aria-label="Cari diagnosis ICD-10"
-          placeholder="Tambah diagnosis: ketik nama penyakit atau kode (demam, J06)"
+          aria-label={t('search')}
+          placeholder={t('placeholder')}
           className="pl-9"
           value={query}
           disabled={props.disabled}
@@ -132,7 +137,7 @@ function Icd10Picker(props: Icd10PickerProps) {
       {parseIcd10Search(query) && (
         <Floating anchor={anchor}>
           {!search.isPending && results.length === 0 ? (
-            <p className="px-3 py-3 text-sm text-muted-foreground">Tidak ditemukan. Coba kata lain atau kode ICD-10.</p>
+            <p className="px-3 py-3 text-sm text-muted-foreground">{t('notFound')}</p>
           ) : (
             <ul className="min-h-0 overflow-y-auto p-1">
               {results.map((item, index) => (
@@ -150,8 +155,10 @@ function Icd10Picker(props: Icd10PickerProps) {
                       {item.code}
                     </span>
                     <span className="min-w-0">
-                      <span className="block font-medium">{item.name_id ?? item.name}</span>
-                      {item.name_id && <span className="block text-xs text-muted-foreground">{item.name}</span>}
+                      <span className="block font-medium">{icd10Name(item, locale)}</span>
+                      {locale === 'id' && item.name_id && (
+                        <span className="block text-xs text-muted-foreground">{item.name}</span>
+                      )}
                     </span>
                   </button>
                 </li>

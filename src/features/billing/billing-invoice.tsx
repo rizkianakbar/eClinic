@@ -3,11 +3,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckIcon, PillIcon, PlusIcon, PrinterIcon, ReceiptTextIcon, StethoscopeIcon, XIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { useMessage } from '@/i18n/message';
 import { formatDateTime } from '@/lib/dates';
 import { formatRupiah } from '@/lib/money';
 import { useActionMutation } from '@/lib/query';
@@ -18,9 +20,9 @@ import {
   setInvoiceDiscountAction,
   setItemDiscountAction,
 } from './billing.actions';
-import { INVOICE_ITEM_TYPE_LABELS, PAYMENT_METHOD_LABELS } from './billing.constants';
 import {
   groupInvoiceItems,
+  type InvoiceItemType,
   type InvoiceServiceInput,
   type InvoiceServiceValues,
   invoiceServiceSchema,
@@ -47,6 +49,8 @@ const GROUP_ICONS: Record<string, ReactNode> = {
 
 /** Left: the bill, by visit stage. Right: take the payment (draft) or the paid record. */
 export function BillingInvoice(props: BillingInvoiceProps) {
+  const t = useTranslations('billing');
+  const tc = useTranslations('common');
   const { invoice } = props;
   const draft = invoice.status === 'draft';
   const remove = useActionMutation(removeInvoiceItemAction);
@@ -55,9 +59,9 @@ export function BillingInvoice(props: BillingInvoiceProps) {
 
   return (
     <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_23rem]">
-      <section aria-label="Rincian tagihan" className="flex flex-col gap-2.5">
+      <section aria-label={t('invoice.items')} className="flex flex-col gap-2.5">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
-          Rincian tagihan
+          {t('invoice.items')}
           <span className="tabular rounded-md bg-muted px-1.5 text-xs leading-5 font-medium text-muted-foreground">
             {invoice.items.length}
           </span>
@@ -68,7 +72,7 @@ export function BillingInvoice(props: BillingInvoiceProps) {
             <div key={group.key} className="border-b">
               <p className="flex items-center gap-2 bg-muted/40 px-4 py-2 text-xs font-semibold text-muted-foreground [&_svg]:size-3.5">
                 {GROUP_ICONS[group.key]}
-                {group.label}
+                {t(`groups.${group.key}`)}
                 <span className="tabular ml-auto font-medium">{formatRupiah(group.total)}</span>
               </p>
               <ul>
@@ -79,7 +83,7 @@ export function BillingInvoice(props: BillingInvoiceProps) {
                     <div className="min-w-0 flex-1">
                       <p className="font-medium">{item.description}</p>
                       <p className="text-[0.8125rem] text-muted-foreground">
-                        {INVOICE_ITEM_TYPE_LABELS[item.item_type]}
+                        {t(`itemType.${item.item_type as InvoiceItemType}`)}
                         <span className="tabular">
                           {' '}
                           · {item.qty} × {formatRupiah(item.unit_price)}
@@ -87,7 +91,10 @@ export function BillingInvoice(props: BillingInvoiceProps) {
                       </p>
                       {item.discount > 0 && (
                         <p className="mt-1 inline-flex items-center gap-1.5 rounded-md bg-secondary px-1.5 text-xs leading-5 text-secondary-foreground">
-                          Diskon −{formatRupiah(item.discount)} · {item.discount_reason}
+                          {t('invoice.itemDiscount', {
+                            amount: formatRupiah(item.discount),
+                            reason: item.discount_reason ?? '',
+                          })}
                         </p>
                       )}
                     </div>
@@ -101,8 +108,8 @@ export function BillingInvoice(props: BillingInvoiceProps) {
                       {draft && (
                         <div className="flex gap-0.5">
                           <BillingDiscountDialog
-                            label="Diskon"
-                            title={`Diskon · ${item.description}`}
+                            label={t('invoice.discount')}
+                            title={t('invoice.discountTitle', { item: item.description })}
                             max={item.qty * item.unit_price}
                             current={{ amount: item.discount, reason: item.discount_reason }}
                             action={(values) => setItemDiscountAction(item.id, values)}
@@ -111,7 +118,7 @@ export function BillingInvoice(props: BillingInvoiceProps) {
                             <Button
                               size="icon-xs"
                               variant="ghost"
-                              aria-label="Hapus layanan"
+                              aria-label={t('invoice.removeService')}
                               disabled={remove.isPending}
                               onClick={() => remove.mutate(item.id)}>
                               <XIcon />
@@ -131,18 +138,18 @@ export function BillingInvoice(props: BillingInvoiceProps) {
             </div>
           )}
           <dl className="flex flex-col gap-1.5 px-4 py-3 text-sm">
-            <TotalLine label="Subtotal" value={formatRupiah(invoice.subtotal)} />
+            <TotalLine label={t('invoice.subtotal')} value={formatRupiah(invoice.subtotal)} />
             {invoice.item_discount > 0 && (
-              <TotalLine label="Diskon per item" value={`−${formatRupiah(invoice.item_discount)}`} />
+              <TotalLine label={t('invoice.itemDiscounts')} value={`−${formatRupiah(invoice.item_discount)}`} />
             )}
             <div className="flex items-center justify-between gap-3">
               <dt className="flex items-center gap-1 text-muted-foreground">
-                Diskon tagihan
+                {t('invoice.invoiceDiscount')}
                 {invoice.discount > 0 && <span className="text-xs">({invoice.discount_reason})</span>}
                 {draft && (
                   <BillingDiscountDialog
-                    label={invoice.discount > 0 ? 'Ubah' : 'Tambah'}
-                    title="Diskon tagihan"
+                    label={invoice.discount > 0 ? tc('edit') : tc('add')}
+                    title={t('invoice.invoiceDiscount')}
                     max={remainingForInvoiceDiscount}
                     current={{ amount: invoice.discount, reason: invoice.discount_reason }}
                     action={(values) => setInvoiceDiscountAction(invoice.id, values)}
@@ -154,7 +161,7 @@ export function BillingInvoice(props: BillingInvoiceProps) {
           </dl>
           <div className="flex items-baseline justify-between gap-3 border-t bg-muted/30 px-4 py-4">
             <span className="text-sm font-semibold">
-              {invoice.payer_type === 'bpjs' ? 'Total (ditanggung BPJS)' : 'Total tagihan'}
+              {invoice.payer_type === 'bpjs' ? t('invoice.totalBpjs') : t('invoice.total')}
             </span>
             <span className="numeral text-[1.75rem]">{formatRupiah(invoice.total)}</span>
           </div>
@@ -162,7 +169,7 @@ export function BillingInvoice(props: BillingInvoiceProps) {
       </section>
 
       <aside className="flex flex-col gap-2.5 lg:sticky lg:top-20">
-        <h2 className="text-sm font-semibold">{draft ? 'Pembayaran' : 'Pembayaran selesai'}</h2>
+        <h2 className="text-sm font-semibold">{draft ? t('invoice.payment') : t('invoice.paymentDone')}</h2>
         {draft ? (
           <div className="rounded-xl border bg-card p-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
             <BillingPaymentForm invoiceId={invoice.id} total={invoice.total} payerType={invoice.payer_type} />
@@ -182,6 +189,9 @@ type PaidCardProps = {
 
 /** The result, unmistakable: paid, how much, how, by whom; then print. */
 function PaidCard(props: PaidCardProps) {
+  const t = useTranslations('billing');
+  const tm = useTranslations('paymentMethod');
+  const locale = useLocale();
   const { invoice } = props;
   const bpjs = invoice.payer_type === 'bpjs';
 
@@ -191,10 +201,10 @@ function PaidCard(props: PaidCardProps) {
         <span className="flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_6px_16px_-6px_rgb(23_115_92/0.6)]">
           <CheckIcon className="size-5" strokeWidth={3} aria-hidden />
         </span>
-        <p className="text-sm font-medium text-primary">{bpjs ? 'Selesai, ditanggung BPJS' : 'Lunas'}</p>
+        <p className="text-sm font-medium text-primary">{bpjs ? t('invoice.doneBpjs') : t('invoice.paid')}</p>
         <p className="numeral text-[2rem]">{formatRupiah(invoice.total)}</p>
         <p className="text-xs text-muted-foreground">
-          {invoice.paid_at ? formatDateTime(invoice.paid_at) : ''} · {invoice.cashier?.full_name}
+          {invoice.paid_at ? formatDateTime(invoice.paid_at, locale) : ''} · {invoice.cashier?.full_name}
         </p>
       </div>
       {invoice.payments.length > 0 && (
@@ -202,16 +212,16 @@ function PaidCard(props: PaidCardProps) {
           {invoice.payments.map((payment) => (
             <div key={payment.id} className="flex flex-col gap-1.5">
               <TotalLine
-                label={PAYMENT_METHOD_LABELS[payment.method as keyof typeof PAYMENT_METHOD_LABELS]}
+                label={tm(payment.method as 'cash' | 'qris' | 'transfer')}
                 value={formatRupiah(payment.amount)}
               />
               {payment.cash_received !== null && (
                 <>
-                  <TotalLine label="Uang diterima" value={formatRupiah(payment.cash_received)} />
-                  <TotalLine label="Kembalian" value={formatRupiah(payment.change ?? 0)} />
+                  <TotalLine label={t('pay.received')} value={formatRupiah(payment.cash_received)} />
+                  <TotalLine label={t('pay.change')} value={formatRupiah(payment.change ?? 0)} />
                 </>
               )}
-              {payment.reference && <TotalLine label="Referensi" value={payment.reference} />}
+              {payment.reference && <TotalLine label={t('invoice.reference')} value={payment.reference} />}
             </div>
           ))}
         </dl>
@@ -222,7 +232,7 @@ function PaidCard(props: PaidCardProps) {
           target="_blank"
           className={cn(buttonVariants({ size: 'lg' }), 'w-full')}>
           <PrinterIcon />
-          Cetak kuitansi
+          {t('invoice.printReceipt')}
         </Link>
         <p className="tabular text-center text-xs text-muted-foreground">{invoice.invoice_no}</p>
         {props.canVoid && (
@@ -256,6 +266,9 @@ type AddServiceProps = {
 
 /** Extra services (e.g. administration); the only lines the cashier can remove. */
 function AddService(props: AddServiceProps) {
+  const t = useTranslations('billing');
+  const tc = useTranslations('common');
+  const message = useMessage();
   const add = useActionMutation((values: InvoiceServiceValues) => addInvoiceServiceAction(props.invoiceId, values));
 
   const form = useForm<InvoiceServiceInput, unknown, InvoiceServiceValues>({
@@ -271,22 +284,24 @@ function AddService(props: AddServiceProps) {
       className="flex flex-col gap-1"
       onSubmit={form.handleSubmit((values) => add.mutate(values, { onSuccess: () => form.reset() }))}>
       <div className="flex flex-wrap items-center gap-2">
-        <NativeSelect aria-label="Tambah layanan" className="min-w-0 flex-1" {...form.register('service_id')}>
-          <NativeSelectOption value="">Tambah layanan lain…</NativeSelectOption>
+        <NativeSelect aria-label={t('invoice.addService')} className="min-w-0 flex-1" {...form.register('service_id')}>
+          <NativeSelectOption value="">{t('invoice.addOther')}</NativeSelectOption>
           {props.services.map((service) => (
             <NativeSelectOption key={service.id} value={service.id}>
               {service.name} · {formatRupiah(service.price)}
             </NativeSelectOption>
           ))}
         </NativeSelect>
-        <Input aria-label="Jumlah" inputMode="numeric" className="w-16" {...form.register('qty')} />
+        <Input aria-label={t('package.qty')} inputMode="numeric" className="w-16" {...form.register('qty')} />
         <Button type="submit" variant="outline" disabled={add.isPending}>
           <PlusIcon />
-          Tambah
+          {tc('add')}
         </Button>
       </div>
       {(errors.service_id ?? errors.qty) && (
-        <p className="text-[0.8125rem] text-destructive">{errors.service_id?.message ?? errors.qty?.message}</p>
+        <p className="text-[0.8125rem] text-destructive">
+          {message(errors.service_id?.message ?? errors.qty?.message ?? '')}
+        </p>
       )}
     </form>
   );

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { keyed } from '@/i18n/keyed';
 
 export const dispenseSchema = z
   .object({
@@ -6,7 +7,7 @@ export const dispenseSchema = z
       z.object({
         prescription_item_id: z.uuid(),
         not_given: z.boolean(),
-        reason: z.string().trim().max(200, 'Alasan maksimal 200 karakter.'),
+        reason: z.string().trim().max(200, 'pharmacy.errors.reasonMax'),
       }),
     ),
   })
@@ -15,7 +16,7 @@ export const dispenseSchema = z
       if (item.not_given && item.reason === '') {
         context.addIssue({
           code: 'custom',
-          message: 'Isi alasan obat tidak diberikan.',
+          message: 'pharmacy.errors.reasonRequired',
           path: ['items', index, 'reason'],
         });
       }
@@ -35,12 +36,10 @@ export const dispensePayloadSchema = z.object({
   not_given: z.array(
     z.object({
       prescription_item_id: z.uuid(),
-      reason: z.string().trim().min(1, 'Isi alasan obat tidak diberikan.').max(200, 'Alasan maksimal 200 karakter.'),
+      reason: z.string().trim().min(1, 'pharmacy.errors.reasonRequired').max(200, 'pharmacy.errors.reasonMax'),
     }),
   ),
 });
-
-export const DEFAULT_SHORT_REASON = 'Stok tidak cukup';
 
 type PlannedItem = { id: string; medicineId: string; qty: number };
 
@@ -63,20 +62,18 @@ export function shortItems(items: readonly PlannedItem[], available: ReadonlyMap
   return short;
 }
 
-const PHARMACY_ERRORS: Record<string, (detail?: string) => string> = {
-  insufficient_stock: (detail) =>
-    `Stok ${detail ?? 'obat'} tidak cukup. Tandai "tidak diberikan" dengan alasan, atau catat pembelian dulu.`,
-  not_given_reason_required: (detail) => `Isi alasan ${detail ?? 'obat'} tidak diberikan.`,
-  not_at_pharmacy: () => 'Resep ini sudah diserahkan atau pasien tidak di farmasi. Muat ulang halaman.',
-  not_allowed: () => 'Hanya apoteker yang bisa menyerahkan obat.',
-};
+/** Guard keys from dispense_prescription(); the two stock ones name the medicine (`details`). */
+const PHARMACY_ERRORS = new Set(['insufficient_stock', 'not_given_reason_required', 'not_at_pharmacy', 'not_allowed']);
 
+/** Maps a dispensing error to a message key (with the medicine's name when the database gives it). */
 export function pharmacyErrorMessage(error: { code?: string; message?: string; details?: string }) {
-  const message = error.code === 'P0001' && error.message ? PHARMACY_ERRORS[error.message] : undefined;
+  if (error.code === 'P0001' && error.message && PHARMACY_ERRORS.has(error.message)) {
+    return error.details
+      ? keyed(`pharmacy.errors.${error.message}`, { item: error.details })
+      : `pharmacy.errors.${error.message}`;
+  }
 
-  if (message) return message(error.details || undefined);
-
-  return 'Penyerahan obat gagal; stok tidak berubah. Coba lagi, atau hubungi admin jika terus terjadi.';
+  return 'pharmacy.errors.failed';
 }
 
 /** Label lines for the drug labels: one per regular item, one per racikan. */
@@ -183,6 +180,9 @@ export function planFefo(
   return plan;
 }
 
+/** The racikan an ingredient line belongs to: the screen words its title ("Racikan puyer"). */
+export type LineCompound = { id: string; form: string; quantity: number; signa: string };
+
 type PrescriptionForLines = {
   items: PrescriptionItem[];
   compounds: { id: string; form: string; quantity: number; signa: string; ingredients: PrescriptionItem[] }[];
@@ -204,9 +204,11 @@ export function toDispenseLines(
   const short = shortItems(planned, available);
   const plan = planFefo(planned, batches);
 
-  const line = (item: PrescriptionItem, group: string | null) => ({
+  const line = (item: PrescriptionItem, compound: LineCompound | null) => ({
     id: item.id,
-    group,
+    /** The racikan an ingredient belongs to (its id groups the lines), or null for a regular item. */
+    group: compound?.id ?? null,
+    compound,
     name: item.medicine?.name ?? '',
     qty: item.qty,
     unit: item.medicine?.unit ?? '',
@@ -221,7 +223,7 @@ export function toDispenseLines(
     ...prescription.items.map((item) => line(item, null)),
     ...prescription.compounds.flatMap((compound) =>
       compound.ingredients.map((item) =>
-        line(item, `Racikan ${compound.form} · ${compound.quantity} ${compound.form} · ${compound.signa}`),
+        line(item, { id: compound.id, form: compound.form, quantity: compound.quantity, signa: compound.signa }),
       ),
     ),
   ];

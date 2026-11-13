@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -25,6 +26,7 @@ type ExpensesVoidDialogProps = {
 };
 
 export function ExpensesVoidDialog(props: ExpensesVoidDialogProps) {
+  const t = useTranslations('expenses.void');
   const [open, setOpen] = useState(false);
   const voidExpense = useActionMutation((values: VoidExpenseValues) => voidExpenseAction(props.expenseId, values));
   const form = useForm<VoidExpenseValues>({ resolver: zodResolver(voidExpenseSchema), defaultValues: { reason: '' } });
@@ -38,12 +40,12 @@ export function ExpensesVoidDialog(props: ExpensesVoidDialogProps) {
         if (!next) form.reset();
       }}>
       <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
-        Batalkan
+        {t('button')}
       </Button>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Batalkan pengeluaran?</DialogTitle>
-          <DialogDescription>{props.label}. Data tidak dihapus; ditandai batal dengan alasan ini.</DialogDescription>
+          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogDescription>{t('description', { label: props.label })}</DialogDescription>
         </DialogHeader>
         <form
           noValidate
@@ -51,17 +53,17 @@ export function ExpensesVoidDialog(props: ExpensesVoidDialogProps) {
           onSubmit={form.handleSubmit((values) =>
             voidExpense.mutate(values, {
               onSuccess: () => {
-                toast.success('Pengeluaran dibatalkan.');
+                toast.success(t('done'));
                 setOpen(false);
               },
             }),
           )}>
-          <FormField label="Alasan" htmlFor="expense_void_reason" error={errors.reason?.message}>
+          <FormField label={t('reason')} htmlFor="expense_void_reason" error={errors.reason?.message}>
             <Input id="expense_void_reason" autoFocus {...form.register('reason')} />
           </FormField>
           <DialogFooter>
             <Button type="submit" variant="destructive" disabled={voidExpense.isPending}>
-              Batalkan pengeluaran
+              {t('submit')}
             </Button>
           </DialogFooter>
         </form>

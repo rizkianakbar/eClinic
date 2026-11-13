@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -19,6 +20,8 @@ type Supplier = SupplierValues & { id: string };
 type InventorySupplierDialogProps = { mode: 'create' } | { mode: 'edit'; supplier: Supplier };
 
 export function InventorySupplierDialog(props: InventorySupplierDialogProps) {
+  const t = useTranslations('inventory.supplierForm');
+  const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
 
   return (
@@ -26,16 +29,18 @@ export function InventorySupplierDialog(props: InventorySupplierDialogProps) {
       {props.mode === 'create' ? (
         <Button onClick={() => setOpen(true)}>
           <PlusIcon />
-          Tambah supplier
+          {t('add')}
         </Button>
       ) : (
         <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-          Ubah
+          {tc('edit')}
         </Button>
       )}
       <DialogContent variant="drawer">
         <DialogHeader>
-          <DialogTitle>{props.mode === 'create' ? 'Tambah supplier' : `Ubah ${props.supplier.name}`}</DialogTitle>
+          <DialogTitle>
+            {props.mode === 'create' ? t('add') : t('editTitle', { name: props.supplier.name })}
+          </DialogTitle>
         </DialogHeader>
         <SupplierForm {...props} onDone={() => setOpen(false)} />
       </DialogContent>
@@ -44,6 +49,9 @@ export function InventorySupplierDialog(props: InventorySupplierDialogProps) {
 }
 
 function SupplierForm(props: InventorySupplierDialogProps & { onDone: () => void }) {
+  const t = useTranslations('inventory.supplierForm');
+  const tc = useTranslations('common');
+
   const save = useActionMutation((values: SupplierValues) =>
     props.mode === 'create' ? createSupplierAction(values) : updateSupplierAction(props.supplier.id, values),
   );
@@ -65,23 +73,23 @@ function SupplierForm(props: InventorySupplierDialogProps & { onDone: () => void
       onSubmit={form.handleSubmit((values) =>
         save.mutate(values, {
           onSuccess: () => {
-            toast.success('Supplier tersimpan.');
+            toast.success(t('saved'));
             props.onDone();
           },
         }),
       )}>
-      <FormField label="Nama supplier" htmlFor="supplier_name" error={errors.name?.message}>
+      <FormField label={t('name')} htmlFor="supplier_name" error={errors.name?.message}>
         <Input id="supplier_name" autoFocus aria-invalid={Boolean(errors.name)} {...form.register('name')} />
       </FormField>
-      <FormField label="Telepon" htmlFor="supplier_phone" error={errors.phone?.message} hint="opsional">
+      <FormField label={t('phone')} htmlFor="supplier_phone" error={errors.phone?.message} hint={tc('optional')}>
         <Input id="supplier_phone" type="tel" aria-invalid={Boolean(errors.phone)} {...form.register('phone')} />
       </FormField>
-      <FormField label="Alamat" htmlFor="supplier_address" error={errors.address?.message} hint="opsional">
+      <FormField label={t('address')} htmlFor="supplier_address" error={errors.address?.message} hint={tc('optional')}>
         <Textarea id="supplier_address" rows={2} aria-invalid={Boolean(errors.address)} {...form.register('address')} />
       </FormField>
       <DialogFooter>
         <Button type="submit" disabled={save.isPending}>
-          {save.isPending ? 'Menyimpan...' : 'Simpan'}
+          {save.isPending ? tc('saving') : tc('save')}
         </Button>
       </DialogFooter>
     </form>

@@ -61,7 +61,7 @@ describe('dispenseSchema', () => {
     });
 
     expect(result.error?.issues[0]).toMatchObject({
-      message: 'Isi alasan obat tidak diberikan.',
+      message: 'pharmacy.errors.reasonRequired',
       path: ['items', 0, 'reason'],
     });
   });
@@ -69,9 +69,9 @@ describe('dispenseSchema', () => {
 
 describe('pharmacyErrorMessage', () => {
   it('names the medicine that is short', () => {
-    expect(
-      pharmacyErrorMessage({ code: 'P0001', message: 'insufficient_stock', details: 'Amoxicillin 500 mg' }),
-    ).toMatch(/Stok Amoxicillin 500 mg tidak cukup/);
+    expect(pharmacyErrorMessage({ code: 'P0001', message: 'insufficient_stock', details: 'Amoxicillin 500 mg' })).toBe(
+      'pharmacy.errors.insufficient_stock|{"item":"Amoxicillin 500 mg"}',
+    );
   });
 });
 
@@ -121,7 +121,7 @@ describe('toDispenseLines', () => {
       ['ingredient', false],
     ]);
 
-    expect(lines[1].group).toBe('Racikan puyer · 10 puyer · 3 x 1');
+    expect(lines[1].compound).toMatchObject({ form: 'puyer', quantity: 10, signa: '3 x 1' });
   });
 });
 

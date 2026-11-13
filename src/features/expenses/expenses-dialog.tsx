@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -20,6 +21,7 @@ import { useActionMutation } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { createExpenseAction } from './expenses.actions';
 import { expenseStyle } from './expenses.constants';
+import { useExpenseCategoryLabel } from './expenses.hooks';
 import { EXPENSE_CATEGORIES, type ExpenseInput, type ExpenseValues, expenseSchema } from './expenses.lib';
 
 type ExpensesDialogProps = {
@@ -27,6 +29,9 @@ type ExpensesDialogProps = {
 };
 
 export function ExpensesDialog(props: ExpensesDialogProps) {
+  const t = useTranslations('expenses.form');
+  const tc = useTranslations('common');
+  const categoryLabel = useExpenseCategoryLabel();
   const [open, setOpen] = useState(false);
   const create = useActionMutation(createExpenseAction);
   const empty: ExpenseInput = { expense_date: props.today, category: '', description: '', amount: '' };
@@ -48,14 +53,12 @@ export function ExpensesDialog(props: ExpensesDialogProps) {
       }}>
       <Button onClick={() => setOpen(true)}>
         <PlusIcon />
-        Catat pengeluaran
+        {t('record')}
       </Button>
       <DialogContent variant="drawer">
         <DialogHeader>
-          <DialogTitle>Catat pengeluaran</DialogTitle>
-          <DialogDescription>
-            Masuk ke laporan laba rugi. Salah catat? Batalkan dengan alasan, tidak dihapus.
-          </DialogDescription>
+          <DialogTitle>{t('record')}</DialogTitle>
+          <DialogDescription>{t('description')}</DialogDescription>
         </DialogHeader>
         <form
           noValidate
@@ -63,13 +66,13 @@ export function ExpensesDialog(props: ExpensesDialogProps) {
           onSubmit={form.handleSubmit((values) =>
             create.mutate(values, {
               onSuccess: () => {
-                toast.success('Pengeluaran tercatat.');
+                toast.success(t('saved'));
                 setOpen(false);
                 form.reset(empty);
               },
             }),
           )}>
-          <FormField label="Jumlah" htmlFor="expense_amount" error={errors.amount?.message}>
+          <FormField label={t('amount')} htmlFor="expense_amount" error={errors.amount?.message}>
             <div className="relative">
               <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
                 Rp
@@ -84,7 +87,7 @@ export function ExpensesDialog(props: ExpensesDialogProps) {
               />
             </div>
           </FormField>
-          <FormField label="Kategori" htmlFor="expense_category" error={errors.category?.message}>
+          <FormField label={t('category')} htmlFor="expense_category" error={errors.category?.message}>
             <div className="flex flex-wrap gap-1.5">
               {EXPENSE_CATEGORIES.map((category) => {
                 const style = expenseStyle(category);
@@ -101,31 +104,31 @@ export function ExpensesDialog(props: ExpensesDialogProps) {
                       selected ? 'border-foreground bg-foreground text-background' : 'bg-card hover:bg-muted',
                     )}>
                     <style.icon className="size-3.5" aria-hidden />
-                    {category}
+                    {categoryLabel(category)}
                   </button>
                 );
               })}
             </div>
             <Input
               id="expense_category"
-              placeholder="Atau tulis kategori lain"
+              placeholder={t('otherCategory')}
               autoComplete="off"
               {...form.register('category')}
             />
           </FormField>
-          <FormField label="Tanggal" htmlFor="expense_date" error={errors.expense_date?.message}>
+          <FormField label={t('date')} htmlFor="expense_date" error={errors.expense_date?.message}>
             <Input id="expense_date" type="date" max={props.today} {...form.register('expense_date')} />
           </FormField>
           <FormField
-            label="Keterangan"
+            label={t('note')}
             htmlFor="expense_description"
             error={errors.description?.message}
-            hint="Opsional, contoh: token listrik November">
+            hint={t('noteHint')}>
             <Input id="expense_description" {...form.register('description')} />
           </FormField>
           <DialogFooter>
             <Button type="submit" disabled={create.isPending}>
-              {create.isPending ? 'Menyimpan…' : 'Simpan pengeluaran'}
+              {create.isPending ? tc('saving') : t('save')}
             </Button>
           </DialogFooter>
         </form>

@@ -1,6 +1,7 @@
 'use client';
 
 import { PencilIcon, UserPlusIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -13,6 +14,7 @@ type PatientsSheetProps =
 
 /** New patient or edit patient, in a drawer over the current page. */
 export function PatientsSheet(props: PatientsSheetProps) {
+  const t = useTranslations('patients.sheet');
   const [open, setOpen] = useState(false);
 
   const close = () => {
@@ -28,26 +30,24 @@ export function PatientsSheet(props: PatientsSheetProps) {
           onClick={() => setOpen(true)}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
           <UserPlusIcon className="size-4" aria-hidden />
-          Daftarkan sebagai pasien baru
+          {t('registerNew')}
         </button>
       ) : props.mode === 'create' ? (
         <Button size={props.trigger === 'compact' ? 'sm' : 'default'} onClick={() => setOpen(true)}>
           <UserPlusIcon />
-          Pasien baru
+          {t('new')}
         </Button>
       ) : (
         <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
           <PencilIcon />
-          Ubah data
+          {t('edit')}
         </Button>
       )}
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>{props.mode === 'create' ? 'Pasien baru' : 'Ubah data pasien'}</SheetTitle>
+          <SheetTitle>{props.mode === 'create' ? t('new') : t('editTitle')}</SheetTitle>
           <SheetDescription>
-            {props.mode === 'create'
-              ? 'Nomor rekam medis dibuat otomatis saat disimpan.'
-              : `No. rekam medis ${props.mrn} tidak berubah.`}
+            {props.mode === 'create' ? t('newHint') : t('editHint', { mrn: props.mrn })}
           </SheetDescription>
         </SheetHeader>
         {props.mode === 'create' ? (

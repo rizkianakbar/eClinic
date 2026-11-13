@@ -27,12 +27,12 @@ import {
 } from './inventory.service';
 
 const MANAGERS = ['owner', 'admin'] as const;
-const NOT_FOUND: ActionResult<never> = { ok: false, error: 'Data tidak ditemukan. Muat ulang halaman.' };
+const NOT_FOUND: ActionResult<never> = { ok: false, error: 'inventory.errors.notFound' };
 const isId = (value: string) => z.uuid().safeParse(value).success;
 
 const invalid = (error: z.ZodError): ActionResult<never> => ({
   ok: false,
-  error: error.issues[0]?.message ?? 'Data tidak valid.',
+  error: error.issues[0]?.message ?? 'errors.invalid',
 });
 
 export async function createMedicineAction(input: MedicineInput): Promise<ActionResult> {
@@ -96,7 +96,7 @@ export async function receivePurchaseAction(input: PurchaseFormInput): Promise<A
 
   const parsed = purchaseFormSchema(todayInJakarta()).safeParse(input);
 
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Data pembelian tidak valid.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'errors.invalid' };
 
   return receivePurchase(await createClient(), toPurchasePayload(parsed.data));
 }
@@ -106,7 +106,7 @@ export async function postStockOpnameAction(input: OpnameValues): Promise<Action
 
   const parsed = opnamePayloadSchema.safeParse(input);
 
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Data opname tidak valid.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'errors.invalid' };
 
   return postStockOpname(await createClient(), parsed.data);
 }

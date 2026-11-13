@@ -8,6 +8,7 @@ import {
   RefreshCwIcon,
   UploadIcon,
 } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -19,6 +20,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { segmentedGroup, segmentedItem } from '@/components/ui/segmented';
+import { INTL_LOCALE } from '@/i18n/locales';
+import { useMessage } from '@/i18n/message';
 import { useActionMutation } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { commitImportAction, previewImportAction } from './data-import.actions';
@@ -30,11 +33,12 @@ type DataImportDialogProps = {
 
 type Filter = 'all' | ImportRowStatus;
 
-const STATUS: Record<ImportRowStatus, { label: string; chip: string }> = {
-  new: { label: 'Baru', chip: 'bg-secondary text-secondary-foreground' },
-  update: { label: 'Berubah', chip: 'bg-sky-50 text-sky-800' },
-  same: { label: 'Tidak berubah', chip: 'bg-muted text-muted-foreground' },
-  invalid: { label: 'Perlu diperbaiki', chip: 'bg-destructive/10 text-destructive' },
+/** Chip per row status; names in messages (dataImport.status.*). */
+const STATUS_CHIP: Record<ImportRowStatus, string> = {
+  new: 'bg-secondary text-secondary-foreground',
+  update: 'bg-sky-50 text-sky-800',
+  same: 'bg-muted text-muted-foreground',
+  invalid: 'bg-destructive/10 text-destructive',
 };
 
 /** Rows drawn at once; the counts above always cover the whole file. */
@@ -46,7 +50,12 @@ const SHOWN = 200;
  * file again on import, so the preview can never be edited into bad data.
  */
 export function DataImportDialog(props: DataImportDialogProps) {
+  const t = useTranslations('dataImport');
+  const locale = useLocale();
+  const message = useMessage();
+  const numbers = new Intl.NumberFormat(INTL_LOCALE[locale]);
   const config = IMPORT_CONFIG[props.kind];
+  const noun = t(`kinds.${props.kind}.noun`);
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [rows, setRows] = useState<ImportPreviewRow[] | null>(null);
@@ -112,23 +121,21 @@ export function DataImportDialog(props: DataImportDialogProps) {
       }}>
       <Button variant="outline" onClick={() => setOpen(true)}>
         <FileSpreadsheetIcon />
-        Impor Excel
+        {t('button')}
       </Button>
       <DialogContent variant="drawer" className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Impor {config.title.toLowerCase()} dari Excel</DialogTitle>
-          <DialogDescription>
-            Tambah atau perbarui banyak {config.noun} sekaligus. Anda melihat pratinjau dulu sebelum ada yang disimpan.
-          </DialogDescription>
+          <DialogTitle>{t('title', { kind: t(`kinds.${props.kind}.title`) })}</DialogTitle>
+          <DialogDescription>{t('description', { noun })}</DialogDescription>
         </DialogHeader>
 
         {step === 'pick' && (
           <div className="flex flex-col gap-5">
             <ol className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               {[
-                { title: 'Unduh template', text: 'Kosong, atau berisi data sekarang untuk mengubah harga sekaligus.' },
-                { title: 'Isi di Excel', text: 'Satu baris satu data. Kolom bertanda * wajib diisi.' },
-                { title: 'Unggah di sini', text: 'Periksa pratinjau, lalu impor baris yang benar.' },
+                { title: t('step1'), text: t('step1Hint') },
+                { title: t('step2'), text: t('step2Hint') },
+                { title: t('step3'), text: t('step3Hint') },
               ].map((item, index) => (
                 <li key={item.title} className="flex gap-2.5 rounded-xl border bg-card p-3">
                   <span className="tabular flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
@@ -148,14 +155,14 @@ export function DataImportDialog(props: DataImportDialogProps) {
                 download
                 className={buttonVariants({ variant: 'outline' })}>
                 <DownloadIcon className="size-4" aria-hidden />
-                Template kosong
+                {t('emptyTemplate')}
               </a>
               <a
                 href={`/api/import-template/${props.kind}?filled=1`}
                 download
                 className={buttonVariants({ variant: 'outline' })}>
                 <DownloadIcon className="size-4" aria-hidden />
-                Template berisi data sekarang
+                {t('filledTemplate')}
               </a>
             </div>
 
@@ -183,11 +190,9 @@ export function DataImportDialog(props: DataImportDialogProps) {
                 )}
               </span>
               <span className="text-sm font-medium">
-                {preview.isPending
-                  ? `Memeriksa ${file?.name ?? 'file'}…`
-                  : 'Tarik file ke sini, atau klik untuk memilih'}
+                {preview.isPending ? t('checking', { name: file?.name ?? 'file' }) : t('drop')}
               </span>
-              <span className="text-xs text-muted-foreground">Excel (.xlsx) atau CSV, maksimal 4 MB</span>
+              <span className="text-xs text-muted-foreground">{t('dropHint')}</span>
               <input
                 type="file"
                 accept=".xlsx,.csv"
@@ -200,16 +205,20 @@ export function DataImportDialog(props: DataImportDialogProps) {
             </label>
 
             <section className="flex flex-col gap-2">
-              <h3 className="text-sm font-semibold">Kolom di template</h3>
+              <div>
+                <h3 className="text-sm font-semibold">{t('columnsTitle')}</h3>
+                {locale !== 'id' && <p className="text-xs text-muted-foreground">{t('columnsNote')}</p>}
+              </div>
               <ul className="divide-y overflow-hidden rounded-xl border bg-card">
                 {config.columns.map((column) => (
                   <li key={column.key} className="flex flex-col gap-0.5 px-3.5 py-2.5 sm:flex-row sm:gap-4">
                     <span className="flex shrink-0 items-center gap-1.5 text-sm font-medium sm:w-40">
                       {column.header}
-                      {column.required && <span className="text-xs font-normal text-destructive">wajib</span>}
+                      {column.required && <span className="text-xs font-normal text-destructive">{t('required')}</span>}
                     </span>
                     <span className="text-[0.8125rem] text-muted-foreground">
-                      {column.hint} <span className="text-foreground/80">Contoh: {column.example}</span>
+                      {t(`columns.${props.kind}.${column.key}` as 'columns.medicines.name')}{' '}
+                      <span className="text-foreground/80">{t('example', { example: column.example })}</span>
                     </span>
                   </li>
                 ))}
@@ -226,19 +235,19 @@ export function DataImportDialog(props: DataImportDialogProps) {
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium">{file?.name}</span>
                   <span className="block text-xs text-muted-foreground">
-                    {rows.length.toLocaleString('id-ID')} baris berisi data
+                    {t('rowsWithData', { count: rows.length })}
                   </span>
                 </span>
               </span>
               <Button variant="ghost" size="sm" onClick={reset}>
-                Ganti file
+                {t('changeFile')}
               </Button>
             </div>
 
             <dl className="grid grid-cols-2 divide-x overflow-hidden rounded-xl border bg-card sm:grid-cols-4 max-sm:[&>*:nth-child(n+3)]:border-t">
               {(['new', 'update', 'same', 'invalid'] as const).map((key) => (
                 <div key={key} className="flex flex-col gap-0.5 px-4 py-3">
-                  <dt className="text-xs text-muted-foreground">{STATUS[key].label}</dt>
+                  <dt className="text-xs text-muted-foreground">{t(`status.${key}`)}</dt>
                   <dd className={cn('numeral text-2xl', key === 'invalid' && counts.invalid > 0 && 'text-destructive')}>
                     {counts[key]}
                   </dd>
@@ -255,27 +264,22 @@ export function DataImportDialog(props: DataImportDialogProps) {
                   onChange={(event) => setUpdateExisting(event.target.checked)}
                 />
                 <span>
-                  <span className="block text-sm font-medium">
-                    Simpan perubahan pada {counts.update} {config.noun} yang sudah ada
-                  </span>
-                  <span className="block text-xs text-muted-foreground">
-                    Dicocokkan dari nama. Jika tidak dicentang, baris ini dilewati dan data lama tetap. Baris yang tidak
-                    berubah selalu dilewati.
-                  </span>
+                  <span className="block text-sm font-medium">{t('saveChanges', { count: counts.update, noun })}</span>
+                  <span className="block text-xs text-muted-foreground">{t('saveChangesHint')}</span>
                 </span>
               </label>
             )}
 
             <div className="flex flex-col gap-2">
               <fieldset className={segmentedGroup}>
-                <legend className="sr-only">Tampilkan baris</legend>
+                <legend className="sr-only">{t('showRows')}</legend>
                 {(['all', 'new', 'update', 'same', 'invalid'] as const).map((key) => (
                   <button
                     key={key}
                     type="button"
                     className={segmentedItem(filter === key)}
                     onClick={() => setFilter(key)}>
-                    {key === 'all' ? 'Semua' : STATUS[key].label}
+                    {key === 'all' ? t('all') : t(`status.${key}`)}
                     <span className="tabular text-xs opacity-70">{key === 'all' ? rows.length : counts[key]}</span>
                   </button>
                 ))}
@@ -284,10 +288,10 @@ export function DataImportDialog(props: DataImportDialogProps) {
                 <table className="w-full text-sm">
                   <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
                     <tr>
-                      <th className="w-14 px-3 py-2 font-medium">Baris</th>
+                      <th className="w-14 px-3 py-2 font-medium">{t('colLine')}</th>
                       <th className="px-3 py-2 font-medium">{config.columns[0].header}</th>
-                      <th className="hidden px-3 py-2 font-medium sm:table-cell">Rincian</th>
-                      <th className="px-3 py-2 text-right font-medium">Status</th>
+                      <th className="hidden px-3 py-2 font-medium sm:table-cell">{t('colDetails')}</th>
+                      <th className="px-3 py-2 text-right font-medium">{t('colStatus')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -296,12 +300,12 @@ export function DataImportDialog(props: DataImportDialogProps) {
                         <td className="tabular px-3 py-2 text-muted-foreground">{row.line}</td>
                         <td className="px-3 py-2">
                           <span className="font-medium">
-                            {row.cells[0] || <span className="text-muted-foreground italic">kosong</span>}
+                            {row.cells[0] || <span className="text-muted-foreground italic">{t('emptyCell')}</span>}
                           </span>
                           {row.errors.map((error) => (
                             <span key={error} className="mt-0.5 flex items-start gap-1 text-xs text-destructive">
                               <CircleAlertIcon className="mt-px size-3 shrink-0" aria-hidden />
-                              {error}
+                              {message(error)}
                             </span>
                           ))}
                         </td>
@@ -312,9 +316,9 @@ export function DataImportDialog(props: DataImportDialogProps) {
                           <span
                             className={cn(
                               'inline-flex h-5 items-center rounded-md px-1.5 text-[0.6875rem] font-medium whitespace-nowrap',
-                              STATUS[row.status].chip,
+                              STATUS_CHIP[row.status],
                             )}>
-                            {row.status === 'update' && !updateExisting ? 'Dilewati' : STATUS[row.status].label}
+                            {row.status === 'update' && !updateExisting ? t('skipped') : t(`status.${row.status}`)}
                           </span>
                         </td>
                       </tr>
@@ -322,22 +326,15 @@ export function DataImportDialog(props: DataImportDialogProps) {
                   </tbody>
                 </table>
                 {visible.length === 0 && (
-                  <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                    Tidak ada baris di kelompok ini.
-                  </p>
+                  <p className="px-3 py-6 text-center text-sm text-muted-foreground">{t('noRows')}</p>
                 )}
                 {visible.length > SHOWN && (
                   <p className="border-t px-3 py-2 text-xs text-muted-foreground">
-                    Menampilkan {SHOWN} dari {visible.length.toLocaleString('id-ID')} baris.
+                    {t('showing', { shown: SHOWN, total: numbers.format(visible.length) })}
                   </p>
                 )}
               </div>
-              {counts.invalid > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  Baris yang perlu diperbaiki tidak ikut diimpor. Perbaiki di Excel lalu unggah lagi; data yang sudah
-                  masuk akan dikenali sebagai &ldquo;Tidak berubah&rdquo;.
-                </p>
-              )}
+              {counts.invalid > 0 && <p className="text-xs text-muted-foreground">{t('invalidNote')}</p>}
             </div>
           </div>
         )}
@@ -347,10 +344,10 @@ export function DataImportDialog(props: DataImportDialogProps) {
             <span className="flex size-12 items-center justify-center rounded-full bg-secondary text-primary">
               <CircleCheckIcon className="size-6" aria-hidden />
             </span>
-            <p className="text-base font-semibold">Impor selesai</p>
+            <p className="text-base font-semibold">{t('done')}</p>
             <p className="max-w-sm text-sm text-muted-foreground">
-              {result.created} {config.noun} baru ditambahkan, {result.updated} diperbarui
-              {result.skipped > 0 && `, ${result.skipped} baris dilewati`}.
+              {t('doneSummary', { created: result.created, updated: result.updated, noun })}
+              {result.skipped > 0 && ` ${t('doneSkipped', { skipped: result.skipped })}`}
             </p>
           </div>
         )}
@@ -360,7 +357,7 @@ export function DataImportDialog(props: DataImportDialogProps) {
             {step === 'preview' ? (
               <>
                 <Button variant="ghost" onClick={reset} disabled={commit.isPending}>
-                  Pilih file lain
+                  {t('pickOther')}
                 </Button>
                 <Button
                   disabled={toSave === 0 || commit.isPending}
@@ -372,11 +369,11 @@ export function DataImportDialog(props: DataImportDialogProps) {
                     if (updateExisting) data.set('update_existing', '1');
                     commit.mutate(data, { onSuccess: setResult });
                   }}>
-                  {commit.isPending ? 'Mengimpor…' : `Impor ${toSave.toLocaleString('id-ID')} baris`}
+                  {commit.isPending ? t('importing') : t('import', { count: toSave })}
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setOpen(false)}>Selesai</Button>
+              <Button onClick={() => setOpen(false)}>{t('finish')}</Button>
             )}
           </DialogFooter>
         )}

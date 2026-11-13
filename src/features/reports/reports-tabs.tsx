@@ -1,15 +1,17 @@
 import { ActivityIcon, BanknoteIcon, HandCoinsIcon, ScaleIcon, UsersIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { NavTabs } from '@/components/ui/nav-tabs';
 import { cn } from '@/lib/utils';
 import type { DateRange, ReportTab } from './reports.lib';
 
-export const REPORTS: { tab: ReportTab; label: string; question: string; icon: typeof BanknoteIcon }[] = [
-  { tab: 'revenue', label: 'Pendapatan', question: 'Berapa uang masuk, dari mana', icon: BanknoteIcon },
-  { tab: 'profit-loss', label: 'Laba rugi', question: 'Untung atau rugi setelah biaya', icon: ScaleIcon },
-  { tab: 'doctor-fees', label: 'Jasa medis', question: 'Berapa hak tiap dokter', icon: HandCoinsIcon },
-  { tab: 'visits', label: 'Kunjungan', question: 'Berapa pasien, baru atau lama', icon: UsersIcon },
-  { tab: 'top-diseases', label: '10 besar penyakit', question: 'Diagnosis paling sering', icon: ActivityIcon },
+/** The reports in menu order; names and questions in messages (reports.tabs.<tab>, <tab>Question). */
+export const REPORTS: { tab: ReportTab; icon: typeof BanknoteIcon }[] = [
+  { tab: 'revenue', icon: BanknoteIcon },
+  { tab: 'profit-loss', icon: ScaleIcon },
+  { tab: 'doctor-fees', icon: HandCoinsIcon },
+  { tab: 'visits', icon: UsersIcon },
+  { tab: 'top-diseases', icon: ActivityIcon },
 ];
 
 type ReportsTabsProps = {
@@ -19,20 +21,21 @@ type ReportsTabsProps = {
 
 /** Which report: a described menu on wide screens, tabs on phones. */
 export function ReportsTabs(props: ReportsTabsProps) {
+  const t = useTranslations('reports.tabs');
   const href = (tab: ReportTab) => `?${new URLSearchParams({ tab, ...props.range })}`;
 
   return (
     <>
       <NavTabs
-        label="Jenis laporan"
+        label={t('label')}
         className="lg:hidden"
         tabs={REPORTS.map((report) => ({
           href: href(report.tab),
-          label: report.label,
+          label: t(report.tab),
           active: props.active === report.tab,
         }))}
       />
-      <nav aria-label="Jenis laporan" className="hidden flex-col gap-1 lg:flex">
+      <nav aria-label={t('label')} className="hidden flex-col gap-1 lg:flex">
         {REPORTS.map((report) => {
           const active = props.active === report.tab;
 
@@ -53,8 +56,8 @@ export function ReportsTabs(props: ReportsTabsProps) {
                 <report.icon className="size-4" aria-hidden />
               </span>
               <span className="min-w-0">
-                <span className={cn('block text-sm', active ? 'font-semibold' : 'font-medium')}>{report.label}</span>
-                <span className="block text-xs text-muted-foreground">{report.question}</span>
+                <span className={cn('block text-sm', active ? 'font-semibold' : 'font-medium')}>{t(report.tab)}</span>
+                <span className="block text-xs text-muted-foreground">{t(`${report.tab}Question`)}</span>
               </span>
             </Link>
           );

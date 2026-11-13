@@ -2,10 +2,12 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon, XIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { useMessage } from '@/i18n/message';
 import { formatRupiah } from '@/lib/money';
 import { useActionMutation } from '@/lib/query';
 import { addProcedureAction, removeProcedureAction } from './exam.actions';
@@ -23,12 +25,13 @@ type ExamProceduresProps = {
 
 /** Procedures done during the visit; billed at the price when added. */
 export function ExamProcedures(props: ExamProceduresProps) {
+  const t = useTranslations('exam.procedures');
   const remove = useActionMutation(removeProcedureAction);
 
   return (
     <div className="flex flex-col gap-2">
       {props.procedures.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Tidak ada tindakan.</p>
+        <p className="text-sm text-muted-foreground">{t('none')}</p>
       ) : (
         <ul className="overflow-hidden rounded-lg border text-sm">
           {props.procedures.map((procedure) => (
@@ -56,7 +59,7 @@ export function ExamProcedures(props: ExamProceduresProps) {
                 <Button
                   size="icon-xs"
                   variant="ghost"
-                  aria-label="Hapus tindakan"
+                  aria-label={t('remove')}
                   disabled={remove.isPending}
                   onClick={() => remove.mutate(procedure.id)}>
                   <XIcon />
@@ -68,9 +71,7 @@ export function ExamProcedures(props: ExamProceduresProps) {
       )}
       {props.editable &&
         (props.options.services.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Belum ada tarif tindakan. Admin bisa menambahkannya di Pengaturan → Tarif layanan.
-          </p>
+          <p className="text-sm text-muted-foreground">{t('noServices')}</p>
         ) : (
           <ProcedureForm {...props} />
         ))}
@@ -79,6 +80,8 @@ export function ExamProcedures(props: ExamProceduresProps) {
 }
 
 function ProcedureForm(props: ExamProceduresProps) {
+  const t = useTranslations();
+  const message = useMessage();
   const add = useActionMutation((values: ProcedureValues) => addProcedureAction(props.visitId, values));
   const empty: ProcedureInput = { service_id: '', qty: '1', performed_by: props.defaultPerformerId };
 
@@ -97,11 +100,11 @@ function ProcedureForm(props: ExamProceduresProps) {
       onSubmit={form.handleSubmit((values) => add.mutate(values, { onSuccess: () => form.reset(empty) }))}>
       <div className="flex flex-wrap items-start gap-2">
         <NativeSelect
-          aria-label="Tindakan"
+          aria-label={t('exam.procedures.procedure')}
           className="min-w-56 flex-1"
           aria-invalid={Boolean(errors.service_id)}
           {...form.register('service_id')}>
-          <NativeSelectOption value="">Pilih tindakan...</NativeSelectOption>
+          <NativeSelectOption value="">{t('exam.procedures.pick')}</NativeSelectOption>
           {props.options.services.map((service) => (
             <NativeSelectOption key={service.id} value={service.id}>
               {service.name} · {formatRupiah(service.price)}
@@ -110,12 +113,15 @@ function ProcedureForm(props: ExamProceduresProps) {
         </NativeSelect>
         <Input
           className="w-20"
-          aria-label="Jumlah"
+          aria-label={t('exam.procedures.qty')}
           inputMode="numeric"
           aria-invalid={Boolean(errors.qty)}
           {...form.register('qty')}
         />
-        <NativeSelect aria-label="Pelaksana" className="min-w-40" {...form.register('performed_by')}>
+        <NativeSelect
+          aria-label={t('exam.procedures.performer')}
+          className="min-w-40"
+          {...form.register('performed_by')}>
           {props.options.performers.map((performer) => (
             <NativeSelectOption key={performer.id} value={performer.id}>
               {performer.full_name}
@@ -124,10 +130,10 @@ function ProcedureForm(props: ExamProceduresProps) {
         </NativeSelect>
         <Button type="submit" variant="outline" disabled={add.isPending}>
           <PlusIcon />
-          Tambah
+          {t('common.add')}
         </Button>
       </div>
-      {firstError && <p className="text-[0.8125rem] text-destructive">{firstError}</p>}
+      {firstError && <p className="text-[0.8125rem] text-destructive">{message(firstError)}</p>}
     </form>
   );
 }

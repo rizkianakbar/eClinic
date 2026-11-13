@@ -166,13 +166,9 @@ describe('nextToCall', () => {
 
 describe('queueErrorMessage', () => {
   it('maps guard keys', () => {
-    expect(queueErrorMessage({ code: 'P0001', message: 'not_your_patient' })).toMatch(/dokter yang menangani/);
-
-    expect(queueErrorMessage({ code: 'P0001', message: 'vitals_required' })).toMatch(
-      /Tanda vital pasien ini belum dicatat/,
-    );
-
-    expect(queueErrorMessage({ code: 'XX' })).toMatch(/gagal diperbarui/);
+    expect(queueErrorMessage({ code: 'P0001', message: 'not_your_patient' })).toBe('queue.errors.not_your_patient');
+    expect(queueErrorMessage({ code: 'P0001', message: 'vitals_required' })).toBe('queue.errors.vitals_required');
+    expect(queueErrorMessage({ code: 'XX' })).toBe('queue.errors.failed');
   });
 });
 

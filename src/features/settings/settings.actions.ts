@@ -34,10 +34,10 @@ const MANAGERS = ['owner', 'admin'] as const;
 const id = z.uuid();
 
 function invalid(error: z.ZodError): ActionResult<never> {
-  return { ok: false, error: error.issues[0]?.message ?? 'Data tidak valid.' };
+  return { ok: false, error: error.issues[0]?.message ?? 'errors.invalid' };
 }
 
-const NOT_FOUND: ActionResult<never> = { ok: false, error: 'Data tidak ditemukan. Muat ulang halaman.' };
+const NOT_FOUND: ActionResult<never> = { ok: false, error: 'settings.errors.notFound' };
 
 export async function createStaffAction(input: StaffCreateInput): Promise<ActionResult> {
   const session = await requireRole(...MANAGERS);
@@ -120,7 +120,7 @@ export async function uploadClinicLogoAction(formData: FormData): Promise<Action
   const session = await requireRole(...MANAGERS);
   const file = formData.get('logo');
 
-  if (!(file instanceof File) || file.size === 0) return { ok: false, error: 'Pilih file logo.' };
+  if (!(file instanceof File) || file.size === 0) return { ok: false, error: 'settings.errors.pickLogo' };
 
   const fileError = logoFileError(file);
 
@@ -142,9 +142,9 @@ export async function importIcd10Action(formData: FormData) {
 
   const file = formData.get('file');
 
-  if (!(file instanceof File) || file.size === 0) return { ok: false as const, error: 'Pilih file ICD-10.' };
-  if (!/\.(xlsx|csv)$/i.test(file.name)) return { ok: false as const, error: 'File harus Excel (.xlsx) atau CSV.' };
-  if (file.size > ICD10_MAX_BYTES) return { ok: false as const, error: 'Ukuran file maksimal 4 MB.' };
+  if (!(file instanceof File) || file.size === 0) return { ok: false as const, error: 'settings.errors.pickIcd10' };
+  if (!/\.(xlsx|csv)$/i.test(file.name)) return { ok: false as const, error: 'settings.errors.icd10Type' };
+  if (file.size > ICD10_MAX_BYTES) return { ok: false as const, error: 'settings.errors.icd10Size' };
 
   return importIcd10(createAdminClient(), file);
 }

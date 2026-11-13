@@ -1,4 +1,5 @@
 import { CalendarRangeIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { NavTabs } from '@/components/ui/nav-tabs';
 import { SegmentedSkeleton } from '@/components/ui/segmented-skeleton';
 import { Skeleton, SkeletonButton, SkeletonLine } from '@/components/ui/skeleton';
@@ -7,16 +8,18 @@ import { REPORTS } from './reports-tabs';
 
 /** The period filter (ReportsRangeFilter): presets and dates drawn as they will be, the current period unknown. */
 export function ReportsRangeFilterSkeleton() {
+  const t = useTranslations('reports.range');
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-2 shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
       <div className="flex flex-wrap items-center gap-2">
         <CalendarRangeIcon className="ml-1.5 size-4 text-muted-foreground" aria-hidden />
-        <span className="text-sm font-medium">Periode</span>
-        <SegmentedSkeleton options={['Hari ini', '7 hari', 'Bulan ini', 'Bulan lalu']} selected={null} />
+        <span className="text-sm font-medium">{t('period')}</span>
+        <SegmentedSkeleton options={[t('today'), t('week'), t('thisMonth'), t('lastMonth')]} selected={null} />
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Skeleton className="h-8 w-38 rounded-lg" />
-        <span className="text-sm text-muted-foreground">s/d</span>
+        <span className="text-sm text-muted-foreground">{t('until')}</span>
         <Skeleton className="h-8 w-38 rounded-lg" />
         <SkeletonButton size="sm" className="w-24" />
       </div>
@@ -26,12 +29,14 @@ export function ReportsRangeFilterSkeleton() {
 
 /** The report menu: every report with its real label and question; which one is open comes with the page. */
 export function ReportsTabsSkeleton() {
+  const t = useTranslations('reports.tabs');
+
   return (
     <>
       <NavTabs
-        label="Jenis laporan"
+        label={t('label')}
         className="lg:hidden"
-        tabs={REPORTS.map((report) => ({ href: `?tab=${report.tab}`, label: report.label, active: false }))}
+        tabs={REPORTS.map((report) => ({ href: `?tab=${report.tab}`, label: t(report.tab), active: false }))}
       />
       <nav aria-hidden className="hidden flex-col gap-1 lg:flex">
         {REPORTS.map((report) => (
@@ -40,8 +45,8 @@ export function ReportsTabsSkeleton() {
               <report.icon className="size-4" aria-hidden />
             </span>
             <span className="min-w-0">
-              <span className="block text-sm font-medium">{report.label}</span>
-              <span className="block text-xs text-muted-foreground">{report.question}</span>
+              <span className="block text-sm font-medium">{t(report.tab)}</span>
+              <span className="block text-xs text-muted-foreground">{t(`${report.tab}Question`)}</span>
             </span>
           </span>
         ))}
@@ -103,12 +108,16 @@ export function ReportsChartSkeleton(props: { title: string }) {
 
 /** A report's body while it loads (the revenue report's shape: numbers, chart, two breakdowns). */
 export function ReportBodySkeleton() {
+  const t = useTranslations('reports');
+
   return (
-    <div className="flex flex-col gap-6" role="status" aria-busy aria-label="Memuat laporan">
-      <ReportsKpisSkeleton labels={['Pendapatan (umum)', 'Tagihan lunas', 'Diskon', 'Kunjungan BPJS']} />
-      <ReportsChartSkeleton title="Pendapatan per hari" />
+    <div className="flex flex-col gap-6" role="status" aria-busy aria-label={t('loading')}>
+      <ReportsKpisSkeleton
+        labels={[t('revenue.kpiRevenue'), t('revenue.kpiInvoices'), t('revenue.kpiDiscounts'), t('revenue.kpiBpjs')]}
+      />
+      <ReportsChartSkeleton title={t('revenue.perDay')} />
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        {['Per poli', 'Per metode pembayaran'].map((title) => (
+        {[t('revenue.perPoli'), t('revenue.perMethod')].map((title) => (
           <ReportsSection key={title} title={title}>
             <ul className="flex flex-col gap-4 p-4">
               {['a', 'b'].map((key) => (

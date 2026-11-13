@@ -36,7 +36,7 @@ export async function updatePatient(
   const { data, error } = await supabase.from('patients').update(values).eq('id', patientId).select('id').maybeSingle();
 
   if (error) return { ok: false, error: patientWriteErrorMessage(error) };
-  if (!data) return { ok: false, error: 'Pasien tidak ditemukan. Muat ulang halaman lalu coba lagi.' };
+  if (!data) return { ok: false, error: 'patients.errors.notFoundReload' };
 
   return { ok: true, data: undefined };
 }

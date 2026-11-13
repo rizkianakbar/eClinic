@@ -12,10 +12,10 @@ import {
 
 describe('greeting', () => {
   it('follows the Indonesian time of day', () => {
-    expect(greeting(7)).toBe('Selamat pagi');
-    expect(greeting(12)).toBe('Selamat siang');
-    expect(greeting(16)).toBe('Selamat sore');
-    expect(greeting(20)).toBe('Selamat malam');
+    expect(greeting(7)).toBe('morning');
+    expect(greeting(12)).toBe('midday');
+    expect(greeting(16)).toBe('afternoon');
+    expect(greeting(20)).toBe('evening');
   });
 
   it('reads the hour in Jakarta', () => {

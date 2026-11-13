@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { KeyRoundIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -26,6 +27,8 @@ type SettingsStaffPasswordDialogProps = {
 };
 
 export function SettingsStaffPasswordDialog(props: SettingsStaffPasswordDialogProps) {
+  const t = useTranslations('settings.staffPassword');
+  const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
 
   const reset = useActionMutation((values: StaffPasswordValues) =>
@@ -48,14 +51,12 @@ export function SettingsStaffPasswordDialog(props: SettingsStaffPasswordDialogPr
       }}>
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
         <KeyRoundIcon />
-        Atur ulang kata sandi
+        {t('button')}
       </Button>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Atur ulang kata sandi</DialogTitle>
-          <DialogDescription>
-            Kata sandi baru untuk {props.name}. Berikan langsung ke staf yang bersangkutan.
-          </DialogDescription>
+          <DialogTitle>{t('button')}</DialogTitle>
+          <DialogDescription>{t('description', { name: props.name })}</DialogDescription>
         </DialogHeader>
         <form
           noValidate
@@ -63,17 +64,17 @@ export function SettingsStaffPasswordDialog(props: SettingsStaffPasswordDialogPr
           onSubmit={form.handleSubmit((values) =>
             reset.mutate(values, {
               onSuccess: () => {
-                toast.success('Kata sandi diganti.');
+                toast.success(t('done'));
                 setOpen(false);
                 form.reset();
               },
             }),
           )}>
           <FormField
-            label="Kata sandi baru"
+            label={t('label')}
             htmlFor="new_password"
             error={errors.password?.message}
-            hint="min. 8 karakter">
+            hint={tc('minChars', { count: 8 })}>
             <Input
               id="new_password"
               type="text"
@@ -85,7 +86,7 @@ export function SettingsStaffPasswordDialog(props: SettingsStaffPasswordDialogPr
           </FormField>
           <DialogFooter>
             <Button type="submit" disabled={reset.isPending}>
-              {reset.isPending ? 'Menyimpan...' : 'Simpan kata sandi'}
+              {reset.isPending ? tc('saving') : t('save')}
             </Button>
           </DialogFooter>
         </form>

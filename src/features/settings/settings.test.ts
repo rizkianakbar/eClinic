@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { keyed } from '@/i18n/keyed';
 import {
   assignableRoles,
   auditSubject,
@@ -39,19 +40,19 @@ describe('staffCreateSchema', () => {
   it('requires a password of at least 8 characters', () => {
     const result = staffCreateSchema.safeParse({ ...valid, password: '1234567' });
 
-    expect(result.error?.issues[0]?.message).toBe('Kata sandi minimal 8 karakter.');
+    expect(result.error?.issues[0]?.message).toBe('settings.errors.passwordMin');
   });
 
   it('rejects an unknown role', () => {
     const result = staffCreateSchema.safeParse({ ...valid, role: '' });
 
-    expect(result.error?.issues[0]?.message).toBe('Pilih peran.');
+    expect(result.error?.issues[0]?.message).toBe('settings.errors.pickRole');
   });
 
   it('rejects a NIK that is not 16 digits', () => {
     const result = staffSchema.safeParse({ ...valid, nik: '123' });
 
-    expect(result.error?.issues[0]?.message).toBe('NIK harus 16 digit angka.');
+    expect(result.error?.issues[0]?.message).toBe('settings.errors.nik');
   });
 
   it('accepts its own output, so the action can re-check parsed form values', () => {
@@ -78,19 +79,19 @@ describe('poliSchema', () => {
     });
 
     expect(poliSchema.safeParse({ name: '', bpjs_poli_code: '' }).error?.issues[0]?.message).toBe(
-      'Nama poli wajib diisi.',
+      'settings.errors.poliNameRequired',
     );
   });
 });
 
 describe('error messages', () => {
   it('explains a duplicate email', () => {
-    expect(staffAuthErrorMessage({ code: 'email_exists' })).toMatch(/sudah dipakai/);
+    expect(staffAuthErrorMessage({ code: 'email_exists' })).toBe('settings.errors.emailTaken');
   });
 
   it("uses the caller's duplicate message for unique violations", () => {
-    expect(masterDataErrorMessage({ code: '23505' }, 'Nama poli ini sudah ada.')).toBe('Nama poli ini sudah ada.');
-    expect(masterDataErrorMessage({ code: '42501' }, '')).toMatch(/tidak punya akses/);
+    expect(masterDataErrorMessage({ code: '23505' }, 'errors.duplicate.poli')).toBe('errors.duplicate.poli');
+    expect(masterDataErrorMessage({ code: '42501' }, '')).toBe('errors.noAccessMaster');
   });
 });
 
@@ -116,8 +117,8 @@ describe('clinicProfileSchema and logoFileError', () => {
   });
 
   it('checks logo type and size', () => {
-    expect(logoFileError({ type: 'image/gif', size: 10 })).toMatch(/PNG, JPG/);
-    expect(logoFileError({ type: 'image/png', size: 2 * 1024 * 1024 })).toMatch(/1 MB/);
+    expect(logoFileError({ type: 'image/gif', size: 10 })).toBe('settings.errors.logoType');
+    expect(logoFileError({ type: 'image/png', size: 2 * 1024 * 1024 })).toBe('settings.errors.logoSize');
     expect(logoFileError({ type: 'image/png', size: 1000 })).toBeNull();
   });
 });
@@ -143,8 +144,8 @@ describe('ICD-10 import', () => {
     expect(result.rows).toEqual([{ code: 'J06.9', name: 'Acute URI (updated)', name_id: null }]);
 
     expect(result.skipped).toEqual([
-      { line: 3, reason: 'Kode "XX" bukan format ICD-10.' },
-      { line: 4, reason: 'Nama penyakit untuk A09 kosong.' },
+      { line: 3, reason: keyed('settings.errors.icd10BadCode', { code: 'XX' }) },
+      { line: 4, reason: keyed('settings.errors.icd10NoName', { code: 'A09' }) },
     ]);
   });
 });
@@ -157,15 +158,24 @@ describe('changedFields', () => {
         { name: 'Paracetamol', price: 600, updated_at: 'b', is_active: false },
       ),
     ).toEqual([
-      { field: 'price', label: 'price', from: '500', to: '600', ref: false },
-      { field: 'is_active', label: 'is active', from: 'Aktif', to: 'Nonaktif', ref: false },
+      { field: 'price', from: { kind: 'text', value: '500' }, to: { kind: 'text', value: '600' }, ref: false },
+      {
+        field: 'is_active',
+        from: { kind: 'active', value: true },
+        to: { kind: 'active', value: false },
+        ref: false,
+      },
     ]);
 
     expect(changedFields(null, { a: 1 })).toEqual([]);
 
-    expect(changedFields({ poli_id: 'a', note: null }, { poli_id: 'b', note: 'x' }, { note: 'Catatan' })).toEqual([
-      { field: 'poli_id', label: 'poli id', from: 'a', to: 'b', ref: true },
-      { field: 'note', label: 'Catatan', from: 'kosong', to: 'x', ref: false },
+    expect(changedFields({ poli_id: 'a', note: null }, { poli_id: 'b', note: 'x' })).toEqual([
+      { field: 'poli_id', from: { kind: 'text', value: 'a' }, to: { kind: 'text', value: 'b' }, ref: true },
+      { field: 'note', from: { kind: 'empty' }, to: { kind: 'text', value: 'x' }, ref: false },
+    ]);
+
+    expect(changedFields({ status: 'draft' }, { status: 'paid' })).toEqual([
+      { field: 'status', from: { kind: 'code', value: 'draft' }, to: { kind: 'code', value: 'paid' }, ref: false },
     ]);
   });
 });

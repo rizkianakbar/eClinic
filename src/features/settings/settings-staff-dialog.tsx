@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { type ReactNode, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -17,7 +18,6 @@ import {
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
-import { ROLE_LABELS } from '@/features/auth/auth.constants';
 import type { Role } from '@/lib/auth';
 import { useActionMutation } from '@/lib/query';
 import { createStaffAction, updateStaffAction } from './settings.actions';
@@ -49,6 +49,7 @@ type SettingsStaffDialogProps = { actorRole: Role } & (
 );
 
 export function SettingsStaffDialog(props: SettingsStaffDialogProps) {
+  const t = useTranslations('settings.staffForm');
   const [open, setOpen] = useState(false);
 
   return (
@@ -56,21 +57,17 @@ export function SettingsStaffDialog(props: SettingsStaffDialogProps) {
       {props.mode === 'create' ? (
         <Button onClick={() => setOpen(true)}>
           <PlusIcon />
-          Tambah staf
+          {t('add')}
         </Button>
       ) : (
         <Button variant="outline" size="xs" onClick={() => setOpen(true)}>
-          Kelola
+          {t('manage')}
         </Button>
       )}
       <DialogContent variant="drawer">
         <DialogHeader>
-          <DialogTitle>{props.mode === 'create' ? 'Tambah staf' : props.staff.full_name}</DialogTitle>
-          <DialogDescription>
-            {props.mode === 'create'
-              ? 'Staf masuk dengan email dan kata sandi ini. Berikan langsung ke orangnya.'
-              : 'Ubah nama, peran, atau data praktik. Email tidak bisa diganti.'}
-          </DialogDescription>
+          <DialogTitle>{props.mode === 'create' ? t('add') : props.staff.full_name}</DialogTitle>
+          <DialogDescription>{props.mode === 'create' ? t('createHint') : t('editHint')}</DialogDescription>
         </DialogHeader>
         <StaffForm {...props} onDone={() => setOpen(false)} />
       </DialogContent>
@@ -81,6 +78,7 @@ export function SettingsStaffDialog(props: SettingsStaffDialogProps) {
 type StaffFormProps = SettingsStaffDialogProps & { onDone: () => void };
 
 function StaffForm(props: StaffFormProps) {
+  const t = useTranslations();
   const isCreate = props.mode === 'create';
   const create = useActionMutation(createStaffAction);
 
@@ -104,7 +102,7 @@ function StaffForm(props: StaffFormProps) {
 
   function onSubmit(values: StaffCreateValues) {
     const onSuccess = () => {
-      toast.success(isCreate ? 'Akun staf dibuat. Berikan email dan kata sandinya ke staf.' : 'Data staf tersimpan.');
+      toast.success(t(isCreate ? 'settings.staffForm.created' : 'settings.staffForm.saved'));
       props.onDone();
     };
 
@@ -114,16 +112,20 @@ function StaffForm(props: StaffFormProps) {
 
   return (
     <form noValidate className="flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
-      <FormField label="Nama lengkap" htmlFor="full_name" error={errors.full_name?.message} hint="dengan gelar">
+      <FormField
+        label={t('settings.staffForm.fullName')}
+        htmlFor="full_name"
+        error={errors.full_name?.message}
+        hint={t('settings.staffForm.fullNameHint')}>
         <Input id="full_name" autoFocus aria-invalid={Boolean(errors.full_name)} {...form.register('full_name')} />
       </FormField>
 
-      <FormField label="Peran" htmlFor="role" error={errors.role?.message}>
+      <FormField label={t('settings.staffForm.role')} htmlFor="role" error={errors.role?.message}>
         <NativeSelect id="role" className="w-full" aria-invalid={Boolean(errors.role)} {...form.register('role')}>
-          <NativeSelectOption value="">Pilih...</NativeSelectOption>
+          <NativeSelectOption value="">{t('settings.staffForm.pick')}</NativeSelectOption>
           {assignableRoles(props.actorRole).map((value) => (
             <NativeSelectOption key={value} value={value}>
-              {ROLE_LABELS[value]}
+              {t(`roles.${value}`)}
             </NativeSelectOption>
           ))}
         </NativeSelect>
@@ -131,7 +133,11 @@ function StaffForm(props: StaffFormProps) {
 
       {isCreate && (
         <>
-          <FormField label="Email" htmlFor="email" error={errors.email?.message} hint="untuk login">
+          <FormField
+            label={t('settings.staffForm.email')}
+            htmlFor="email"
+            error={errors.email?.message}
+            hint={t('settings.staffForm.emailHint')}>
             <Input
               id="email"
               type="email"
@@ -140,7 +146,11 @@ function StaffForm(props: StaffFormProps) {
               {...form.register('email')}
             />
           </FormField>
-          <FormField label="Kata sandi awal" htmlFor="password" error={errors.password?.message} hint="min. 8 karakter">
+          <FormField
+            label={t('settings.staffForm.password')}
+            htmlFor="password"
+            error={errors.password?.message}
+            hint={t('settings.staffForm.passwordHint')}>
             <Input
               id="password"
               type="text"
@@ -154,10 +164,18 @@ function StaffForm(props: StaffFormProps) {
 
       {(role === 'doctor' || role === 'nurse' || role === 'pharmacist') && (
         <>
-          <FormField label="NIK" htmlFor="nik" error={errors.nik?.message} hint="untuk SATUSEHAT">
+          <FormField
+            label={t('settings.staffForm.nik')}
+            htmlFor="nik"
+            error={errors.nik?.message}
+            hint={t('settings.staffForm.nikHint')}>
             <Input id="nik" inputMode="numeric" aria-invalid={Boolean(errors.nik)} {...form.register('nik')} />
           </FormField>
-          <FormField label="Nomor SIP" htmlFor="sip_number" error={errors.sip_number?.message} hint="opsional">
+          <FormField
+            label={t('settings.staffForm.sip')}
+            htmlFor="sip_number"
+            error={errors.sip_number?.message}
+            hint={t('common.optional')}>
             <Input id="sip_number" aria-invalid={Boolean(errors.sip_number)} {...form.register('sip_number')} />
           </FormField>
         </>
@@ -165,17 +183,15 @@ function StaffForm(props: StaffFormProps) {
 
       {props.mode === 'edit' && props.access && (
         <section className="mt-2 flex flex-col gap-2 border-t pt-5">
-          <h3 className="text-sm font-semibold">Akses akun</h3>
-          <p className="text-[0.8125rem] text-muted-foreground">
-            Atur ulang kata sandi jika staf lupa. Nonaktifkan saat staf berhenti; aksesnya langsung dicabut.
-          </p>
+          <h3 className="text-sm font-semibold">{t('settings.staffForm.access')}</h3>
+          <p className="text-[0.8125rem] text-muted-foreground">{t('settings.staffForm.accessHint')}</p>
           <div className="flex flex-wrap gap-2">{props.access}</div>
         </section>
       )}
 
       <DialogFooter>
         <Button type="submit" disabled={pending}>
-          {pending ? 'Menyimpan…' : isCreate ? 'Buat akun' : 'Simpan perubahan'}
+          {pending ? t('common.saving') : isCreate ? t('settings.staffForm.create') : t('settings.staffForm.save')}
         </Button>
       </DialogFooter>
     </form>

@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -18,6 +19,8 @@ type Medicine = MedicineValues & { id: string };
 type InventoryMedicineDialogProps = { mode: 'create' } | { mode: 'edit'; medicine: Medicine };
 
 export function InventoryMedicineDialog(props: InventoryMedicineDialogProps) {
+  const t = useTranslations('inventory.medicineForm');
+  const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
 
   return (
@@ -25,16 +28,18 @@ export function InventoryMedicineDialog(props: InventoryMedicineDialogProps) {
       {props.mode === 'create' ? (
         <Button onClick={() => setOpen(true)}>
           <PlusIcon />
-          Tambah obat
+          {t('add')}
         </Button>
       ) : (
         <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-          Ubah
+          {tc('edit')}
         </Button>
       )}
       <DialogContent variant="drawer">
         <DialogHeader>
-          <DialogTitle>{props.mode === 'create' ? 'Tambah obat' : `Ubah ${props.medicine.name}`}</DialogTitle>
+          <DialogTitle>
+            {props.mode === 'create' ? t('add') : t('editTitle', { name: props.medicine.name })}
+          </DialogTitle>
         </DialogHeader>
         <MedicineForm {...props} onDone={() => setOpen(false)} />
       </DialogContent>
@@ -43,6 +48,9 @@ export function InventoryMedicineDialog(props: InventoryMedicineDialogProps) {
 }
 
 function MedicineForm(props: InventoryMedicineDialogProps & { onDone: () => void }) {
+  const t = useTranslations('inventory.medicineForm');
+  const tc = useTranslations('common');
+
   const save = useActionMutation((values: MedicineValues) =>
     props.mode === 'create' ? createMedicineAction(values) : updateMedicineAction(props.medicine.id, values),
   );
@@ -64,20 +72,20 @@ function MedicineForm(props: InventoryMedicineDialogProps & { onDone: () => void
       onSubmit={form.handleSubmit((values) =>
         save.mutate(values, {
           onSuccess: () => {
-            toast.success('Obat tersimpan.');
+            toast.success(t('saved'));
             props.onDone();
           },
         }),
       )}>
       <FormField
-        label="Nama obat"
+        label={t('name')}
         htmlFor="medicine_name"
         error={errors.name?.message}
-        hint="dengan kekuatan, contoh: Paracetamol 500 mg"
+        hint={t('nameHint')}
         className="sm:col-span-2">
         <Input id="medicine_name" autoFocus aria-invalid={Boolean(errors.name)} {...form.register('name')} />
       </FormField>
-      <FormField label="Satuan" htmlFor="medicine_unit" error={errors.unit?.message}>
+      <FormField label={t('unit')} htmlFor="medicine_unit" error={errors.unit?.message}>
         <Input
           id="medicine_unit"
           list="medicine_units"
@@ -90,7 +98,7 @@ function MedicineForm(props: InventoryMedicineDialogProps & { onDone: () => void
           ))}
         </datalist>
       </FormField>
-      <FormField label="Harga jual" htmlFor="medicine_price" error={errors.price?.message} hint="per satuan">
+      <FormField label={t('price')} htmlFor="medicine_price" error={errors.price?.message} hint={t('priceHint')}>
         <Input
           id="medicine_price"
           inputMode="numeric"
@@ -98,7 +106,7 @@ function MedicineForm(props: InventoryMedicineDialogProps & { onDone: () => void
           {...form.register('price')}
         />
       </FormField>
-      <FormField label="Stok minimum" htmlFor="medicine_min_stock" error={errors.min_stock?.message}>
+      <FormField label={t('minStock')} htmlFor="medicine_min_stock" error={errors.min_stock?.message}>
         <Input
           id="medicine_min_stock"
           type="number"
@@ -107,12 +115,12 @@ function MedicineForm(props: InventoryMedicineDialogProps & { onDone: () => void
           {...form.register('min_stock')}
         />
       </FormField>
-      <FormField label="Kode KFA" htmlFor="medicine_kfa" error={errors.kfa_code?.message} hint="untuk SATUSEHAT">
+      <FormField label={t('kfa')} htmlFor="medicine_kfa" error={errors.kfa_code?.message} hint={t('kfaHint')}>
         <Input id="medicine_kfa" aria-invalid={Boolean(errors.kfa_code)} {...form.register('kfa_code')} />
       </FormField>
       <DialogFooter className="sm:col-span-2">
         <Button type="submit" disabled={save.isPending}>
-          {save.isPending ? 'Menyimpan...' : 'Simpan'}
+          {save.isPending ? tc('saving') : tc('save')}
         </Button>
       </DialogFooter>
     </form>

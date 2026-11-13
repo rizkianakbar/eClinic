@@ -19,12 +19,12 @@ describe('expenseSchema', () => {
     expect(
       schema.safeParse({ expense_date: '2026-11-13', category: 'A', description: '', amount: '1' }).error?.issues[0]
         ?.message,
-    ).toBe('Tanggal tidak boleh di masa depan.');
+    ).toBe('expenses.errors.dateFuture');
 
     expect(
       schema.safeParse({ expense_date: '2026-11-12', category: 'A', description: '', amount: '0' }).error?.issues[0]
         ?.message,
-    ).toBe('Jumlah harus lebih dari 0.');
+    ).toBe('expenses.errors.amountPositive');
   });
 });
 

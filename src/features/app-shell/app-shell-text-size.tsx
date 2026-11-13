@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useSyncExternalStore } from 'react';
 import { segmentedGroup, segmentedRadioItem } from '@/components/ui/segmented';
 import { parseTextSize, TEXT_SIZE_STORAGE_KEY, TEXT_SIZES, type TextSize } from './app-shell.lib';
@@ -30,25 +31,26 @@ function applyTextSize(size: TextSize) {
 
 /** Per-computer text size (shared PCs: each workstation keeps its own). */
 export function AppShellTextSize() {
+  const t = useTranslations('shell.textSize');
   const size = useSyncExternalStore(subscribe, readTextSize, () => 'normal' as const);
 
   return (
     <fieldset className={segmentedGroup}>
-      <legend className="sr-only">Ukuran teks</legend>
+      <legend className="sr-only">{t('label')}</legend>
       {TEXT_SIZES.map((option, index) => (
-        <label key={option.value} className={segmentedRadioItem}>
+        <label key={option} className={segmentedRadioItem}>
           <input
             type="radio"
             name="text-size"
-            value={option.value}
-            checked={size === option.value}
-            onChange={() => applyTextSize(option.value)}
+            value={option}
+            checked={size === option}
+            onChange={() => applyTextSize(option)}
             className="sr-only"
           />
           <span className="font-semibold" style={{ fontSize: `${0.75 + index * 0.15}rem` }} aria-hidden>
             A
           </span>
-          {option.label}
+          {t(option)}
         </label>
       ))}
     </fieldset>

@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { Panel } from '@/components/ui/panel';
 import { placeholders, Skeleton, SkeletonButton, SkeletonLine } from '@/components/ui/skeleton';
 import { QueueDeskSkeleton } from '@/features/queue/queue-skeleton';
@@ -71,17 +72,19 @@ export function HomeDeskSkeleton(props: HomeDeskSkeletonProps) {
 }
 
 function OwnerSkeleton() {
+  const t = useTranslations();
+
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Panel
-          title="Tren 14 hari"
-          link={{ href: '/reports', label: 'Laporan' }}
+          title={t('home.owner.trend')}
+          link={{ href: '/reports', label: t('home.owner.reports') }}
           variant="bare"
           className="lg:col-span-2">
           <div className="flex flex-1 flex-col overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
             <div className="grid grid-cols-2 border-b">
-              {['Pendapatan hari ini', 'Pasien hari ini'].map((label, index) => (
+              {[t('home.owner.revenueToday'), t('home.owner.patientsToday')].map((label, index) => (
                 <div
                   key={label}
                   className={cn(
@@ -116,7 +119,7 @@ function OwnerSkeleton() {
             </div>
           </div>
         </Panel>
-        <Panel title="Pasien sekarang" link={{ href: '/queue', label: 'Antrean' }} className="h-full">
+        <Panel title={t('home.owner.now')} link={{ href: '/queue', label: t('home.owner.queue') }} className="h-full">
           <div className="flex h-full flex-col">
             <ul className="flex flex-1 flex-col justify-around gap-3 p-5">
               {JOURNEY.map((station) => (
@@ -124,7 +127,7 @@ function OwnerSkeleton() {
                   <span className="flex items-center justify-between gap-3">
                     <span className="flex items-center gap-2">
                       <span className={cn('size-2 rounded-full', STATION_COLORS[station.status].line)} aria-hidden />
-                      {station.label}
+                      {t(`journey.${station.status}.label`)}
                     </span>
                     <Skeleton className="h-3 w-4 rounded" />
                   </span>
@@ -140,14 +143,17 @@ function OwnerSkeleton() {
         </Panel>
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Panel title="Belum dibayar" dot="bg-line-cashier" link={{ href: '/cashier', label: 'Kasir' }}>
+        <Panel
+          title={t('home.owner.unpaid')}
+          dot="bg-line-cashier"
+          link={{ href: '/cashier', label: t('home.owner.cashier') }}>
           <ul>
             {placeholders(3).map((key) => (
               <HomeDeskRowSkeleton key={key} />
             ))}
           </ul>
         </Panel>
-        <Panel title="Stok perlu dipesan" link={{ href: '/inventory?filter=low', label: 'Stok obat' }}>
+        <Panel title={t('home.owner.reorder')} link={{ href: '/inventory?filter=low', label: t('home.owner.stock') }}>
           <ul>
             {placeholders(4).map((key) => (
               <li key={key} className="flex items-center gap-4 border-b px-4 py-3 last:border-0">
@@ -167,9 +173,11 @@ function OwnerSkeleton() {
 }
 
 function NurseSkeleton() {
+  const t = useTranslations('home.nurse');
+
   return (
     <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-      <Panel title="Perlu tanda vital" dot="bg-line-waiting" link={{ href: '/queue', label: 'Antrean' }}>
+      <Panel title={t('needsVitals')} dot="bg-line-waiting" link={{ href: '/queue', label: t('queue') }}>
         <ul>
           {placeholders(3).map((key) => (
             <li key={key} className="flex items-center gap-3 border-b px-4 py-3 last:border-0">
@@ -184,7 +192,7 @@ function NurseSkeleton() {
           ))}
         </ul>
       </Panel>
-      <Panel title="Sudah dicatat">
+      <Panel title={t('recorded')}>
         <ul>
           {placeholders(3).map((key) => (
             <li key={key} className="flex items-center gap-3 border-b px-4 py-2.5 last:border-0">
@@ -202,9 +210,11 @@ function NurseSkeleton() {
 }
 
 function AdminSkeleton() {
+  const t = useTranslations('home.admin');
+
   return (
     <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-      <Panel title="Aktivitas terbaru" link={{ href: '/settings/activity', label: 'Log aktivitas' }}>
+      <Panel title={t('recent')} link={{ href: '/settings/activity', label: t('log') }}>
         <ul>
           {placeholders(8).map((key) => (
             <li key={key} className="flex items-start gap-3 border-b px-4 py-3 last:border-0">
@@ -224,10 +234,12 @@ function AdminSkeleton() {
 
 /** Resep masuk (the pharmacist's station) while it loads. */
 export function HomePharmacySkeleton() {
+  const t = useTranslations('home.pharmacy');
+
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 divide-x divide-y overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)] lg:grid-cols-4 lg:divide-y-0">
-        {['Resep menunggu', 'Diserahkan hari ini', 'Stok menipis', 'Kedaluwarsa ≤ 3 bulan'].map((label) => (
+        {[t('waiting'), t('handed'), t('low'), t('expiring')].map((label) => (
           <div key={label} className="flex min-w-0 flex-col gap-0.5 px-5 py-4">
             <span className="text-xs font-medium text-muted-foreground">{label}</span>
             <SkeletonLine size="numeral-2xl" className="w-10" />
@@ -264,7 +276,7 @@ export function HomePharmacySkeleton() {
               ))}
             </ol>
           </section>
-          <Panel title="Antre berikutnya" dot="bg-line-pharmacy">
+          <Panel title={t('next')} dot="bg-line-pharmacy">
             <ol className="divide-y">
               {placeholders(2).map((key) => (
                 <li key={key} className="flex items-start gap-3 px-4 py-3">
@@ -283,7 +295,7 @@ export function HomePharmacySkeleton() {
           </Panel>
         </div>
         <div className="flex flex-col gap-6">
-          <Panel title="Stok perlu dipesan" link={{ href: '/inventory?filter=low', label: 'Stok' }}>
+          <Panel title={t('reorder')} link={{ href: '/inventory?filter=low', label: t('stock') }}>
             <ul className="divide-y">
               {placeholders(4).map((key) => (
                 <li key={key} className="flex flex-col gap-1.5 px-4 py-2.5">
@@ -296,7 +308,7 @@ export function HomePharmacySkeleton() {
               ))}
             </ul>
           </Panel>
-          <Panel title="Diserahkan hari ini">
+          <Panel title={t('handed')}>
             <ul className="divide-y">
               {placeholders(3).map((key) => (
                 <li key={key} className="flex items-center gap-3 px-4 py-2.5">
@@ -318,12 +330,14 @@ export function HomePharmacySkeleton() {
 
 /** Kasir (the cashier's station) while it loads. */
 export function HomeCashierSkeleton() {
+  const t = useTranslations();
+
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-2.5">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           <span className="size-2 rounded-full bg-line-cashier" aria-hidden />
-          Menunggu pembayaran
+          {t('home.cashier.waiting')}
           <Skeleton className="h-5 w-6 rounded-md" />
         </h2>
         <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -353,16 +367,16 @@ export function HomeCashierSkeleton() {
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <section className="flex min-w-0 flex-col gap-2.5">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
-            Transaksi hari ini
+            {t('home.cashier.today')}
             <Skeleton className="h-5 w-6 rounded-md" />
           </h2>
           <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
             <div className="hidden grid-cols-[3rem_minmax(0,1.4fr)_minmax(0,1fr)_7rem_7.5rem_2rem] gap-3 border-b bg-muted/40 px-4 py-2 text-xs font-medium text-muted-foreground md:grid">
-              <span>Jam</span>
-              <span>Pasien</span>
-              <span>No. tagihan</span>
-              <span>Metode</span>
-              <span className="text-right">Jumlah</span>
+              <span>{t('home.cashier.time')}</span>
+              <span>{t('home.cashier.patient')}</span>
+              <span>{t('home.cashier.invoiceNo')}</span>
+              <span>{t('home.cashier.method')}</span>
+              <span className="text-right">{t('home.cashier.amount')}</span>
               <span />
             </div>
             <ul>
@@ -391,7 +405,7 @@ export function HomeCashierSkeleton() {
           </div>
         </section>
         <aside className="flex flex-col gap-2.5 lg:sticky lg:top-20">
-          <h2 className="text-sm font-semibold">Metode pembayaran</h2>
+          <h2 className="text-sm font-semibold">{t('home.cashier.methods')}</h2>
           <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
             <div className="flex flex-col gap-3 p-4">
               <div className="h-2.5 rounded-full bg-muted" aria-hidden />
@@ -400,7 +414,7 @@ export function HomeCashierSkeleton() {
                   <li key={method.key} className="flex items-center gap-2.5 text-sm">
                     <span className={cn('size-2.5 rounded-sm', method.tone)} aria-hidden />
                     <method.icon className="size-4 text-muted-foreground" aria-hidden />
-                    <span className="flex-1">{method.label}</span>
+                    <span className="flex-1">{t(`paymentMethod.${method.key}`)}</span>
                     <SkeletonLine size="xs" className="w-5" />
                     <span className="flex w-24 justify-end">
                       <SkeletonLine className="w-16" />
@@ -410,7 +424,7 @@ export function HomeCashierSkeleton() {
               </ul>
             </div>
             <dl className="grid grid-cols-2 gap-px border-t bg-border">
-              {['Rata-rata per tagihan', 'Diskon diberikan'].map((label) => (
+              {[t('home.cashier.average'), t('home.cashier.discounts')].map((label) => (
                 <div key={label} className="flex flex-col gap-0.5 bg-card px-4 py-3">
                   <span className="text-xs text-muted-foreground">{label}</span>
                   <SkeletonLine className="w-20" />

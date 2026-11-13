@@ -1,18 +1,22 @@
 import { HeartPulseIcon } from 'lucide-react';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { devLoginEnabled, listTestAccounts } from '@/features/auth/auth.service';
 import { LoginForm } from '@/features/auth/auth-login-form';
 import { AuthTestAccounts } from '@/features/auth/auth-test-accounts';
 import { JOURNEY } from '@/features/visits/visits.lib';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-export const metadata: Metadata = { title: 'Masuk' };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations('auth.login'))('title') };
+}
 
 const STATION_DOTS = ['#d4952b', '#3a7bd5', '#7a5bd1', '#22936f', '#8fa29d'];
 
 export default async function LoginPage(props: PageProps<'/login'>) {
   const { reason } = await props.searchParams;
   const testAccounts = devLoginEnabled() ? await listTestAccounts(createAdminClient()) : [];
+  const t = await getTranslations();
 
   return (
     <main className="grid grid-cols-1 min-h-dvh bg-background lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
@@ -25,9 +29,7 @@ export default async function LoginPage(props: PageProps<'/login'>) {
         </div>
 
         <div className="flex max-w-md flex-col gap-10">
-          <p className="text-[2rem] leading-[1.15] font-semibold tracking-tight">
-            Satu alur untuk setiap pasien, dari pendaftaran sampai pulang.
-          </p>
+          <p className="text-[2rem] leading-[1.15] font-semibold tracking-tight">{t('auth.login.tagline')}</p>
           {/* The patient journey, the idea the whole app is built around. */}
           <ol className="grid grid-cols-5" aria-hidden>
             {JOURNEY.map((station, index) => (
@@ -42,13 +44,13 @@ export default async function LoginPage(props: PageProps<'/login'>) {
                   className="relative size-3 rounded-full ring-4 ring-[#0f2f28]"
                   style={{ background: STATION_DOTS[index] }}
                 />
-                <span className="text-xs text-white/70">{station.short}</span>
+                <span className="text-xs text-white/70">{t(`journey.${station.status}.short`)}</span>
               </li>
             ))}
           </ol>
         </div>
 
-        <p className="text-sm text-white/55">Rekam medis elektronik · Farmasi · Kasir · Laporan</p>
+        <p className="text-sm text-white/55">{t('auth.login.modules')}</p>
       </section>
 
       <section className="flex items-start justify-center px-6 pt-[max(3rem,env(safe-area-inset-top))] pb-10 sm:px-10 lg:items-center">
@@ -60,20 +62,18 @@ export default async function LoginPage(props: PageProps<'/login'>) {
             <span className="font-semibold">e-clinic</span>
           </div>
           <div className="flex flex-col gap-1.5">
-            <h1 className="text-[1.75rem] leading-tight font-semibold tracking-tight">Masuk</h1>
-            <p className="text-sm text-muted-foreground">Gunakan email dan kata sandi akun staf Anda.</p>
+            <h1 className="text-[1.75rem] leading-tight font-semibold tracking-tight">{t('auth.login.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('auth.login.subtitle')}</p>
           </div>
           {reason === 'idle' && (
             <p
               role="status"
               className="rounded-lg border border-status-waiting/20 bg-status-waiting-soft px-3.5 py-3 text-sm text-status-waiting">
-              Anda keluar otomatis karena komputer tidak dipakai beberapa saat. Silakan masuk kembali.
+              {t('auth.login.idle')}
             </p>
           )}
           <LoginForm />
-          <p className="text-[0.8125rem] text-muted-foreground">
-            Lupa kata sandi? Minta admin klinik mengatur ulang di Pengaturan → Staf.
-          </p>
+          <p className="text-[0.8125rem] text-muted-foreground">{t('auth.login.forgot')}</p>
           {testAccounts.length > 0 && <AuthTestAccounts accounts={testAccounts} />}
         </div>
       </section>

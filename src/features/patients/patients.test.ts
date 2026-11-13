@@ -37,13 +37,13 @@ describe('patientSchema', () => {
   it('rejects a NIK that is not 16 digits', () => {
     const result = patientSchema.safeParse({ ...valid, nik: '12345' });
 
-    expect(result.error?.issues[0]?.message).toMatch(/NIK harus 16 digit/);
+    expect(result.error?.issues[0]?.message).toBe('patients.errors.nik');
   });
 
   it('rejects a BPJS number that is not 13 digits', () => {
     const result = patientSchema.safeParse({ ...valid, bpjs_number: '0001234' });
 
-    expect(result.error?.issues[0]?.message).toMatch(/BPJS harus 13 digit/);
+    expect(result.error?.issues[0]?.message).toBe('patients.errors.bpjs');
   });
 
   it('requires name, birth date and sex', () => {
@@ -51,20 +51,20 @@ describe('patientSchema', () => {
     const messages = result.error?.issues.map((issue) => issue.message);
 
     expect(messages).toEqual(
-      expect.arrayContaining(['Nama pasien wajib diisi.', 'Tanggal lahir wajib diisi.', 'Pilih jenis kelamin.']),
+      expect.arrayContaining(['patients.errors.nameRequired', 'patients.errors.birthRequired', 'patients.errors.sex']),
     );
   });
 
   it('rejects a birth date in the future', () => {
     const result = patientSchema.safeParse({ ...valid, birth_date: '2999-01-01' });
 
-    expect(result.error?.issues[0]?.message).toMatch(/masa depan/);
+    expect(result.error?.issues[0]?.message).toBe('patients.errors.birthFuture');
   });
 
   it('rejects an invalid phone', () => {
     const result = patientSchema.safeParse({ ...valid, phone: '123' });
 
-    expect(result.error?.issues[0]?.message).toMatch(/Nomor HP tidak valid/);
+    expect(result.error?.issues[0]?.message).toBe('patients.errors.phone');
   });
 });
 
@@ -108,15 +108,15 @@ describe('patientWriteErrorMessage', () => {
   it('explains duplicate NIK and BPJS numbers', () => {
     expect(
       patientWriteErrorMessage({ code: '23505', message: 'violates unique constraint "patients_clinic_nik_key"' }),
-    ).toMatch(/NIK ini sudah terdaftar/);
+    ).toBe('patients.errors.nikTaken');
 
     expect(
       patientWriteErrorMessage({ code: '23505', message: 'violates unique constraint "patients_clinic_bpjs_key"' }),
-    ).toMatch(/BPJS ini sudah terdaftar/);
+    ).toBe('patients.errors.bpjsTaken');
   });
 
   it('falls back to a generic message', () => {
-    expect(patientWriteErrorMessage({ code: 'XX000' })).toMatch(/gagal disimpan/);
+    expect(patientWriteErrorMessage({ code: 'XX000' })).toBe('patients.errors.failed');
   });
 });
 

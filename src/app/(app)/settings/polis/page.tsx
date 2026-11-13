@@ -1,10 +1,10 @@
-import type { Metadata } from 'next';
 import { listConsultationServices, listPolis } from '@/features/settings/settings.service';
 import { SettingsPolis } from '@/features/settings/settings-polis';
+import { pageTitle } from '@/i18n/metadata';
 import { requireRole } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: 'Poli' };
+export const generateMetadata = pageTitle('settings.tabs.polis');
 
 export default async function PolisPage() {
   await requireRole('owner', 'admin');

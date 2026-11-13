@@ -1,10 +1,10 @@
-/** Indonesian greeting by Jakarta hour. */
+/** The time of day for the greeting, by Jakarta hour (message key under home.greeting). */
 export function greeting(hour: number) {
-  if (hour < 11) return 'Selamat pagi';
-  if (hour < 15) return 'Selamat siang';
-  if (hour < 18) return 'Selamat sore';
+  if (hour < 11) return 'morning';
+  if (hour < 15) return 'midday';
+  if (hour < 18) return 'afternoon';
 
-  return 'Selamat malam';
+  return 'evening';
 }
 
 /** Current hour in Asia/Jakarta. */

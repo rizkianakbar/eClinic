@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { keyed } from '@/i18n/keyed';
 import { parseImportRows, sameAsSaved } from './data-import.lib';
 
 function rows(result: ReturnType<typeof parseImportRows>) {
@@ -41,7 +42,7 @@ describe('parseImportRows', () => {
 
     expect(parsed[0]).toMatchObject({ ok: false });
     expect(parsed[0]!.ok === false && parsed[0]!.errors.length).toBe(2);
-    expect(parsed[2]).toMatchObject({ ok: false, errors: ['Nama sama dengan baris 3. Hapus salah satu.'] });
+    expect(parsed[2]).toMatchObject({ ok: false, errors: [keyed('dataImport.errors.duplicateName', { line: 3 })] });
   });
 
   it('maps Indonesian labels for service type and doctor fee', () => {

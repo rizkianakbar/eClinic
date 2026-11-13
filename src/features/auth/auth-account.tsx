@@ -1,22 +1,24 @@
+import { useLocale, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { SkeletonLine } from '@/components/ui/skeleton';
 import { AppShellTextSizePreview } from '@/features/app-shell/app-shell-text-size-preview';
 import { initials } from '@/features/patients/patients.lib';
 import type { Session } from '@/lib/auth';
 import { formatDate } from '@/lib/dates';
-import { ROLE_LABELS } from './auth.constants';
 import type { getOwnProfile } from './auth.service';
 import { AuthChangePasswordForm } from './auth-change-password-form';
+import { AuthLocaleSwitch } from './auth-locale-switch';
 import { SignOutButton } from './auth-sign-out-button';
 
-const SHORTCUTS: [string[], string][] = [
-  [['Ctrl', 'K'], 'Cari pasien dari halaman mana pun (⌘ K di Mac)'],
-  [['/'], 'Cari pasien (saat tidak sedang mengetik)'],
-  [['↑', '↓'], 'Pilih hasil pencarian'],
-  [['Enter'], 'Buka pasien, atau daftarkan kunjungan'],
-  [['Ctrl', 'S'], 'Simpan draf catatan SOAP'],
-  [['Esc'], 'Tutup panel atau dialog'],
-];
+/** Keys, and the message key (account.shortcuts.*) of what they do. */
+const SHORTCUTS = [
+  [['Ctrl', 'K'], 'search'],
+  [['/'], 'slash'],
+  [['↑', '↓'], 'arrows'],
+  [['Enter'], 'enter'],
+  [['Ctrl', 'S'], 'save'],
+  [['Esc'], 'esc'],
+] as const;
 
 type AuthAccountProps = {
   session: Session;
@@ -27,6 +29,8 @@ type AuthAccountProps = {
 /** Akun saya: who I am here, my password, this computer's text size, shortcuts, and signing out. */
 export function AuthAccount(props: AuthAccountProps) {
   const { session } = props;
+  const t = useTranslations();
+  const locale = useLocale();
   const clinical = session.role === 'doctor' || session.role === 'nurse' || session.role === 'pharmacist';
 
   return (
@@ -38,52 +42,55 @@ export function AuthAccount(props: AuthAccountProps) {
         <div className="min-w-0">
           <h1 className="text-[1.5rem] leading-tight font-semibold tracking-tight">{session.fullName}</h1>
           <p className="text-sm text-muted-foreground">
-            {ROLE_LABELS[session.role]} di {session.clinicName}
-            {props.profile?.created_at && ` · akun sejak ${formatDate(props.profile.created_at)}`}
+            {t('account.roleAt', { role: t(`roles.${session.role}`), clinic: session.clinicName })}
+            {props.profile?.created_at && t('account.since', { date: formatDate(props.profile.created_at, locale) })}
           </p>
         </div>
       </header>
 
-      <Section title="Profil" description="Data diri Anda di klinik. Untuk mengubahnya, hubungi admin klinik.">
+      <Section title={t('account.profile.title')} description={t('account.profile.description')}>
         <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-          <Fact label="Nama lengkap" value={session.fullName} />
+          <Fact label={t('account.profile.fullName')} value={session.fullName} />
           <Fact
-            label="Email (untuk masuk)"
+            label={t('account.profile.email')}
             value={props.profile === undefined ? undefined : (props.profile?.email ?? '–')}
           />
-          <Fact label="Peran" value={ROLE_LABELS[session.role]} />
-          <Fact label="Klinik" value={session.clinicName} />
+          <Fact label={t('account.profile.role')} value={t(`roles.${session.role}`)} />
+          <Fact label={t('account.profile.clinic')} value={session.clinicName} />
           {clinical && (
-            <Fact label="NIK" value={props.profile === undefined ? undefined : (props.profile?.nik ?? 'Belum diisi')} />
+            <Fact
+              label={t('account.profile.nik')}
+              value={props.profile === undefined ? undefined : (props.profile?.nik ?? t('account.profile.notSet'))}
+            />
           )}
           {clinical && (
             <Fact
-              label="Nomor SIP"
-              value={props.profile === undefined ? undefined : (props.profile?.sip_number ?? 'Belum diisi')}
+              label={t('account.profile.sip')}
+              value={
+                props.profile === undefined ? undefined : (props.profile?.sip_number ?? t('account.profile.notSet'))
+              }
             />
           )}
         </dl>
       </Section>
 
-      <Section
-        id="kata-sandi"
-        title="Kata sandi"
-        description="Gunakan minimal 8 karakter. Jangan pakai kata sandi yang sama dengan akun lain.">
+      <Section id="kata-sandi" title={t('account.password.title')} description={t('account.password.description')}>
         <AuthChangePasswordForm />
       </Section>
 
-      <Section title="Tampilan" description="Ukuran teks berlaku di komputer ini saja, untuk semua halaman.">
+      <Section title={t('auth.locale.title')} description={t('auth.locale.description')}>
+        <AuthLocaleSwitch />
+      </Section>
+
+      <Section title={t('account.display.title')} description={t('account.display.description')}>
         <AppShellTextSizePreview />
       </Section>
 
-      <Section
-        id="pintasan"
-        title="Pintasan keyboard"
-        description="Lebih cepat tanpa mouse, terutama di meja pendaftaran.">
+      <Section id="pintasan" title={t('account.shortcuts.title')} description={t('account.shortcuts.description')}>
         <ul className="flex flex-col divide-y">
-          {SHORTCUTS.map(([keys, label]) => (
-            <li key={label} className="flex items-center justify-between gap-4 py-2.5 text-sm first:pt-0 last:pb-0">
-              <span>{label}</span>
+          {SHORTCUTS.map(([keys, what]) => (
+            <li key={what} className="flex items-center justify-between gap-4 py-2.5 text-sm first:pt-0 last:pb-0">
+              <span>{t(`account.shortcuts.${what}`)}</span>
               <span className="flex shrink-0 gap-1">
                 {keys.map((key) => (
                   <kbd
@@ -99,8 +106,8 @@ export function AuthAccount(props: AuthAccountProps) {
       </Section>
 
       <Section
-        title="Sesi"
-        description={`Komputer bersama: Anda otomatis keluar setelah ${session.idleLogoutMinutes} menit tidak dipakai. Keluar sendiri saat meninggalkan meja.`}>
+        title={t('account.session.title')}
+        description={t('account.session.description', { minutes: session.idleLogoutMinutes })}>
         <SignOutButton />
       </Section>
     </div>

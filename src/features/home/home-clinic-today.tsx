@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { initials } from '@/features/patients/patients.lib';
 import type { PracticeSession } from '@/features/visits/visits.lib';
@@ -13,15 +14,9 @@ type HomeClinicTodayProps = {
   href?: string;
 };
 
-const STATE_LABEL = {
-  open: 'Buka sekarang',
-  before: 'Belum buka',
-  after: 'Sudah tutup',
-  closed: 'Tidak ada jadwal',
-} as const;
-
 /** Is the clinic open, until when, and who is practising today. */
 export function HomeClinicToday(props: HomeClinicTodayProps) {
+  const t = useTranslations('home.clinic');
   const hours = clinicHours(props.sessions, props.now);
   const doctors = [...new Set(props.sessions.map((session) => session.doctorName))];
   const shown = doctors.slice(0, 4);
@@ -38,10 +33,10 @@ export function HomeClinicToday(props: HomeClinicTodayProps) {
             )}
             aria-hidden
           />
-          {STATE_LABEL[hours.state]}
+          {t(hours.state)}
         </span>
         <span className="tabular text-xs text-muted-foreground">
-          {hours.from && hours.to ? `${dot(hours.from)}–${dot(hours.to)} WIB` : 'Atur jadwal dokter'}
+          {hours.from && hours.to ? t('hours', { from: dot(hours.from), to: dot(hours.to) }) : t('setUp')}
         </span>
       </div>
       {doctors.length > 0 && (
@@ -63,10 +58,12 @@ export function HomeClinicToday(props: HomeClinicTodayProps) {
             )}
           </span>
           <span className="flex min-w-0 flex-col">
-            <span className="truncate text-sm font-medium">{doctors.length} dokter praktik</span>
+            <span className="truncate text-sm font-medium">{t('doctors', { count: doctors.length })}</span>
             <span className="truncate text-xs text-muted-foreground">
-              {props.sessions.length} sesi · kuota {props.sessions.reduce((sum, session) => sum + session.quota, 0)}{' '}
-              pasien
+              {t('sessions', {
+                sessions: props.sessions.length,
+                quota: props.sessions.reduce((sum, session) => sum + session.quota, 0),
+              })}
             </span>
           </span>
         </div>
@@ -81,10 +78,11 @@ type FrameProps = {
 };
 
 function Frame(props: FrameProps) {
+  const t = useTranslations('home.clinic');
   const className = 'flex items-stretch divide-x rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]';
 
   return props.href ? (
-    <Link href={props.href} title="Jadwal dokter" className={cn(className, 'transition-colors hover:border-input')}>
+    <Link href={props.href} title={t('schedules')} className={cn(className, 'transition-colors hover:border-input')}>
       {props.children}
     </Link>
   ) : (

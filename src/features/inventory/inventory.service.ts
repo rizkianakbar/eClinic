@@ -38,7 +38,7 @@ export async function listMedicines(supabase: SupabaseClient, options: { query: 
   return { medicines: data, total: count ?? 0 };
 }
 
-const DUPLICATE_MEDICINE = 'Nama obat ini sudah ada. Gunakan nama lain atau ubah obat yang sudah ada.';
+const DUPLICATE_MEDICINE = 'errors.duplicate.medicine';
 
 export async function createMedicine(supabase: SupabaseClient, values: MedicineValues): Promise<ActionResult> {
   const { error } = await supabase.from('medicines').insert(values);
@@ -60,7 +60,7 @@ export async function updateMedicine(
 
   if (error) return { ok: false, error: masterDataErrorMessage(error, DUPLICATE_MEDICINE) };
 
-  return data ? ok : { ok: false, error: 'Obat tidak ditemukan. Muat ulang halaman.' };
+  return data ? ok : { ok: false, error: 'inventory.errors.medicineNotFound' };
 }
 
 // Suppliers -------------------------------------------------------------------
@@ -77,7 +77,7 @@ export async function listSuppliers(supabase: SupabaseClient) {
   return data;
 }
 
-const DUPLICATE_SUPPLIER = 'Nama supplier ini sudah ada.';
+const DUPLICATE_SUPPLIER = 'errors.duplicate.supplier';
 
 export async function createSupplier(supabase: SupabaseClient, values: SupplierValues): Promise<ActionResult> {
   const { error } = await supabase.from('suppliers').insert(values);
@@ -99,7 +99,7 @@ export async function updateSupplier(
 
   if (error) return { ok: false, error: masterDataErrorMessage(error, DUPLICATE_SUPPLIER) };
 
-  return data ? ok : { ok: false, error: 'Supplier tidak ditemukan. Muat ulang halaman.' };
+  return data ? ok : { ok: false, error: 'inventory.errors.supplierNotFound' };
 }
 
 // Stock --------------------------------------------------------------------------

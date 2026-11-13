@@ -1,5 +1,6 @@
 import { ArrowRightIcon, CheckCheckIcon, PackageCheckIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Elapsed } from '@/components/ui/elapsed';
 import { Panel, PanelEmpty } from '@/components/ui/panel';
 import type { getOwnerDashboard } from '@/features/reports/reports.service';
@@ -25,6 +26,7 @@ type HomeOwnerProps = {
 /** The owner's day: money and patients against the last two weeks, where patients are now, what is stuck. */
 export function HomeOwner(props: HomeOwnerProps) {
   const { dashboard } = props;
+  const t = useTranslations();
 
   const unpaidTotal = props.unpaid.reduce(
     (sum, visit) => sum + (visit.payer_type === 'umum' ? (visit.billTotal ?? 0) : 0),
@@ -43,27 +45,27 @@ export function HomeOwner(props: HomeOwnerProps) {
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Panel
-          title="Tren 14 hari"
-          link={{ href: '/reports', label: 'Laporan' }}
+          title={t('home.owner.trend')}
+          link={{ href: '/reports', label: t('home.owner.reports') }}
           variant="bare"
           className="lg:col-span-2">
           <HomeOwnerTrend
             metrics={[
               {
                 key: 'revenue',
-                label: 'Pendapatan hari ini',
+                label: t('home.owner.revenueToday'),
                 value: formatRupiah(dashboard.revenue),
                 delta: percentChange(dashboard.revenue, props.revenue.at(-2)?.value ?? 0),
-                hint: `${dashboard.paidInvoices} tagihan lunas`,
+                hint: t('home.owner.paidInvoices', { count: dashboard.paidInvoices }),
                 series: props.revenue,
                 unit: 'rupiah',
               },
               {
                 key: 'patients',
-                label: 'Pasien hari ini',
+                label: t('home.owner.patientsToday'),
                 value: String(dashboard.patients),
                 delta: percentChange(dashboard.patients, props.patients.at(-2)?.value ?? 0),
-                hint: `${dashboard.bpjsPatients} BPJS`,
+                hint: t('home.owner.bpjsCount', { count: dashboard.bpjsPatients }),
                 series: props.patients,
                 unit: 'count',
               },
@@ -72,9 +74,9 @@ export function HomeOwner(props: HomeOwnerProps) {
         </Panel>
 
         <Panel
-          title="Pasien sekarang"
+          title={t('home.owner.now')}
           count={dashboard.patients}
-          link={{ href: '/queue', label: 'Antrean' }}
+          link={{ href: '/queue', label: t('home.owner.queue') }}
           className="h-full">
           <div className="flex h-full flex-col">
             <ul className="flex flex-1 flex-col justify-around gap-3 p-5">
@@ -87,7 +89,7 @@ export function HomeOwner(props: HomeOwnerProps) {
                     <span className="flex items-center justify-between gap-3">
                       <span className="flex items-center gap-2">
                         <span className={cn('size-2 rounded-full', color.line)} aria-hidden />
-                        {station.label}
+                        {t(`journey.${station.status}.label`)}
                       </span>
                       <span className="tabular font-semibold">{count}</span>
                     </span>
@@ -103,11 +105,14 @@ export function HomeOwner(props: HomeOwnerProps) {
             </ul>
             <p className="flex items-center justify-between gap-3 border-t bg-muted/30 px-5 py-3 text-[0.8125rem] text-muted-foreground">
               <span>
-                <span className="tabular font-semibold text-foreground">{counts.done}</span> dari{' '}
-                <span className="tabular">{dashboard.patients}</span> sudah pulang
+                {t.rich('home.owner.wentHome', {
+                  done: counts.done,
+                  total: dashboard.patients,
+                  b: (chunks) => <span className="tabular font-semibold text-foreground">{chunks}</span>,
+                })}
               </span>
               <span>
-                Batal{' '}
+                {t('home.owner.cancelled')}{' '}
                 <span className="tabular font-semibold text-foreground">
                   {dashboard.byStatus.get('cancelled') ?? 0}
                 </span>
@@ -119,17 +124,17 @@ export function HomeOwner(props: HomeOwnerProps) {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Panel
-          title="Belum dibayar"
+          title={t('home.owner.unpaid')}
           count={props.unpaid.length}
           dot="bg-line-cashier"
-          link={{ href: '/cashier', label: 'Kasir' }}
+          link={{ href: '/cashier', label: t('home.owner.cashier') }}
           action={
             unpaidTotal > 0 && (
               <span className="tabular ml-auto text-[0.8125rem] font-medium">± {formatRupiah(unpaidTotal)}</span>
             )
           }>
           {props.unpaid.length === 0 ? (
-            <PanelEmpty icon={<CheckCheckIcon />} title="Tidak ada tagihan tertunda" />
+            <PanelEmpty icon={<CheckCheckIcon />} title={t('home.owner.noneUnpaid')} />
           ) : (
             <ul className="max-h-96 overflow-y-auto">
               {props.unpaid.map((visit) => (
@@ -158,11 +163,11 @@ export function HomeOwner(props: HomeOwnerProps) {
         </Panel>
 
         <Panel
-          title="Stok perlu dipesan"
+          title={t('home.owner.reorder')}
           count={props.lowStock.length}
-          link={{ href: '/inventory?filter=low', label: 'Stok obat' }}>
+          link={{ href: '/inventory?filter=low', label: t('home.owner.stock') }}>
           {props.lowStock.length === 0 ? (
-            <PanelEmpty icon={<PackageCheckIcon />} title="Semua stok di atas minimum" />
+            <PanelEmpty icon={<PackageCheckIcon />} title={t('home.owner.stockOk')} />
           ) : (
             <ul className="max-h-96 overflow-y-auto">
               {props.lowStock.map((medicine) => {

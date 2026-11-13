@@ -10,12 +10,11 @@ import { dispense } from './pharmacy.service';
 export async function dispenseAction(visitId: string, input: DispenseValues): Promise<ActionResult> {
   await requireRole('pharmacist');
 
-  if (!z.uuid().safeParse(visitId).success)
-    return { ok: false, error: 'Kunjungan tidak ditemukan. Muat ulang halaman.' };
+  if (!z.uuid().safeParse(visitId).success) return { ok: false, error: 'pharmacy.errors.notFound' };
 
   const parsed = dispensePayloadSchema.safeParse(input);
 
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Data penyerahan tidak valid.' };
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'pharmacy.errors.invalid' };
 
   return dispense(await createClient(), visitId, parsed.data);
 }

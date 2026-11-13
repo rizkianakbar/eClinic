@@ -18,7 +18,18 @@ export type NavIcon =
 
 export type NavItem = {
   href: string;
-  label: string;
+  /** Message key under `nav`. */
+  label:
+    | 'dashboard'
+    | 'registration'
+    | 'patients'
+    | 'queue'
+    | 'pharmacy'
+    | 'cashier'
+    | 'inventory'
+    | 'reports'
+    | 'expenses'
+    | 'settings';
   icon: NavIcon;
   group: 'service' | 'management';
   roles: readonly Role[] | 'all';
@@ -28,20 +39,20 @@ export type NavItem = {
 export const NAV_ITEMS: readonly NavItem[] = [
   {
     href: '/dashboard',
-    label: 'Beranda',
+    label: 'dashboard',
     icon: 'home',
     group: 'service',
     roles: ['owner', 'admin', 'doctor', 'nurse'],
   },
-  { href: '/registration', label: 'Pendaftaran', icon: 'register', group: 'service', roles: PATIENT_EDITOR_ROLES },
-  { href: '/patients', label: 'Pasien', icon: 'patients', group: 'service', roles: PATIENT_VIEWER_ROLES },
-  { href: '/queue', label: 'Antrean', icon: 'queue', group: 'service', roles: QUEUE_VIEWER_ROLES },
-  { href: '/pharmacy', label: 'Resep masuk', icon: 'prescriptions', group: 'service', roles: ['pharmacist'] },
-  { href: '/cashier', label: 'Kasir', icon: 'cashier', group: 'service', roles: CASHIER_ROLES },
-  { href: '/inventory', label: 'Stok obat', icon: 'stock', group: 'management', roles: PHARMACY_ROLES },
-  { href: '/reports', label: 'Laporan', icon: 'reports', group: 'management', roles: ['owner'] },
-  { href: '/expenses', label: 'Pengeluaran', icon: 'expenses', group: 'management', roles: ['owner'] },
-  { href: '/settings', label: 'Pengaturan', icon: 'settings', group: 'management', roles: ['owner', 'admin'] },
+  { href: '/registration', label: 'registration', icon: 'register', group: 'service', roles: PATIENT_EDITOR_ROLES },
+  { href: '/patients', label: 'patients', icon: 'patients', group: 'service', roles: PATIENT_VIEWER_ROLES },
+  { href: '/queue', label: 'queue', icon: 'queue', group: 'service', roles: QUEUE_VIEWER_ROLES },
+  { href: '/pharmacy', label: 'pharmacy', icon: 'prescriptions', group: 'service', roles: ['pharmacist'] },
+  { href: '/cashier', label: 'cashier', icon: 'cashier', group: 'service', roles: CASHIER_ROLES },
+  { href: '/inventory', label: 'inventory', icon: 'stock', group: 'management', roles: PHARMACY_ROLES },
+  { href: '/reports', label: 'reports', icon: 'reports', group: 'management', roles: ['owner'] },
+  { href: '/expenses', label: 'expenses', icon: 'expenses', group: 'management', roles: ['owner'] },
+  { href: '/settings', label: 'settings', icon: 'settings', group: 'management', roles: ['owner', 'admin'] },
 ];
 
 /** Roles whose home is their station page; /dashboard sends them there. */
@@ -57,14 +68,22 @@ export function navItemsFor(role: Role, items: readonly NavItem[] = NAV_ITEMS) {
 
 type StationStatus = 'waiting' | 'to_pharmacy' | 'to_cashier';
 
-/** The station each role works, and whose arrivals it should be told about. */
+/** The station each role works, and whose arrivals it should be told about (`label`: key under shell.station). */
 export const ROLE_STATION: Partial<
-  Record<Role, { status: StationStatus; label: string; href: string; ownPatientsOnly?: boolean }>
+  Record<
+    Role,
+    {
+      status: StationStatus;
+      label: 'doctor' | 'nurse' | 'pharmacist' | 'cashier';
+      href: string;
+      ownPatientsOnly?: boolean;
+    }
+  >
 > = {
-  doctor: { status: 'waiting', label: 'Pasien Anda menunggu', href: '/queue', ownPatientsOnly: true },
-  nurse: { status: 'waiting', label: 'Pasien menunggu', href: '/queue' },
-  pharmacist: { status: 'to_pharmacy', label: 'Resep menunggu', href: '/pharmacy' },
-  cashier: { status: 'to_cashier', label: 'Menunggu pembayaran', href: '/cashier' },
+  doctor: { status: 'waiting', label: 'doctor', href: '/queue', ownPatientsOnly: true },
+  nurse: { status: 'waiting', label: 'nurse', href: '/queue' },
+  pharmacist: { status: 'to_pharmacy', label: 'pharmacist', href: '/pharmacy' },
+  cashier: { status: 'to_cashier', label: 'cashier', href: '/cashier' },
 };
 
 type StripVisit = { id: string; status: string; doctor_id: string; skipped_at?: string | null };
@@ -94,13 +113,10 @@ export function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export const TEXT_SIZES = [
-  { value: 'normal', label: 'Normal' },
-  { value: 'large', label: 'Besar' },
-  { value: 'xlarge', label: 'Ekstra' },
-] as const;
+/** Per-computer text sizes (labels: shell.textSize.<value>). */
+export const TEXT_SIZES = ['normal', 'large', 'xlarge'] as const;
 
-export type TextSize = (typeof TEXT_SIZES)[number]['value'];
+export type TextSize = (typeof TEXT_SIZES)[number];
 
 export const TEXT_SIZE_STORAGE_KEY = 'e-clinic:text-size';
 

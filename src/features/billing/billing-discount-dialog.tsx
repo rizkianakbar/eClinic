@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -30,6 +31,8 @@ type BillingDiscountDialogProps = {
 
 /** Discount in rupiah with a mandatory reason; 0 removes it. */
 export function BillingDiscountDialog(props: BillingDiscountDialogProps) {
+  const t = useTranslations('billing.discount');
+  const tc = useTranslations('common');
   const [open, setOpen] = useState(false);
   const save = useActionMutation(props.action);
   const defaults = { amount: String(props.current.amount), reason: props.current.reason ?? '' };
@@ -54,34 +57,34 @@ export function BillingDiscountDialog(props: BillingDiscountDialogProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{props.title}</DialogTitle>
-          <DialogDescription>Maksimal {formatRupiah(props.max)}. Isi 0 untuk menghapus diskon.</DialogDescription>
+          <DialogDescription>{t('description', { max: formatRupiah(props.max) })}</DialogDescription>
         </DialogHeader>
         <form
           noValidate
           className="flex flex-col gap-4"
           onSubmit={form.handleSubmit((values) => {
             if (values.amount > props.max) {
-              form.setError('amount', { message: `Diskon maksimal ${formatRupiah(props.max)}.` });
+              form.setError('amount', { message: t('tooMuch', { max: formatRupiah(props.max) }) });
 
               return;
             }
 
             save.mutate(values, {
               onSuccess: () => {
-                toast.success('Diskon tersimpan.');
+                toast.success(t('saved'));
                 setOpen(false);
               },
             });
           })}>
-          <FormField label="Diskon (Rp)" htmlFor="discount_amount" error={errors.amount?.message}>
+          <FormField label={t('amount')} htmlFor="discount_amount" error={errors.amount?.message}>
             <Input id="discount_amount" inputMode="numeric" autoFocus {...form.register('amount')} />
           </FormField>
-          <FormField label="Alasan" htmlFor="discount_reason" error={errors.reason?.message}>
-            <Input id="discount_reason" placeholder="contoh: kontrol gratis, karyawan" {...form.register('reason')} />
+          <FormField label={t('reason')} htmlFor="discount_reason" error={errors.reason?.message}>
+            <Input id="discount_reason" placeholder={t('reasonPlaceholder')} {...form.register('reason')} />
           </FormField>
           <DialogFooter>
             <Button type="submit" disabled={save.isPending}>
-              {save.isPending ? 'Menyimpan...' : 'Simpan diskon'}
+              {save.isPending ? tc('saving') : t('save')}
             </Button>
           </DialogFooter>
         </form>

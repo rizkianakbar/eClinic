@@ -1,5 +1,6 @@
 import { ChevronLeftIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { placeholders, Skeleton, SkeletonButton, SkeletonLine } from '@/components/ui/skeleton';
 import { METHODS } from '@/features/home/home-cashier';
 import { VisitsJourneyPosition } from '@/features/visits/visits-journey-line';
@@ -39,11 +40,14 @@ export function VisitHeaderSkeleton(props: VisitHeaderSkeletonProps) {
 
 /** Kasir for one visit: the invoice lines and totals, and the payment form beside them. */
 export function BillingInvoiceSkeleton() {
+  const t = useTranslations('billing');
+  const tm = useTranslations('paymentMethod');
+
   return (
     <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_23rem]">
       <section className="flex flex-col gap-2.5">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
-          Rincian tagihan
+          {t('invoice.items')}
           <Skeleton className="h-5 w-6 rounded-md" />
         </h2>
         <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
@@ -70,7 +74,7 @@ export function BillingInvoiceSkeleton() {
             </div>
           ))}
           <dl className="flex flex-col gap-1.5 px-4 py-3 text-sm">
-            {['Subtotal', 'Diskon tagihan'].map((label) => (
+            {[t('invoice.subtotal'), t('invoice.invoiceDiscount')].map((label) => (
               <div key={label} className="flex items-center justify-between gap-3">
                 <dt className="text-muted-foreground">{label}</dt>
                 <SkeletonLine className="w-20" />
@@ -78,17 +82,17 @@ export function BillingInvoiceSkeleton() {
             ))}
           </dl>
           <div className="flex items-baseline justify-between gap-3 border-t bg-muted/30 px-4 py-4">
-            <span className="text-sm font-semibold">Total tagihan</span>
+            <span className="text-sm font-semibold">{t('invoice.total')}</span>
             <SkeletonLine size="numeral-3xl" className="w-36" />
           </div>
         </div>
       </section>
 
       <aside className="flex flex-col gap-2.5 lg:sticky lg:top-20">
-        <h2 className="text-sm font-semibold">Pembayaran</h2>
+        <h2 className="text-sm font-semibold">{t('invoice.payment')}</h2>
         <div className="flex flex-col gap-5 rounded-xl border bg-card p-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           <div className="flex flex-col gap-2">
-            <p className="mb-2 text-sm font-medium">Metode pembayaran</p>
+            <p className="mb-2 text-sm font-medium">{t('pay.method')}</p>
             <div className="grid grid-cols-3 gap-2">
               {METHODS.map((method, index) => (
                 <span
@@ -98,14 +102,14 @@ export function BillingInvoiceSkeleton() {
                     index === 0 && 'border-primary bg-secondary/60 text-foreground shadow-[0_0_0_1px_var(--primary)]',
                   )}>
                   <method.icon className={cn('size-5', index === 0 && 'text-primary')} aria-hidden />
-                  {method.label}
+                  {tm(method.key)}
                 </span>
               ))}
             </div>
           </div>
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-medium">Uang diterima</span>
+              <span className="text-sm font-medium">{t('pay.received')}</span>
               <Skeleton className="h-11 rounded-lg" />
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -115,7 +119,7 @@ export function BillingInvoiceSkeleton() {
               ))}
             </div>
             <div className="flex items-baseline justify-between rounded-lg bg-muted px-3 py-2.5 text-muted-foreground">
-              <span className="text-sm font-medium">Kembalian</span>
+              <span className="text-sm font-medium">{t('pay.change')}</span>
               <span className="numeral text-[1.375rem]">–</span>
             </div>
           </div>
