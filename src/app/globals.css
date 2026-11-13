@@ -2,27 +2,17 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * e-clinic design tokens.
+ * Quiet neutral canvas, one white working panel, jade as the only action colour,
+ * and a fixed colour per patient-journey station used everywhere. Light only.
+ */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -39,92 +29,232 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-active: var(--sidebar-active);
+
+  /* Patient journey: one colour per visit status, everywhere. */
+  --color-status-waiting: var(--status-waiting);
+  --color-status-waiting-soft: var(--status-waiting-soft);
+  --color-status-exam: var(--status-exam);
+  --color-status-exam-soft: var(--status-exam-soft);
+  --color-status-pharmacy: var(--status-pharmacy);
+  --color-status-pharmacy-soft: var(--status-pharmacy-soft);
+  --color-status-cashier: var(--status-cashier);
+  --color-status-cashier-soft: var(--status-cashier-soft);
+  --color-status-done: var(--status-done);
+  --color-status-done-soft: var(--status-done-soft);
+  --color-status-cancelled: var(--status-cancelled);
+  --color-status-cancelled-soft: var(--status-cancelled-soft);
+
+  /* BPJS (JKN) payer: one blue for its badges and bars, nowhere else. */
+  --color-bpjs: var(--bpjs);
+  --color-bpjs-soft: var(--bpjs-soft);
+
+  /* Brighter strokes for the journey line and ticket stubs. */
+  --color-line-waiting: var(--line-waiting);
+  --color-line-exam: var(--line-exam);
+  --color-line-pharmacy: var(--line-pharmacy);
+  --color-line-cashier: var(--line-cashier);
+  --color-line-done: var(--line-done);
+  --color-panel: var(--panel);
+  --color-signal: var(--signal);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
   --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
+  color-scheme: light;
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #f3f5f4;
+  --foreground: #14201d;
+  --card: #ffffff;
+  --card-foreground: #14201d;
+  --popover: #ffffff;
+  --popover-foreground: #14201d;
+  --primary: #17735c;
+  --primary-foreground: #ffffff;
+  --secondary: #eaf3ef;
+  --secondary-foreground: #154a3e;
+  --muted: #f1f4f3;
+  --muted-foreground: #5c6b68;
+  --accent: #e4efeb;
+  --accent-foreground: #154a3e;
+  --destructive: #b23b2e;
+  --warning: #8a5a0a;
+  --warning-soft: #fbf1dd;
+  --success: #1e6b5a;
+  --success-soft: #e0efea;
+  --border: #e2e8e6;
+  --input: #d3dcd9;
+  --ring: #17735c;
+  --radius: 0.625rem;
+
+  --sidebar: #f3f5f4;
+  --sidebar-foreground: #14201d;
+  --sidebar-muted: #6b7a77;
+  --sidebar-active: #ffffff;
+
+  --status-waiting: #8a5a0a;
+  --status-waiting-soft: #fbf1dd;
+  --status-exam: #2457a0;
+  --status-exam-soft: #e3ecf8;
+  --status-pharmacy: #5b42a6;
+  --status-pharmacy-soft: #ece7f7;
+  --status-cashier: #1e6b5a;
+  --status-cashier-soft: #e0efea;
+  --status-done: #4b5d5a;
+  --status-done-soft: #e9eeec;
+  --status-cancelled: #b23b2e;
+  --status-cancelled-soft: #f7e3e0;
+
+  --line-waiting: #d4952b;
+  --line-exam: #3a7bd5;
+  --line-pharmacy: #7a5bd1;
+  --line-cashier: #22936f;
+  --line-done: #8fa29d;
+
+  --bpjs: #1f5aa6;
+  --bpjs-soft: #e6f0fb;
+
+  /* The one bright accent: "you are here", live, active. */
+  --signal: #17735c;
+  --panel: #ffffff;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+
   html {
     @apply font-sans;
+    /* Reserve the scrollbar's space, so switching between short and long pages never shifts the layout. */
+    scrollbar-gutter: stable;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  html[data-text-size="large"] {
+    font-size: 112.5%;
+  }
+  html[data-text-size="xlarge"] {
+    font-size: 125%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    line-height: 1.5;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    line-height: 1.2;
+  }
+  h1,
+  h2 {
+    letter-spacing: -0.02em;
+  }
+
+  /* iOS zooms into inputs under 16px. */
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1rem);
+  }
+
+  button,
+  a,
+  [role="button"],
+  summary,
+  label:has(input[type="checkbox"]),
+  label:has(input[type="radio"]) {
+    touch-action: manipulation;
+  }
+  button,
+  [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  ::selection {
+    background: #cfe8de;
+  }
+
+  /* Slim, quiet scrollbars (queue lanes, drawers, lists); fat grey bars on the clinic's Windows PCs look broken. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(20 32 29 / 0.2) transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--primary);
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Queue numbers and big figures: heavy, tight, never shifting width. */
+  .numeral {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+}
+
+/* "Live" and "you are here": a soft ring that breathes, slowly. */
+@keyframes signal-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 45%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 0.6rem color-mix(in srgb, currentColor 0%, transparent);
+  }
+}
+.signal-pulse {
+  animation: signal-pulse 2.4s var(--ease-out) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-property: opacity, color, background-color, border-color !important;
+  }
+}
+
+@media print {
+  html {
+    font-size: 100%;
   }
 }

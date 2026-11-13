@@ -11,16 +11,17 @@ type FormFieldProps = {
   children: ReactNode;
 };
 
-/** Label + control + optional hint and validation message. */
+/** Label, control, then either the error or a short hint underneath. */
 export function FormField(props: FormFieldProps) {
   return (
-    <div className={cn("flex flex-col gap-2", props.className)}>
-      <Label htmlFor={props.htmlFor}>
-        {props.label}
-        {props.hint && <span className="font-normal text-muted-foreground">({props.hint})</span>}
-      </Label>
+    <div className={cn("flex flex-col gap-1.5", props.className)}>
+      <Label htmlFor={props.htmlFor}>{props.label}</Label>
       {props.children}
-      {props.error && <p className="text-sm text-destructive">{props.error}</p>}
+      {props.error ? (
+        <p className="text-[0.8125rem] text-destructive">{props.error}</p>
+      ) : (
+        props.hint && <p className="text-xs text-muted-foreground first-letter:uppercase">{props.hint}</p>
+      )}
     </div>
   );
 }
