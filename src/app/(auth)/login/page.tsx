@@ -1,7 +1,7 @@
 import { HeartPulseIcon } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { devLoginEnabled, listTestAccounts } from '@/features/auth/auth.service';
+import { listTestAccounts } from '@/features/auth/auth.service';
 import { LoginForm } from '@/features/auth/auth-login-form';
 import { AuthTestAccounts } from '@/features/auth/auth-test-accounts';
 import { JOURNEY } from '@/features/visits/visits.lib';
@@ -15,7 +15,10 @@ const STATION_DOTS = ['#d4952b', '#3a7bd5', '#7a5bd1', '#22936f', '#8fa29d'];
 
 export default async function LoginPage(props: PageProps<'/login'>) {
   const { reason } = await props.searchParams;
-  const testAccounts = devLoginEnabled() ? await listTestAccounts(createAdminClient()) : [];
+
+  // const testAccounts = devLoginEnabled() ? await listTestAccounts(createAdminClient()) : [];
+  const testAccounts = await listTestAccounts(createAdminClient());
+
   const t = await getTranslations();
 
   return (
@@ -74,9 +77,7 @@ export default async function LoginPage(props: PageProps<'/login'>) {
           )}
           <LoginForm />
           <p className="text-[0.8125rem] text-muted-foreground">{t('auth.login.forgot')}</p>
-          {/* {testAccounts.length > 0 && ( */}
-          <AuthTestAccounts accounts={testAccounts} />
-          {/* )} */}
+          {testAccounts.length > 0 && <AuthTestAccounts accounts={testAccounts} />}
         </div>
       </section>
     </main>
