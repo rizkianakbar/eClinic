@@ -7,12 +7,18 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/form-field";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { cn } from "@/lib/utils";
+import { segmentedGroup, segmentedRadioItem } from "@/components/ui/segmented";
+import { SheetBody, SheetClose, SheetFooter } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { todayInJakarta } from "@/lib/dates";
 import { SEX_LABELS } from "./patients.constants";
 import { useCreatePatient, useUpdatePatient } from "./patients.hooks";
-import { patientSchema, type PatientInput, type PatientValues } from "./patients.lib";
+import {
+  patientSchema,
+  type PatientInput,
+  type PatientValues,
+} from "./patients.lib";
 
 const EMPTY: PatientInput = {
   full_name: "",
@@ -24,10 +30,15 @@ const EMPTY: PatientInput = {
   address: "",
 };
 
-type PatientFormProps =
+type PatientFormProps = (
   | { mode: "create" }
-  | { mode: "edit"; patientId: string; defaultValues: PatientInput };
+  | { mode: "edit"; patientId: string; defaultValues: PatientInput }
+) & {
+  /** Called after a successful save (the drawer closes itself). */
+  onSaved?: () => void;
+};
 
+/** Fields and footer; lives inside a drawer (`PatientsSheet`). */
 export function PatientForm(props: PatientFormProps) {
   const router = useRouter();
   const create = useCreatePatient();
@@ -44,7 +55,10 @@ export function PatientForm(props: PatientFormProps) {
     if (props.mode === "create") {
       create.mutate(values, {
         onSuccess: (patient) => {
-          toast.success("Pasien baru tersimpan.");
+          toast.success(
+            "Pasien baru tersimpan. Daftarkan kunjungannya di sini.",
+          );
+          props.onSaved?.();
           router.push(`/patients/${patient.id}`);
         },
       });
@@ -52,7 +66,7 @@ export function PatientForm(props: PatientFormProps) {
       update.mutate(values, {
         onSuccess: () => {
           toast.success("Data pasien tersimpan.");
-          form.reset(form.getValues());
+          props.onSaved?.();
           router.refresh();
         },
       });
@@ -60,65 +74,144 @@ export function PatientForm(props: PatientFormProps) {
   }
 
   return (
-    <form noValidate className="grid max-w-2xl gap-4 sm:grid-cols-2" onSubmit={form.handleSubmit(onSubmit)}>
-      <FormField label="Nama lengkap" htmlFor="full_name" error={errors.full_name?.message} className="sm:col-span-2">
-        <Input
-          id="full_name"
-          autoFocus={props.mode === "create"}
-          autoComplete="off"
-          aria-invalid={Boolean(errors.full_name)}
-          {...form.register("full_name")}
-        />
-      </FormField>
+    <form
+      noValidate
+      className="flex min-h-0 flex-1 flex-col"
+      onSubmit={form.handleSubmit(onSubmit)}
+    >
+      <SheetBody className="grid content-start gap-x-4 gap-y-5 sm:grid-cols-2">
+        <FormField
+          label="Nama lengkap"
+          htmlFor="full_name"
+          error={errors.full_name?.message}
+          className="sm:col-span-2"
+        >
+          <Input
+            id="full_name"
+            autoFocus={props.mode === "create"}
+            autoComplete="off"
+            aria-invalid={Boolean(errors.full_name)}
+            {...form.register("full_name")}
+          />
+        </FormField>
 
-      <FormField label="NIK" htmlFor="nik" error={errors.nik?.message} hint="16 digit, kosongkan jika belum ada">
-        <Input id="nik" inputMode="numeric" autoComplete="off" aria-invalid={Boolean(errors.nik)} {...form.register("nik")} />
-      </FormField>
+        <FormField
+          label="NIK"
+          htmlFor="nik"
+          className="sm:col-span-2"
+          error={errors.nik?.message}
+          hint="16 digit. Kosongkan jika belum ada."
+        >
+          <Input
+            id="nik"
+            inputMode="numeric"
+            autoComplete="off"
+            aria-invalid={Boolean(errors.nik)}
+            {...form.register("nik")}
+          />
+        </FormField>
 
-      <FormField label="Nomor BPJS" htmlFor="bpjs_number" error={errors.bpjs_number?.message} hint="13 digit, opsional">
-        <Input
-          id="bpjs_number"
-          inputMode="numeric"
-          autoComplete="off"
-          aria-invalid={Boolean(errors.bpjs_number)}
-          {...form.register("bpjs_number")}
-        />
-      </FormField>
+        <FormField
+          label="Nomor BPJS"
+          htmlFor="bpjs_number"
+          className="sm:col-span-2"
+          error={errors.bpjs_number?.message}
+          hint="13 digit, jika pasien BPJS."
+        >
+          <Input
+            id="bpjs_number"
+            inputMode="numeric"
+            autoComplete="off"
+            aria-invalid={Boolean(errors.bpjs_number)}
+            {...form.register("bpjs_number")}
+          />
+        </FormField>
 
-      <FormField label="Tanggal lahir" htmlFor="birth_date" error={errors.birth_date?.message}>
-        <Input
-          id="birth_date"
-          type="date"
-          max={todayInJakarta()}
-          aria-invalid={Boolean(errors.birth_date)}
-          {...form.register("birth_date")}
-        />
-      </FormField>
+        <FormField
+          label="Tanggal lahir"
+          htmlFor="birth_date"
+          error={errors.birth_date?.message}
+        >
+          <Input
+            id="birth_date"
+            type="date"
+            max={todayInJakarta()}
+            aria-invalid={Boolean(errors.birth_date)}
+            {...form.register("birth_date")}
+          />
+        </FormField>
 
-      <FormField label="Jenis kelamin" htmlFor="sex" error={errors.sex?.message}>
-        <NativeSelect id="sex" className="w-full" aria-invalid={Boolean(errors.sex)} {...form.register("sex")}>
-          <NativeSelectOption value="">Pilih...</NativeSelectOption>
-          {Object.entries(SEX_LABELS).map(([value, label]) => (
-            <NativeSelectOption key={value} value={value}>
-              {label}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
-      </FormField>
+        <fieldset className="flex flex-col gap-1.5">
+          <legend className="mb-1.5 text-sm font-medium">Jenis kelamin</legend>
+          <div className={cn(segmentedGroup, "grid w-full grid-cols-2")}>
+            {Object.entries(SEX_LABELS).map(([value, label]) => (
+              <label key={value} className={cn(segmentedRadioItem, "h-9")}>
+                <input
+                  type="radio"
+                  value={value}
+                  className="sr-only"
+                  {...form.register("sex")}
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+          {errors.sex && (
+            <p className="text-[0.8125rem] text-destructive">
+              {errors.sex.message}
+            </p>
+          )}
+        </fieldset>
 
-      <FormField label="Nomor HP" htmlFor="phone" error={errors.phone?.message} hint="Opsional">
-        <Input id="phone" type="tel" autoComplete="off" aria-invalid={Boolean(errors.phone)} {...form.register("phone")} />
-      </FormField>
+        <FormField
+          label="Nomor HP"
+          htmlFor="phone"
+          error={errors.phone?.message}
+          hint="Opsional."
+          className="sm:col-span-2"
+        >
+          <Input
+            id="phone"
+            type="tel"
+            autoComplete="off"
+            aria-invalid={Boolean(errors.phone)}
+            {...form.register("phone")}
+          />
+        </FormField>
 
-      <FormField label="Alamat" htmlFor="address" error={errors.address?.message} hint="Opsional" className="sm:col-span-2">
-        <Textarea id="address" rows={2} aria-invalid={Boolean(errors.address)} {...form.register("address")} />
-      </FormField>
-
-      <div className="sm:col-span-2">
-        <Button type="submit" disabled={mutation.isPending || (props.mode === "edit" && !form.formState.isDirty)}>
-          {mutation.isPending ? "Menyimpan..." : props.mode === "create" ? "Simpan pasien" : "Simpan perubahan"}
+        <FormField
+          label="Alamat"
+          htmlFor="address"
+          error={errors.address?.message}
+          hint="Opsional."
+          className="sm:col-span-2"
+        >
+          <Textarea
+            id="address"
+            rows={2}
+            aria-invalid={Boolean(errors.address)}
+            {...form.register("address")}
+          />
+        </FormField>
+      </SheetBody>
+      <SheetFooter>
+        <SheetClose render={<Button type="button" variant="outline" />}>
+          Batal
+        </SheetClose>
+        <Button
+          type="submit"
+          disabled={
+            mutation.isPending ||
+            (props.mode === "edit" && !form.formState.isDirty)
+          }
+        >
+          {mutation.isPending
+            ? "Menyimpan…"
+            : props.mode === "create"
+              ? "Simpan pasien"
+              : "Simpan perubahan"}
         </Button>
-      </div>
+      </SheetFooter>
     </form>
   );
 }

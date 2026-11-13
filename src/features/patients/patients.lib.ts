@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { todayInJakarta } from "@/lib/dates";
+import { todayInJakarta, toJakartaDate } from "@/lib/dates";
 
 /** Accepts the form's string or an already-parsed null, so the action can re-validate parsed values. */
 const optionalString = z
@@ -69,6 +69,16 @@ export function parsePatientSearch(input: string): PatientSearch | null {
   return { kind: "name", text };
 }
 
+/** Mobile "081234567890" -> "0812-3456-7890" for reading aloud; landlines and other shapes stay as stored. */
+export function formatPhone(phone: string) {
+  return /^08\d{8,12}$/.test(phone) ? `${phone.slice(0, 4)}-${phone.slice(4, 8)}-${phone.slice(8)}` : phone;
+}
+
+/** Long ID numbers (NIK 16, BPJS 13 digits) in groups of four: "3276 0101 0101 0001". */
+export function formatIdNumber(value: string) {
+  return /^\d{10,}$/.test(value) ? value.replace(/(\d{4})(?=\d)/g, "$1 ") : value;
+}
+
 /** Escapes LIKE wildcards so user input matches literally. */
 export function escapeLike(value: string) {
   return value.replace(/[\\%_]/g, (char) => `\\${char}`);
@@ -96,4 +106,59 @@ export function patientWriteErrorMessage(error: { code?: string; message?: strin
     return "Anda tidak punya akses untuk mengubah data pasien. Hubungi admin klinik.";
   }
   return "Data pasien gagal disimpan. Coba lagi, atau hubungi admin jika terus terjadi.";
+}
+
+/** Two letters for an avatar: "dr. Budi Santoso (Uji)" -> "BS". Skips titles like "dr." and "Apt.". */
+export function initials(name: string) {
+  return name
+    .replace(/\(.*?\)/g, "")
+    .split(/\s+/)
+    .filter((part) => /^[a-z]/i.test(part) && !part.endsWith("."))
+    .slice(0, 2)
+    .map((part) => part[0]!.toUpperCase())
+    .join("");
+}
+
+/** Kemenkes life-stage groups, youngest first. */
+export const AGE_GROUPS = [
+  { key: "balita", label: "Balita", range: "0–5", max: 5 },
+  { key: "anak", label: "Anak & remaja", range: "6–17", max: 17 },
+  { key: "dewasa", label: "Dewasa", range: "18–44", max: 44 },
+  { key: "pralansia", label: "Pra-lansia", range: "45–59", max: 59 },
+  { key: "lansia", label: "Lansia", range: "60+", max: Infinity },
+] as const;
+
+type DemographicRow = { id: string; full_name: string; sex: string; birth_date: string; bpjs_number: string | null; created_at: string };
+
+/**
+ * Who the clinic's patients are: sex, life stage, payer; whose birthday is
+ * today; who joined in the last 7 days (created_at compared as Jakarta dates).
+ */
+export function patientDemographics(rows: readonly DemographicRow[], today: string, weekAgo: string, monthStart: string) {
+  const ages = Object.fromEntries(AGE_GROUPS.map((group) => [group.key, 0])) as Record<(typeof AGE_GROUPS)[number]["key"], number>;
+  let male = 0;
+  let bpjs = 0;
+  const birthdays: { id: string; full_name: string; age: number }[] = [];
+  const recent: DemographicRow[] = [];
+  let newThisMonth = 0;
+  for (const row of rows) {
+    const joined = toJakartaDate(new Date(row.created_at));
+    if (joined >= monthStart) newThisMonth += 1;
+    if (row.sex === "male") male += 1;
+    if (row.bpjs_number) bpjs += 1;
+    const age = ageInYears(row.birth_date, today);
+    ages[AGE_GROUPS.find((group) => age <= group.max)!.key] += 1;
+    if (row.birth_date.slice(5) === today.slice(5)) birthdays.push({ id: row.id, full_name: row.full_name, age });
+    if (joined >= weekAgo) recent.push(row);
+  }
+  return {
+    total: rows.length,
+    male,
+    female: rows.length - male,
+    bpjs,
+    newThisMonth,
+    ages,
+    birthdays,
+    recent: recent.sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 5),
+  };
 }

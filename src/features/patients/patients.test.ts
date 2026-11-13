@@ -2,10 +2,14 @@ import { describe, expect, it } from "vitest";
 import {
   ageInYears,
   escapeLike,
+  formatIdNumber,
+  formatPhone,
   normalizePhone,
   parsePatientSearch,
   patientSchema,
   patientWriteErrorMessage,
+  initials,
+  patientDemographics,
 } from "./patients.lib";
 
 const valid = {
@@ -115,5 +119,56 @@ describe("patientSchema re-validation", () => {
   it("accepts its own output, so the action can re-check parsed form values", () => {
     const parsed = patientSchema.parse(valid);
     expect(patientSchema.parse(parsed)).toEqual(parsed);
+  });
+});
+
+describe("initials", () => {
+  it("takes two letters, skipping titles and test markers", () => {
+    expect(initials("Siti Nurhaliza (Uji)")).toBe("SN");
+    expect(initials("dr. Budi Santoso")).toBe("BS");
+    expect(initials("Apt. Dewi")).toBe("D");
+    expect(initials("Ani")).toBe("A");
+  });
+});
+
+describe("patientDemographics", () => {
+  const row = (id: string, sex: string, birth: string, bpjs: string | null, created = "2026-10-01T03:00:00Z") => ({
+    id,
+    full_name: `Pasien ${id}`,
+    sex,
+    birth_date: birth,
+    bpjs_number: bpjs,
+    created_at: created,
+  });
+
+  it("splits by sex, life stage and payer, and finds birthdays and new patients", () => {
+    const result = patientDemographics(
+      [
+        row("a", "male", "2023-11-12", null, "2026-11-11T02:00:00Z"),
+        row("b", "female", "1990-01-05", "0001"),
+        row("c", "female", "1950-11-12", "0002"),
+      ],
+      "2026-11-12",
+      "2026-11-05",
+      "2026-11-01",
+    );
+    expect(result).toMatchObject({ total: 3, male: 1, female: 2, bpjs: 2, newThisMonth: 1 });
+    expect(result.ages).toEqual({ balita: 1, anak: 0, dewasa: 1, pralansia: 0, lansia: 1 });
+    expect(result.birthdays.map((entry) => entry.id)).toEqual(["a", "c"]);
+    expect(result.birthdays[1].age).toBe(76);
+    expect(result.recent.map((entry) => entry.id)).toEqual(["a"]);
+  });
+});
+
+describe("formatPhone / formatIdNumber", () => {
+  it("groups Indonesian mobile numbers 4-4-rest and leaves other shapes", () => {
+    expect(formatPhone("081234567890")).toBe("0812-3456-7890");
+    expect(formatPhone("0215551234")).toBe("0215551234");
+    expect(formatPhone("+62 812")).toBe("+62 812");
+  });
+  it("groups long ID numbers by four", () => {
+    expect(formatIdNumber("3276010101010001")).toBe("3276 0101 0101 0001");
+    expect(formatIdNumber("0001234567890")).toBe("0001 2345 6789 0");
+    expect(formatIdNumber("12345")).toBe("12345");
   });
 });

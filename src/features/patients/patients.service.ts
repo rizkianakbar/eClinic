@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@/lib/supabase/server";
-import { patientWriteErrorMessage, type PatientValues } from "./patients.lib";
+import { escapeLike, parsePatientSearch, patientWriteErrorMessage, type PatientValues } from "./patients.lib";
 
 type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -42,5 +42,66 @@ export async function getPatient(supabase: SupabaseClient, patientId: string) {
     .eq("id", patientId)
     .maybeSingle();
   if (error) throw new Error(`getPatient failed: ${error.code}`);
+  return data;
+}
+
+export const PATIENTS_PAGE_SIZE = 25;
+
+export type PatientPayerFilter = "all" | "bpjs" | "umum";
+
+/**
+ * One page of patients, newest first, filtered like the search box and by
+ * BPJS membership, with each patient's visit count and last visit date.
+ */
+export async function listPatients(
+  supabase: SupabaseClient,
+  options: { query: string; page: number; payer?: PatientPayerFilter },
+) {
+  const from = (options.page - 1) * PATIENTS_PAGE_SIZE;
+  let request = supabase
+    .from("patients")
+    .select("id, mrn, full_name, nik, bpjs_number, birth_date, sex, phone, is_active, created_at", { count: "exact" });
+  if (options.payer === "bpjs") request = request.not("bpjs_number", "is", null);
+  if (options.payer === "umum") request = request.is("bpjs_number", null);
+  const search = parsePatientSearch(options.query);
+  if (search?.kind === "number") {
+    request = request.or(
+      `mrn.eq.${search.digits},nik.eq.${search.digits},bpjs_number.eq.${search.digits},phone.ilike.*${search.phone}*`,
+    );
+  } else if (search?.kind === "name") {
+    request = request.ilike("full_name", `%${escapeLike(search.text)}%`);
+  }
+  const { data, count, error } = await request
+    .order("created_at", { ascending: false })
+    .range(from, from + PATIENTS_PAGE_SIZE - 1);
+  if (error) throw new Error(`listPatients failed: ${error.code}`);
+
+  const visits = new Map<string, { count: number; last: string }>();
+  if (data.length > 0) {
+    const { data: rows, error: visitsError } = await supabase
+      .from("visits")
+      .select("patient_id, visit_date")
+      .in("patient_id", data.map((patient) => patient.id))
+      .neq("status", "cancelled");
+    if (visitsError) throw new Error(`listPatients visits failed: ${visitsError.code}`);
+    for (const row of rows) {
+      const entry = visits.get(row.patient_id) ?? { count: 0, last: row.visit_date };
+      visits.set(row.patient_id, { count: entry.count + 1, last: row.visit_date > entry.last ? row.visit_date : entry.last });
+    }
+  }
+  return {
+    patients: data.map((patient) => ({ ...patient, visitCount: visits.get(patient.id)?.count ?? 0, lastVisit: visits.get(patient.id)?.last ?? null })),
+    total: count ?? 0,
+  };
+}
+
+/** Every active patient's basic facts, for the composition panel (a small clinic: thousands, not millions). */
+export async function listPatientDemographics(supabase: SupabaseClient) {
+  const { data, error } = await supabase
+    .from("patients")
+    .select("id, full_name, sex, birth_date, bpjs_number, created_at")
+    .eq("is_active", true)
+    .limit(20_000);
+  if (error) throw new Error(`listPatientDemographics failed: ${error.code}`);
   return data;
 }

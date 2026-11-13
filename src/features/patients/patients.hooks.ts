@@ -1,6 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { unwrap } from "@/lib/query";
+import { unwrap, useDebouncedValue } from "@/lib/query";
 import { queryKeys } from "@/lib/query-keys";
 import { createClient } from "@/lib/supabase/browser";
 import { createPatientAction, updatePatientAction } from "./patients.actions";
@@ -8,19 +7,12 @@ import { escapeLike, parsePatientSearch, type PatientValues } from "./patients.l
 
 const SEARCH_LIMIT = 20;
 
-function useDebouncedValue<T>(value: T, delayMs: number) {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delayMs);
-    return () => clearTimeout(timer);
-  }, [value, delayMs]);
-  return debounced;
-}
-
 /**
  * Search-as-you-type, straight from the browser client (RLS limits rows to the
  * user's clinic). Server Actions run one at a time, too slow for keystrokes.
  */
+export type SearchPatient = NonNullable<ReturnType<typeof usePatientSearch>["data"]>[number];
+
 export function usePatientSearch(input: string) {
   const query = useDebouncedValue(input.trim(), 200);
   const search = parsePatientSearch(query);
@@ -32,7 +24,7 @@ export function usePatientSearch(input: string) {
     queryFn: async () => {
       let request = createClient()
         .from("patients")
-        .select("id, mrn, full_name, nik, birth_date, sex, phone")
+        .select("id, mrn, full_name, nik, bpjs_number, birth_date, sex, phone")
         .eq("is_active", true);
 
       if (search?.kind === "number") {
