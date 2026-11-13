@@ -8,9 +8,9 @@ export function SignOutButton() {
   const signOut = useSignOut();
 
   return (
-    <Button variant="ghost" size="sm" disabled={signOut.isPending} onClick={() => signOut.mutate()}>
+    <Button variant="destructive-outline" disabled={signOut.isPending} onClick={() => signOut.mutate()}>
       <LogOutIcon />
-      Keluar
+      {signOut.isPending ? "Keluar…" : "Keluar dari akun ini"}
     </Button>
   );
 }

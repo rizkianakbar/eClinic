@@ -19,7 +19,7 @@ export function LoginForm() {
   return (
     <form
       noValidate
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-5"
       onSubmit={form.handleSubmit((values) => signIn.mutate(values))}
     >
       <div className="flex flex-col gap-2">
@@ -27,8 +27,12 @@ export function LoginForm() {
         <Input
           id="email"
           type="email"
+          inputMode="email"
+          autoCapitalize="none"
+          autoCorrect="off"
           autoComplete="username"
           autoFocus
+          className="h-10"
           aria-invalid={Boolean(errors.email)}
           {...form.register("email")}
         />
@@ -41,14 +45,15 @@ export function LoginForm() {
           id="password"
           type="password"
           autoComplete="current-password"
+          className="h-10"
           aria-invalid={Boolean(errors.password)}
           {...form.register("password")}
         />
         {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
       </div>
 
-      <Button type="submit" disabled={signIn.isPending}>
-        {signIn.isPending ? "Masuk..." : "Masuk"}
+      <Button type="submit" size="lg" disabled={signIn.isPending}>
+        {signIn.isPending ? "Memeriksa..." : "Masuk"}
       </Button>
     </form>
   );

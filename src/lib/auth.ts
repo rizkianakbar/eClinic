@@ -11,6 +11,9 @@ export type Session = {
   clinicId: string;
   role: Role;
   fullName: string;
+  /** Clinic setting: sign out after this many idle minutes (shared PCs). */
+  idleLogoutMinutes: number;
+  clinicName: string;
 };
 
 /** The signed-in, active staff member, or null. Cached per request. */
@@ -22,7 +25,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("clinic_id, role, full_name, is_active")
+    .select("clinic_id, role, full_name, is_active, clinic:clinics(name, idle_logout_minutes)")
     .eq("id", userId)
     .maybeSingle();
   if (!profile?.is_active) return null;
@@ -32,6 +35,8 @@ export const getSession = cache(async (): Promise<Session | null> => {
     clinicId: profile.clinic_id,
     role: profile.role,
     fullName: profile.full_name,
+    idleLogoutMinutes: profile.clinic?.idle_logout_minutes ?? 15,
+    clinicName: profile.clinic?.name ?? "e-clinic",
   };
 });
 
