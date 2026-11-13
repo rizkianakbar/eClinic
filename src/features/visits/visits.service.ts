@@ -18,45 +18,37 @@ export async function createVisit(
   return { ok: true, data: { id: data.id, queueNo: data.queue_no } };
 }
 
-/** Today's open practice sessions with how many places are taken. */
+/**
+ * Today's open practice sessions with how many places are taken. One round trip:
+ * the non-cancelled visits of today are counted inside the same query.
+ */
 export async function listTodaySessions(supabase: SupabaseClient): Promise<PracticeSession[]> {
   const today = todayInJakarta();
 
   const { data: schedules, error } = await supabase
     .from("doctor_schedules")
-    .select("id, doctor_id, start_time, end_time, quota, doctor:profiles(full_name, is_active), poli:polis(name, is_active)")
+    .select(
+      "id, doctor_id, start_time, end_time, quota, doctor:profiles(full_name, is_active), poli:polis(name, is_active), taken:visits(count)",
+    )
     .eq("day_of_week", isoWeekday(today))
     .eq("is_active", true)
+    .eq("visits.visit_date", today)
+    .neq("visits.status", "cancelled")
     .order("start_time");
   if (error) throw new Error(`listTodaySessions failed: ${error.code}`);
 
-  const open = schedules.filter((schedule) => schedule.doctor?.is_active && schedule.poli?.is_active);
-  if (open.length === 0) return [];
-
-  const { data: visits, error: visitsError } = await supabase
-    .from("visits")
-    .select("schedule_id")
-    .eq("visit_date", today)
-    .neq("status", "cancelled")
-    .in(
-      "schedule_id",
-      open.map((schedule) => schedule.id),
-    );
-  if (visitsError) throw new Error(`listTodaySessions visits failed: ${visitsError.code}`);
-
-  const taken = new Map<string, number>();
-  for (const visit of visits) taken.set(visit.schedule_id, (taken.get(visit.schedule_id) ?? 0) + 1);
-
-  return open.map((schedule) => ({
-    id: schedule.id,
-    poliName: schedule.poli!.name,
-    doctorId: schedule.doctor_id,
-    doctorName: schedule.doctor!.full_name,
-    startTime: schedule.start_time,
-    endTime: schedule.end_time,
-    quota: schedule.quota,
-    taken: taken.get(schedule.id) ?? 0,
-  }));
+  return schedules
+    .filter((schedule) => schedule.doctor?.is_active && schedule.poli?.is_active)
+    .map((schedule) => ({
+      id: schedule.id,
+      poliName: schedule.poli!.name,
+      doctorId: schedule.doctor_id,
+      doctorName: schedule.doctor!.full_name,
+      startTime: schedule.start_time,
+      endTime: schedule.end_time,
+      quota: schedule.quota,
+      taken: schedule.taken[0]?.count ?? 0,
+    }));
 }
 
 export async function listPatientVisits(supabase: SupabaseClient, patientId: string) {

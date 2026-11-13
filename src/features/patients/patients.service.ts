@@ -60,7 +60,9 @@ export async function listPatients(
   const from = (options.page - 1) * PATIENTS_PAGE_SIZE;
   let request = supabase
     .from("patients")
-    .select("id, mrn, full_name, nik, bpjs_number, birth_date, sex, phone, is_active, created_at", { count: "exact" });
+    // Visit dates come embedded (one round trip): count and last visit are worked out below.
+    .select("id, mrn, full_name, nik, bpjs_number, birth_date, sex, phone, is_active, created_at, visits(visit_date)", { count: "exact" })
+    .neq("visits.status", "cancelled");
   if (options.payer === "bpjs") request = request.not("bpjs_number", "is", null);
   if (options.payer === "umum") request = request.is("bpjs_number", null);
   const search = parsePatientSearch(options.query);
@@ -76,21 +78,12 @@ export async function listPatients(
     .range(from, from + PATIENTS_PAGE_SIZE - 1);
   if (error) throw new Error(`listPatients failed: ${error.code}`);
 
-  const visits = new Map<string, { count: number; last: string }>();
-  if (data.length > 0) {
-    const { data: rows, error: visitsError } = await supabase
-      .from("visits")
-      .select("patient_id, visit_date")
-      .in("patient_id", data.map((patient) => patient.id))
-      .neq("status", "cancelled");
-    if (visitsError) throw new Error(`listPatients visits failed: ${visitsError.code}`);
-    for (const row of rows) {
-      const entry = visits.get(row.patient_id) ?? { count: 0, last: row.visit_date };
-      visits.set(row.patient_id, { count: entry.count + 1, last: row.visit_date > entry.last ? row.visit_date : entry.last });
-    }
-  }
   return {
-    patients: data.map((patient) => ({ ...patient, visitCount: visits.get(patient.id)?.count ?? 0, lastVisit: visits.get(patient.id)?.last ?? null })),
+    patients: data.map(({ visits, ...patient }) => ({
+      ...patient,
+      visitCount: visits.length,
+      lastVisit: visits.reduce<string | null>((last, visit) => (!last || visit.visit_date > last ? visit.visit_date : last), null),
+    })),
     total: count ?? 0,
   };
 }

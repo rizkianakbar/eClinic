@@ -305,17 +305,13 @@ export async function listAuditLogs(
   if (options.table) request = request.eq("table_name", options.table);
   if (options.actor) request = options.actor === "system" ? request.is("actor_id", null) : request.eq("actor_id", options.actor);
   if (options.action) request = request.eq("action", options.action);
-  const { data, count, error } = await request
-    .order("created_at", { ascending: false })
-    .range(from, from + AUDIT_PAGE_SIZE - 1);
+  // actor_id points at auth.users (no join through the API): the clinic's staff list is small, so it loads alongside.
+  const [{ data, count, error }, staff] = await Promise.all([
+    request.order("created_at", { ascending: false }).range(from, from + AUDIT_PAGE_SIZE - 1),
+    supabase.from("profiles").select("id, full_name"),
+  ]);
   if (error) throw new Error(`listAuditLogs failed: ${error.code}`);
-
-  const actorIds = [...new Set(data.flatMap((row) => (row.actor_id ? [row.actor_id] : [])))];
-  const names = new Map<string, string>();
-  if (actorIds.length > 0) {
-    const { data: actors } = await supabase.from("profiles").select("id, full_name").in("id", actorIds);
-    for (const actor of actors ?? []) names.set(actor.id, actor.full_name);
-  }
+  const names = new Map((staff.data ?? []).map((actor) => [actor.id, actor.full_name]));
   return {
     total: count ?? 0,
     logs: data.map((row) => ({ ...row, actorName: row.actor_id ? (names.get(row.actor_id) ?? "Staf") : "Sistem" })),

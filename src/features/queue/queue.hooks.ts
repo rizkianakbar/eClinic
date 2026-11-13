@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useId } from "react";
+import { useEffect } from "react";
 import { unwrap, type ActionResult } from "@/lib/query";
 import { queryKeys } from "@/lib/query-keys";
 import { createClient } from "@/lib/supabase/browser";
@@ -7,30 +7,36 @@ import type { VitalsReading } from "@/features/exam/exam.lib";
 import type { QueueVisit } from "./queue.lib";
 
 /**
- * Today's visits for the clinic (RLS), refetched whenever any of today's visits
- * changes (Realtime, filtered to today) and every 60 s as a safety net.
+ * The app's one Realtime subscription to today's visits (mounted once, in the
+ * app shell). Any insert, update or delete refetches every queue query; bursts
+ * (signing moves a visit and writes several rows) collapse into one refetch.
  */
-export function useQueueBoard(visitDate: string) {
+export function useQueueRealtime(visitDate: string) {
   const queryClient = useQueryClient();
-  const queryKey = queryKeys.queue.board(visitDate);
-  // Several components may watch the board at once (station strip + page); each needs its own channel.
-  const instance = useId();
 
   useEffect(() => {
     const supabase = createClient();
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const channel = supabase
-      .channel(`queue:${visitDate}:${instance}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "visits", filter: `visit_date=eq.${visitDate}` },
-        () => queryClient.invalidateQueries({ queryKey: queryKeys.queue.board(visitDate) }),
-      )
+      .channel(`queue:${visitDate}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "visits", filter: `visit_date=eq.${visitDate}` }, () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => queryClient.invalidateQueries({ queryKey: queryKeys.queue.all }), 150);
+      })
       .subscribe();
     return () => {
+      clearTimeout(timer);
       supabase.removeChannel(channel);
     };
-  }, [visitDate, queryClient, instance]);
+  }, [visitDate, queryClient]);
+}
 
+/**
+ * Today's visits for the clinic (RLS). Kept live by `useQueueRealtime` in the
+ * shell, refetched on every screen that opens it, and every 60 s as a safety net.
+ */
+export function useQueueBoard(visitDate: string) {
+  const queryKey = queryKeys.queue.board(visitDate);
   return useQuery({
     queryKey,
     // Live data: every screen that opens the board refetches it, so a status changed elsewhere is never shown stale.
