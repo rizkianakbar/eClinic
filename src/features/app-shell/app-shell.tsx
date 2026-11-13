@@ -11,6 +11,7 @@ import { todayInJakarta } from "@/lib/dates";
 import { navItemsFor } from "./app-shell.lib";
 import { AppShellBell } from "./app-shell-bell";
 import { AppShellLiveProvider } from "./app-shell-live";
+import { AppShellNavProgress } from "./app-shell-nav-progress";
 import { AppShellPrefetch } from "./app-shell-prefetch";
 import { AppShellTabs } from "./app-shell-nav";
 import { AppShellSearch } from "./app-shell-search";
@@ -75,6 +76,7 @@ export function AppShell(props: AppShellProps) {
         </main>
         <AuthIdleLogout minutes={session.idleLogoutMinutes} />
         <AppShellPrefetch />
+        <AppShellNavProgress />
       </div>
     </AppShellLiveProvider>
   );

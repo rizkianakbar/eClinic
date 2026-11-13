@@ -27,7 +27,15 @@ export function AppShellTabs(props: AppShellTabsProps) {
   const sentinel = useRef<HTMLDivElement>(null);
   const nav = useRef<HTMLElement>(null);
   const indicator = useRef<HTMLSpanElement>(null);
-  const activeHref = props.items.find((item) => isActivePath(pathname, item.href))?.href;
+  // The clicked tab turns active at once: the underline moves on click, not when the server answers.
+  const [pending, setPending] = useState<string | null>(null);
+  const [seenPath, setSeenPath] = useState(pathname);
+  if (seenPath !== pathname) {
+    // Arrived (or went elsewhere): the URL is the truth again. Adjusting state during render, per React docs.
+    setSeenPath(pathname);
+    setPending(null);
+  }
+  const activeHref = pending ?? props.items.find((item) => isActivePath(pathname, item.href))?.href;
 
   // One underline that slides to the active tab when the page changes (and follows resizes).
   // Written straight to the DOM: no re-render per frame. The first placement does not animate.
@@ -122,7 +130,7 @@ export function AppShellTabs(props: AppShellTabsProps) {
               className="pointer-events-none absolute bottom-0 left-0 h-0.5 rounded-full bg-foreground opacity-0 data-[ready]:transition-[transform,width] data-[ready]:duration-300 data-[ready]:ease-[cubic-bezier(0.32,0.72,0,1)]"
             />
             {props.items.map((item) => {
-              const active = isActivePath(pathname, item.href);
+              const active = item.href === activeHref;
               const count = countFor(item.href);
               const own = ownStation?.href === item.href;
               return (
@@ -131,6 +139,10 @@ export function AppShellTabs(props: AppShellTabsProps) {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   onMouseEnter={onPointerOver}
+                  onClick={(event) => {
+                    if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+                    if (item.href !== activeHref) setPending(item.href);
+                  }}
                   onFocus={(event) => setHighlight({ left: event.currentTarget.offsetLeft, width: event.currentTarget.offsetWidth })}
                   className={cn(
                     "relative flex h-13 shrink-0 items-center gap-1.5 px-3 text-sm whitespace-nowrap transition-colors duration-150",
