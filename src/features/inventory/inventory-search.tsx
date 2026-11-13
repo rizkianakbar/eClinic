@@ -5,10 +5,12 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { useDebouncedValue } from '@/lib/query';
+import { cn } from '@/lib/utils';
 
 type InventorySearchProps = {
   query: string;
   placeholder: string;
+  className?: string;
 };
 
 /** Writes the search to the URL (?q=), keeping other filters and resetting the page. */
@@ -33,7 +35,7 @@ export function InventorySearch(props: InventorySearchProps) {
   }, [debounced, props.query, pathname, router, searchParams]);
 
   return (
-    <div className="relative w-full max-w-xs">
+    <div className={cn('relative w-full max-w-xs', props.className)}>
       <SearchIcon
         className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-muted-foreground"
         aria-hidden

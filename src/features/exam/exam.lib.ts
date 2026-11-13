@@ -296,6 +296,8 @@ const EXAM_ERRORS: Record<string, string> = {
   not_in_exam: 'Pemeriksaan belum dimulai atau sudah selesai. Muat ulang halaman.',
   record_locked: 'Rekam medis sudah ditandatangani dan terkunci. Tambahkan amandemen untuk koreksi.',
   primary_diagnosis_required: 'Pilih minimal satu diagnosis utama sebelum menandatangani.',
+  medicine_decision_required:
+    'Tentukan resep dulu: tambahkan minimal satu obat, atau pilih "Tidak perlu obat" dengan alasannya.',
   soap_missing: 'Catatan SOAP belum ada. Isi dan simpan catatan terlebih dahulu.',
   soap_not_signed: 'Catatan SOAP belum ditandatangani.',
   amend_target_invalid: 'Amandemen hanya bisa ditambahkan pada rekam medis yang sudah ditandatangani.',

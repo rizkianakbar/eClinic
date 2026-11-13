@@ -2,9 +2,11 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FlaskConicalIcon, PillIcon, PlusIcon, XIcon } from 'lucide-react';
-import { Controller, useForm } from 'react-hook-form';
+import { useEffect, useLayoutEffect, useRef } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useExamDrafts } from '@/features/exam/exam-drafts';
 import { useActionMutation } from '@/lib/query';
 import { addPrescriptionItemAction, removeCompoundAction, removePrescriptionItemAction } from './prescriptions.actions';
 import {
@@ -17,6 +19,7 @@ import {
 import type { getPrescription } from './prescriptions.service';
 import { PrescriptionsCompoundDialog } from './prescriptions-compound-dialog';
 import { PrescriptionsMedicinePicker } from './prescriptions-medicine-picker';
+import { PrescriptionsNoMedicine } from './prescriptions-no-medicine';
 
 type Prescription = Awaited<ReturnType<typeof getPrescription>>;
 
@@ -24,6 +27,8 @@ type PrescriptionsEditorProps = {
   visitId: string;
   prescription: Prescription;
   editable: boolean;
+  /** "Tidak perlu obat" reason recorded on the visit (null: not decided). */
+  noMedicineReason: string | null;
 };
 
 const EMPTY: PrescriptionItemFormInput = { medicine: null, qty: '', signa: '' };
@@ -37,11 +42,13 @@ export function PrescriptionsEditor(props: PrescriptionsEditorProps) {
   return (
     <div className="flex flex-col gap-2">
       {items.length === 0 && compounds.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {props.editable
-            ? 'Belum ada obat. Tanpa resep, pasien langsung ke kasir setelah ditandatangani.'
-            : 'Tidak ada resep.'}
-        </p>
+        !props.noMedicineReason && (
+          <p className="text-sm text-muted-foreground">
+            {props.editable
+              ? 'Belum ada obat. Tambahkan obat, atau pilih "Tidak perlu obat" dengan alasannya.'
+              : 'Tidak ada resep.'}
+          </p>
+        )
       ) : (
         <ul className="overflow-hidden rounded-lg border text-sm">
           {items.map((item) => (
@@ -107,6 +114,9 @@ export function PrescriptionsEditor(props: PrescriptionsEditorProps) {
       )}
 
       {props.editable && <ItemForm visitId={props.visitId} />}
+      {items.length === 0 && compounds.length === 0 && (
+        <PrescriptionsNoMedicine visitId={props.visitId} reason={props.noMedicineReason} editable={props.editable} />
+      )}
     </div>
   );
 }
@@ -125,6 +135,38 @@ function ItemForm(props: ItemFormProps) {
 
   const { errors } = form.formState;
   const firstError = errors.medicine?.message ?? errors.qty?.message ?? errors.signa?.message;
+  const drafts = useExamDrafts();
+  const [medicine, qty, signa] = useWatch({ control: form.control, name: ['medicine', 'qty', 'signa'] });
+  const hasInput = Boolean(medicine) || Boolean(qty?.toString().trim()) || Boolean(signa?.trim());
+  const draftLabel = medicine?.name ?? 'Obat';
+
+  // Saves the row as if "Tambah" were pressed; false (with the errors shown) when it is incomplete.
+  const commit = useRef<() => Promise<boolean>>(async () => true);
+
+  useLayoutEffect(() => {
+    commit.current = () =>
+      new Promise<boolean>((resolve) => {
+        void form.handleSubmit(
+          async (values) => {
+            try {
+              await add.mutateAsync(values);
+              form.reset(EMPTY);
+              resolve(true);
+            } catch {
+              resolve(false);
+            }
+          },
+          () => resolve(false),
+        )();
+      });
+  });
+
+  // A filled-in row counts as a pending medicine: signing adds it instead of leaving it out.
+  useEffect(() => {
+    drafts.register('prescription-item', hasInput ? { label: draftLabel, commit: () => commit.current() } : null);
+
+    return () => drafts.register('prescription-item', null);
+  }, [drafts.register, hasInput, draftLabel]);
 
   return (
     <form
@@ -173,7 +215,15 @@ function ItemForm(props: ItemFormProps) {
           <option key={suggestion} value={suggestion} />
         ))}
       </datalist>
-      {firstError && <p className="text-[0.8125rem] text-destructive">{firstError}</p>}
+      {firstError ? (
+        <p className="text-[0.8125rem] text-destructive">{firstError}</p>
+      ) : (
+        hasInput && (
+          <p className="text-[0.8125rem] text-status-waiting">
+            Belum masuk resep. Tekan Tambah (atau Enter); kalau lupa, obat ini ditambahkan saat tanda tangan.
+          </p>
+        )
+      )}
     </form>
   );
 }

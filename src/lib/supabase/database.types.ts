@@ -2184,6 +2184,7 @@ export type Database = {
           created_at: string
           doctor_id: string
           id: string
+          no_medicine_reason: string | null
           patient_id: string
           payer_type: string
           poli_id: string
@@ -2203,6 +2204,7 @@ export type Database = {
           created_at?: string
           doctor_id: string
           id?: string
+          no_medicine_reason?: string | null
           patient_id: string
           payer_type: string
           poli_id: string
@@ -2222,6 +2224,7 @@ export type Database = {
           created_at?: string
           doctor_id?: string
           id?: string
+          no_medicine_reason?: string | null
           patient_id?: string
           payer_type?: string
           poli_id?: string
@@ -2435,6 +2438,7 @@ export type Database = {
           created_at: string
           doctor_id: string
           id: string
+          no_medicine_reason: string | null
           patient_id: string
           payer_type: string
           poli_id: string

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   compoundFormSchema,
   compoundSchema,
+  noMedicineSchema,
   prescriptionItemFormSchema,
   prescriptionItemSchema,
 } from './prescriptions.lib';
@@ -81,5 +82,13 @@ describe('form schemas', () => {
     });
 
     expect(result.error?.issues[0]?.message).toBe('Bahan racikan tidak boleh dobel.');
+  });
+});
+
+describe('noMedicineSchema', () => {
+  it('needs a short reason, trimmed', () => {
+    expect(noMedicineSchema.parse({ reason: '  Edukasi saja  ' })).toEqual({ reason: 'Edukasi saja' });
+    expect(noMedicineSchema.safeParse({ reason: ' ok ' }).success).toBe(false);
+    expect(noMedicineSchema.safeParse({ reason: 'x'.repeat(201) }).success).toBe(false);
   });
 });

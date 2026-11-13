@@ -54,7 +54,7 @@ export function ReportsRangeFilter(props: ReportsRangeFilterProps) {
             return (
               <Link
                 key={preset.label}
-                href={href(preset)}
+                href={href({ from: preset.from, to: preset.to })}
                 scroll={false}
                 aria-current={active ? 'true' : undefined}
                 className={segmentedItem(active)}>

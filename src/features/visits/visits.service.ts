@@ -1,8 +1,10 @@
 import 'server-only';
+import { escapeLike, parsePatientSearch } from '@/features/patients/patients.lib';
+import type { DateRange } from '@/features/reports/reports.lib';
 import { isoWeekday, todayInJakarta } from '@/lib/dates';
 import type { ActionResult } from '@/lib/query';
 import type { SupabaseClient } from '@/lib/supabase/server';
-import { type CreateVisitValues, type PracticeSession, visitErrorMessage } from './visits.lib';
+import { type CreateVisitValues, type PracticeSession, VISIT_HISTORY_PAGE_SIZE, visitErrorMessage } from './visits.lib';
 
 /** Queue number, date, poli, doctor and quota are decided by the database (visits_before_insert). */
 export async function createVisit(
@@ -108,4 +110,46 @@ export async function listPatientPrimaryDiagnoses(supabase: SupabaseClient, pati
       { code: row.icd10_code, name: row.icd10?.name_id ?? row.icd10?.name ?? row.icd10_code },
     ]),
   );
+}
+
+/**
+ * Riwayat kunjungan: every visit in the period, newest first, with who, where, the primary diagnosis
+ * (empty for roles that may not read diagnoses: RLS) and where the visit stands. One round trip; the date
+ * range runs on (clinic_id, visit_date). Search matches the patient by name, MRN, NIK or BPJS number.
+ */
+export async function listVisitHistory(
+  supabase: SupabaseClient,
+  options: { range: DateRange; query: string; page: number },
+) {
+  const from = (options.page - 1) * VISIT_HISTORY_PAGE_SIZE;
+
+  let request = supabase
+    .from('visits')
+    .select(
+      'id, visit_date, queue_no, status, payer_type, created_at, patient:patients!inner(id, full_name, mrn, sex, birth_date), poli:polis(name), doctor:profiles!visits_doctor_id_fkey(full_name), diagnoses:visit_diagnoses(icd10_code, icd10:icd10_codes(name, name_id))',
+      { count: 'exact' },
+    )
+    .gte('visit_date', options.range.from)
+    .lte('visit_date', options.range.to)
+    .eq('diagnoses.is_primary', true);
+
+  const search = parsePatientSearch(options.query);
+
+  if (search?.kind === 'number') {
+    request = request.or(`mrn.eq.${search.digits},nik.eq.${search.digits},bpjs_number.eq.${search.digits}`, {
+      referencedTable: 'patient',
+    });
+  } else if (search?.kind === 'name') {
+    request = request.ilike('patient.full_name', `%${escapeLike(search.text)}%`);
+  }
+
+  const { data, count, error } = await request
+    .order('visit_date', { ascending: false })
+    .order('created_at', { ascending: false })
+    .order('id')
+    .range(from, from + VISIT_HISTORY_PAGE_SIZE - 1);
+
+  if (error) throw new Error(`listVisitHistory failed: ${error.code}`);
+
+  return { visits: data, total: count ?? 0 };
 }

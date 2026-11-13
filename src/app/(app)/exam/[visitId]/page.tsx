@@ -32,6 +32,7 @@ import {
 } from '@/features/exam/exam.service';
 import { ExamAmendments } from '@/features/exam/exam-amendments';
 import { ExamDiagnoses } from '@/features/exam/exam-diagnoses';
+import { ExamDraftsProvider } from '@/features/exam/exam-drafts';
 import { ExamHistory } from '@/features/exam/exam-history';
 import { ExamLetters } from '@/features/exam/exam-letters';
 import { ExamProcedures } from '@/features/exam/exam-procedures';
@@ -94,9 +95,13 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
     { href: '#diagnosis', label: 'Diagnosis utama', done: hasPrimary, required: true },
     {
       href: '#resep',
-      label: prescriptionCount ? `Resep, ${prescriptionCount} obat` : 'Resep',
-      done: prescriptionCount > 0,
-      required: false,
+      label: prescriptionCount
+        ? `Resep, ${prescriptionCount} obat`
+        : visit.no_medicine_reason
+          ? 'Tidak perlu obat'
+          : 'Resep atau tanpa obat',
+      done: prescriptionCount > 0 || Boolean(visit.no_medicine_reason),
+      required: true,
     },
     {
       href: '#tindakan',
@@ -168,114 +173,124 @@ export default async function ExamPage(props: PageProps<'/exam/[visitId]'>) {
       </header>
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="flex min-w-0 flex-col gap-4">
-          <ExamSection
-            id="soap"
-            icon={NotebookPenIcon}
-            title="Catatan SOAP"
-            description={
-              signed
-                ? `Ditandatangani ${soap.main?.author?.full_name}, ${formatDateTime(soap.main!.signed_at!)}`
-                : 'Wajib diisi sebelum tanda tangan. Ctrl+S menyimpan draf.'
-            }
-            action={
-              !signed && soap.main && !editable && <span className="text-xs font-medium text-status-waiting">Draf</span>
-            }
-            flush>
-            {editable ? (
-              <ExamSoapForm
+        <ExamDraftsProvider>
+          <div className="flex min-w-0 flex-col gap-4">
+            <ExamSection
+              id="soap"
+              icon={NotebookPenIcon}
+              title="Catatan SOAP"
+              description={
+                signed
+                  ? `Ditandatangani ${soap.main?.author?.full_name}, ${formatDateTime(soap.main!.signed_at!)}`
+                  : 'Wajib diisi sebelum tanda tangan. Ctrl+S menyimpan draf.'
+              }
+              action={
+                !signed &&
+                soap.main &&
+                !editable && <span className="text-xs font-medium text-status-waiting">Draf</span>
+              }
+              flush>
+              {editable ? (
+                <ExamSoapForm
+                  visitId={visit.id}
+                  hasPrimaryDiagnosis={hasPrimary}
+                  prescriptionCount={prescriptionCount}
+                  noMedicine={Boolean(visit.no_medicine_reason)}
+                  defaultValues={{
+                    subjective: soap.main?.subjective ?? '',
+                    objective: soap.main?.objective ?? '',
+                    assessment: soap.main?.assessment ?? '',
+                    plan: soap.main?.plan ?? '',
+                  }}
+                />
+              ) : soap.main && hasNotes ? (
+                <SoapText note={soap.main} />
+              ) : (
+                <p className="p-4 text-sm text-muted-foreground">
+                  {visit.status === 'waiting' ? 'Pemeriksaan belum dimulai.' : 'Belum ada catatan.'}
+                </p>
+              )}
+            </ExamSection>
+
+            <ExamSection
+              id="diagnosis"
+              icon={StethoscopeIcon}
+              title="Diagnosis"
+              description="ICD-10. Tandai satu sebagai diagnosis utama."
+              meta={diagnoses.length || undefined}>
+              <ExamDiagnoses visitId={visit.id} diagnoses={diagnoses} editable={editable} />
+            </ExamSection>
+
+            <ExamSection
+              id="resep"
+              icon={PillIcon}
+              title="Resep"
+              description={
+                prescriptionCount
+                  ? 'Diteruskan ke farmasi setelah tanda tangan.'
+                  : 'Wajib: tambahkan obat, atau pilih "Tidak perlu obat" dengan alasannya.'
+              }
+              meta={prescriptionCount || undefined}>
+              <PrescriptionsEditor
                 visitId={visit.id}
-                hasPrimaryDiagnosis={hasPrimary}
-                prescriptionCount={prescriptionCount}
-                defaultValues={{
-                  subjective: soap.main?.subjective ?? '',
-                  objective: soap.main?.objective ?? '',
-                  assessment: soap.main?.assessment ?? '',
-                  plan: soap.main?.plan ?? '',
+                prescription={prescription}
+                editable={editable}
+                noMedicineReason={visit.no_medicine_reason}
+              />
+            </ExamSection>
+
+            <ExamSection
+              id="tindakan"
+              icon={SyringeIcon}
+              title="Tindakan dan bahan habis pakai"
+              description="Opsional. Masuk tagihan otomatis; bahan diambil dari stok saat tanda tangan."
+              meta={procedures.length || undefined}>
+              <ExamProcedures
+                visitId={visit.id}
+                procedures={procedures}
+                options={procedureOptions}
+                defaultPerformerId={visit.doctor_id}
+                editable={editable}
+              />
+            </ExamSection>
+
+            <ExamSection
+              id="surat"
+              icon={FileTextIcon}
+              title="Surat"
+              description="Surat sakit dan rujukan, dicetak dengan kop klinik."
+              meta={letters.length || undefined}>
+              <ExamLetters
+                visitId={visit.id}
+                letters={letters}
+                canIssue={isOwnDoctor && visit.status !== 'waiting' && visit.status !== 'cancelled'}
+                today={todayInJakarta()}
+                referralDefaults={{
+                  clinical_summary: [soap.main?.subjective, soap.main?.objective].filter(Boolean).join('\n'),
+                  therapy: [
+                    ...prescription.items.map(
+                      (item) => `${item.medicine?.name} ${item.qty} ${item.medicine?.unit} (${item.signa})`,
+                    ),
+                    ...prescription.compounds.map(
+                      (compound) => `Racikan ${compound.form} ${compound.quantity} (${compound.signa})`,
+                    ),
+                  ].join('\n'),
                 }}
               />
-            ) : soap.main && hasNotes ? (
-              <SoapText note={soap.main} />
-            ) : (
-              <p className="p-4 text-sm text-muted-foreground">
-                {visit.status === 'waiting' ? 'Pemeriksaan belum dimulai.' : 'Belum ada catatan.'}
-              </p>
-            )}
-          </ExamSection>
-
-          <ExamSection
-            id="diagnosis"
-            icon={StethoscopeIcon}
-            title="Diagnosis"
-            description="ICD-10. Tandai satu sebagai diagnosis utama."
-            meta={diagnoses.length || undefined}>
-            <ExamDiagnoses visitId={visit.id} diagnoses={diagnoses} editable={editable} />
-          </ExamSection>
-
-          <ExamSection
-            id="resep"
-            icon={PillIcon}
-            title="Resep"
-            description={
-              prescriptionCount
-                ? 'Diteruskan ke farmasi setelah tanda tangan.'
-                : 'Opsional. Tanpa resep, pasien langsung ke kasir.'
-            }
-            meta={prescriptionCount || undefined}>
-            <PrescriptionsEditor visitId={visit.id} prescription={prescription} editable={editable} />
-          </ExamSection>
-
-          <ExamSection
-            id="tindakan"
-            icon={SyringeIcon}
-            title="Tindakan dan bahan habis pakai"
-            description="Opsional. Masuk tagihan otomatis; bahan diambil dari stok saat tanda tangan."
-            meta={procedures.length || undefined}>
-            <ExamProcedures
-              visitId={visit.id}
-              procedures={procedures}
-              options={procedureOptions}
-              defaultPerformerId={visit.doctor_id}
-              editable={editable}
-            />
-          </ExamSection>
-
-          <ExamSection
-            id="surat"
-            icon={FileTextIcon}
-            title="Surat"
-            description="Surat sakit dan rujukan, dicetak dengan kop klinik."
-            meta={letters.length || undefined}>
-            <ExamLetters
-              visitId={visit.id}
-              letters={letters}
-              canIssue={isOwnDoctor && visit.status !== 'waiting' && visit.status !== 'cancelled'}
-              today={todayInJakarta()}
-              referralDefaults={{
-                clinical_summary: [soap.main?.subjective, soap.main?.objective].filter(Boolean).join('\n'),
-                therapy: [
-                  ...prescription.items.map(
-                    (item) => `${item.medicine?.name} ${item.qty} ${item.medicine?.unit} (${item.signa})`,
-                  ),
-                  ...prescription.compounds.map(
-                    (compound) => `Racikan ${compound.form} ${compound.quantity} (${compound.signa})`,
-                  ),
-                ].join('\n'),
-              }}
-            />
-          </ExamSection>
-
-          {signed && (soap.amendments.length > 0 || isOwnDoctor) && (
-            <ExamSection
-              id="amandemen"
-              icon={FilePenLineIcon}
-              title="Amandemen"
-              description="Koreksi setelah tanda tangan. Catatan asli tidak berubah."
-              meta={soap.amendments.length || undefined}>
-              <ExamAmendments visitId={visit.id} amendments={soap.amendments} canAmend={isOwnDoctor} />
             </ExamSection>
-          )}
-        </div>
+
+            {signed && (soap.amendments.length > 0 || isOwnDoctor) && (
+              <ExamSection
+                id="amandemen"
+                icon={FilePenLineIcon}
+                title="Amandemen"
+                description="Koreksi setelah tanda tangan. Catatan asli tidak berubah."
+                meta={soap.amendments.length || undefined}>
+                <ExamAmendments visitId={visit.id} amendments={soap.amendments} canAmend={isOwnDoctor} />
+              </ExamSection>
+            )}
+          </div>
+        </ExamDraftsProvider>
 
         <aside className="flex flex-col gap-4 xl:sticky xl:top-19 xl:max-h-[calc(100dvh-6rem)] xl:overflow-y-auto xl:overscroll-contain xl:pb-1">
           <RailCard

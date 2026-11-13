@@ -24,7 +24,7 @@ export async function getExamVisit(supabase: SupabaseClient, visitId: string) {
   const { data, error } = await supabase
     .from('visits')
     .select(
-      'id, status, queue_no, payer_type, visit_date, doctor_id, patient:patients(id, full_name, mrn, birth_date, sex), poli:polis(name), doctor:profiles!visits_doctor_id_fkey(full_name)',
+      'id, status, queue_no, payer_type, visit_date, doctor_id, no_medicine_reason, patient:patients(id, full_name, mrn, birth_date, sex), poli:polis(name), doctor:profiles!visits_doctor_id_fkey(full_name)',
     )
     .eq('id', visitId)
     .maybeSingle();

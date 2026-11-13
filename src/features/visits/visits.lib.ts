@@ -107,3 +107,6 @@ export function journeyIndex(status: JourneyVisitStatus) {
 
   return JOURNEY.findIndex((station) => station.status === (status === 'registered' ? 'waiting' : status));
 }
+
+/** Riwayat kunjungan: visits per page. */
+export const VISIT_HISTORY_PAGE_SIZE = 25;

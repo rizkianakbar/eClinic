@@ -84,3 +84,23 @@ export const compoundFormSchema = z
 
 export type PrescriptionItemFormInput = z.input<typeof prescriptionItemFormSchema>;
 export type CompoundFormInput = z.input<typeof compoundFormSchema>;
+
+/** Quick reasons for a visit without medicine; the doctor can also type their own. */
+export const NO_MEDICINE_REASONS = [
+  'Edukasi dan saran saja',
+  'Kontrol, obat masih ada',
+  'Obat sudah dibeli sendiri',
+  'Tindakan saja',
+];
+
+/** "Tidak perlu obat": why the doctor prescribed nothing (stored on the visit, checked when signing). */
+export const noMedicineSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(3, 'Tulis alasan singkat, minimal 3 huruf.')
+    .max(200, 'Alasan terlalu panjang, maksimal 200 karakter.'),
+});
+
+export type NoMedicineInput = z.input<typeof noMedicineSchema>;
+export type NoMedicineValues = z.output<typeof noMedicineSchema>;

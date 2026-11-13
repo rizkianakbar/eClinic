@@ -106,3 +106,20 @@ export async function removeCompound(supabase: SupabaseClient, compoundId: strin
 
   return error ? fail(error) : ok;
 }
+
+/**
+ * Records (or with null, withdraws) the doctor's decision that this visit needs no medicine. The database
+ * allows it only for the visit's own doctor during the exam, and signing requires it when nothing is prescribed.
+ */
+export async function setNoMedicine(supabase: SupabaseClient, visitId: string, reason: string | null) {
+  const { data, error } = await supabase
+    .from('visits')
+    .update({ no_medicine_reason: reason })
+    .eq('id', visitId)
+    .select('id')
+    .maybeSingle();
+
+  if (error) return fail(error);
+
+  return data ? ok : fail({ code: 'P0001', message: 'not_your_patient' });
+}

@@ -20,6 +20,7 @@ import { useActionMutation } from '@/lib/query';
 import { cn } from '@/lib/utils';
 import { saveSoapDraftAction, signVisitAction } from './exam.actions';
 import { type SoapInput, type SoapValues, soapSchema } from './exam.lib';
+import { useExamDrafts } from './exam-drafts';
 import { ExamSoapSheet } from './exam-soap-sheet';
 
 type ExamSoapFormProps = {
@@ -28,6 +29,8 @@ type ExamSoapFormProps = {
   hasPrimaryDiagnosis: boolean;
   /** Medicines + racikan on the prescription; decides pharmacy or cashier next. */
   prescriptionCount: number;
+  /** "Tidak perlu obat" was chosen (with a reason). */
+  noMedicine: boolean;
 };
 
 /**
@@ -48,6 +51,10 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
   const { errors, isDirty } = form.formState;
   const values = useWatch({ control: form.control });
   const hasNotes = Object.values(values).some((value) => (value ?? '').trim() !== '');
+  const drafts = useExamDrafts();
+  const willHaveMedicine = props.prescriptionCount > 0 || drafts.pending.length > 0;
+  const medicineDecided = willHaveMedicine || props.noMedicine;
+  const canSign = props.hasPrimaryDiagnosis && medicineDecided;
 
   const onSave = form.handleSubmit((submitted) =>
     save.mutate(submitted, {
@@ -58,7 +65,16 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
     }),
   );
 
-  const onSign = form.handleSubmit((submitted) =>
+  const onSign = form.handleSubmit(async (submitted) => {
+    // A medicine typed in but not added is added now, not silently dropped; an incomplete one stops signing.
+    if (!(await drafts.commitAll())) {
+      setConfirming(false);
+      toast.error('Obat di bagian Resep belum lengkap. Lengkapi jumlah dan aturan pakainya, lalu tanda tangani lagi.');
+      document.getElementById('resep')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      return;
+    }
+
     sign.mutate(submitted, {
       onSuccess: (result) => {
         form.reset(submitted);
@@ -69,8 +85,8 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
 
         router.push('/queue');
       },
-    }),
-  );
+    });
+  });
 
   // Unsaved notes: warn before the tab closes or reloads. ⌘S / Ctrl+S saves the draft.
   useEffect(() => {
@@ -94,7 +110,7 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
     };
   }, [isDirty, onSave]);
 
-  const nextStation = props.prescriptionCount > 0 ? 'farmasi' : 'kasir';
+  const nextStation = willHaveMedicine ? 'farmasi' : 'kasir';
 
   return (
     <form noValidate onSubmit={onSave}>
@@ -128,6 +144,9 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
             <Step done={props.hasPrimaryDiagnosis} href="#diagnosis">
               Diagnosis utama
             </Step>
+            <Step done={medicineDecided} href="#resep">
+              Resep atau tanpa obat
+            </Step>
             <li className="text-muted-foreground">
               Lanjut ke <span className="font-medium text-foreground">{nextStation}</span>
             </li>
@@ -147,8 +166,14 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
                 type="button"
                 size="sm"
                 onClick={() => setConfirming(true)}
-                disabled={!props.hasPrimaryDiagnosis}
-                title={props.hasPrimaryDiagnosis ? undefined : 'Pilih diagnosis utama dulu'}>
+                disabled={!canSign}
+                title={
+                  !props.hasPrimaryDiagnosis
+                    ? 'Pilih diagnosis utama dulu'
+                    : !medicineDecided
+                      ? 'Tambahkan obat, atau pilih "Tidak perlu obat"'
+                      : undefined
+                }>
                 <PenLineIcon />
                 Tanda tangani & selesai
               </Button>
@@ -158,6 +183,8 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
                   <DialogDescription>
                     Catatan SOAP dan diagnosis akan dikunci; koreksi setelahnya lewat amandemen. Pasien diteruskan ke{' '}
                     {nextStation}.
+                    {drafts.pending.length > 0 &&
+                      ` ${drafts.pending.join(', ')} belum ditambahkan ke resep; akan ditambahkan dulu.`}
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
