@@ -1,10 +1,10 @@
-import { MutationCache, QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { queryKeys } from "./query-keys";
+import { MutationCache, QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { queryKeys } from './query-keys';
 
-const FALLBACK_ERROR = "Terjadi kesalahan. Coba lagi, atau hubungi admin jika terus terjadi.";
+const FALLBACK_ERROR = 'Terjadi kesalahan. Coba lagi, atau hubungi admin jika terus terjadi.';
 
 /** One QueryClient per browser session. Mutation errors are toasted here, once, not at each call site. */
 export function makeQueryClient() {
@@ -16,6 +16,7 @@ export function makeQueryClient() {
       onError(error) {
         // A Server Action that redirects (e.g. an expired session) is navigation, not a failure.
         if (isNavigationSignal(error)) return;
+
         toast.error(error.message || FALLBACK_ERROR);
       },
     }),
@@ -25,7 +26,10 @@ export function makeQueryClient() {
 /** Next.js signals redirect()/notFound() by throwing errors with these digests. */
 export function isNavigationSignal(error: unknown) {
   const digest = (error as { digest?: unknown } | null)?.digest;
-  return typeof digest === "string" && (digest.startsWith("NEXT_REDIRECT") || digest.startsWith("NEXT_HTTP_ERROR_FALLBACK"));
+
+  return (
+    typeof digest === 'string' && (digest.startsWith('NEXT_REDIRECT') || digest.startsWith('NEXT_HTTP_ERROR_FALLBACK'))
+  );
 }
 
 /** Result shape for Server Actions called from useMutation. */
@@ -34,6 +38,7 @@ export type ActionResult<T = void> = { ok: true; data: T } | { ok: false; error:
 /** Turns a failed ActionResult into a thrown Error so the MutationCache toasts it. */
 export function unwrap<T>(result: ActionResult<T>) {
   if (!result.ok) throw new Error(result.error);
+
   return result.data;
 }
 
@@ -48,6 +53,7 @@ export function useActionMutation<TVariables, TData = void>(
 ) {
   const router = useRouter();
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (variables: TVariables) => unwrap(await action(variables)),
     onSuccess: () => {
@@ -60,9 +66,12 @@ export function useActionMutation<TVariables, TData = void>(
 /** The value after it stopped changing for `delayMs` (search-as-you-type). */
 export function useDebouncedValue<T>(value: T, delayMs: number) {
   const [debounced, setDebounced] = useState(value);
+
   useEffect(() => {
     const timer = setTimeout(() => setDebounced(value), delayMs);
+
     return () => clearTimeout(timer);
   }, [value, delayMs]);
+
   return debounced;
 }

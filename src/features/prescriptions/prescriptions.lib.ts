@@ -1,24 +1,24 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /** Common signa, offered as suggestions; any text is allowed. */
 export const SIGNA_SUGGESTIONS = [
-  "3 x 1 sesudah makan",
-  "2 x 1 sesudah makan",
-  "1 x 1 sesudah makan",
-  "3 x 1 sebelum makan",
-  "2 x 1 sebelum makan",
-  "1 x 1 malam hari",
-  "Bila perlu",
-  "Oles tipis 2 x sehari",
+  '3 x 1 sesudah makan',
+  '2 x 1 sesudah makan',
+  '1 x 1 sesudah makan',
+  '3 x 1 sebelum makan',
+  '2 x 1 sebelum makan',
+  '1 x 1 malam hari',
+  'Bila perlu',
+  'Oles tipis 2 x sehari',
 ] as const;
 
-export const COMPOUND_FORM_LABELS = { puyer: "Puyer", kapsul: "Kapsul" } as const;
+export const COMPOUND_FORM_LABELS = { puyer: 'Puyer', kapsul: 'Kapsul' } as const;
 
 const signa = z
   .string()
   .trim()
-  .min(1, "Aturan pakai (signa) wajib diisi.")
-  .max(200, "Aturan pakai terlalu panjang, maksimal 200 karakter.");
+  .min(1, 'Aturan pakai (signa) wajib diisi.')
+  .max(200, 'Aturan pakai terlalu panjang, maksimal 200 karakter.');
 
 const wholeNumber = (label: string, min: number, max: number) =>
   z.coerce
@@ -28,21 +28,21 @@ const wholeNumber = (label: string, min: number, max: number) =>
     .max(max, `${label} maksimal ${max}.`);
 
 export const prescriptionItemSchema = z.object({
-  medicine_id: z.uuid("Pilih obat."),
-  qty: wholeNumber("Jumlah", 1, 10000),
+  medicine_id: z.uuid('Pilih obat.'),
+  qty: wholeNumber('Jumlah', 1, 10000),
   signa,
 });
 
-const NO_DUPLICATE_INGREDIENTS = "Bahan racikan tidak boleh dobel.";
+const NO_DUPLICATE_INGREDIENTS = 'Bahan racikan tidak boleh dobel.';
 const hasNoDuplicates = (ids: string[]) => new Set(ids).size === ids.length;
 
 export const compoundSchema = z.object({
-  form: z.enum(["puyer", "kapsul"], { error: "Pilih bentuk racikan." }),
-  quantity: wholeNumber("Jumlah racikan", 1, 200),
+  form: z.enum(['puyer', 'kapsul'], { error: 'Pilih bentuk racikan.' }),
+  quantity: wholeNumber('Jumlah racikan', 1, 200),
   signa,
   ingredients: z
-    .array(z.object({ medicine_id: z.uuid("Pilih obat."), qty: wholeNumber("Jumlah bahan", 1, 10000) }))
-    .min(1, "Tambahkan minimal satu bahan racikan.")
+    .array(z.object({ medicine_id: z.uuid('Pilih obat.'), qty: wholeNumber('Jumlah bahan', 1, 10000) }))
+    .min(1, 'Tambahkan minimal satu bahan racikan.')
     .refine((items) => hasNoDuplicates(items.map((item) => item.medicine_id)), NO_DUPLICATE_INGREDIENTS),
 });
 
@@ -57,7 +57,7 @@ export type CompoundValues = z.output<typeof compoundSchema>;
 const pickedMedicine = z
   .object({ id: z.uuid(), name: z.string(), unit: z.string() })
   .nullable()
-  .refine((medicine) => medicine !== null, "Pilih obat.");
+  .refine((medicine) => medicine !== null, 'Pilih obat.');
 
 export const prescriptionItemFormSchema = z
   .object({
@@ -73,9 +73,9 @@ export const compoundFormSchema = z
     quantity: compoundSchema.shape.quantity,
     signa,
     ingredients: z
-      .array(z.object({ medicine: pickedMedicine, qty: wholeNumber("Jumlah bahan", 1, 10000) }))
-      .min(1, "Tambahkan minimal satu bahan racikan.")
-      .refine((items) => hasNoDuplicates(items.map((item) => item.medicine?.id ?? "")), NO_DUPLICATE_INGREDIENTS),
+      .array(z.object({ medicine: pickedMedicine, qty: wholeNumber('Jumlah bahan', 1, 10000) }))
+      .min(1, 'Tambahkan minimal satu bahan racikan.')
+      .refine((items) => hasNoDuplicates(items.map((item) => item.medicine?.id ?? '')), NO_DUPLICATE_INGREDIENTS),
   })
   .transform(({ ingredients, ...rest }) => ({
     ...rest,

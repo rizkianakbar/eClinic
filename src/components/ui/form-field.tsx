@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import type { ReactNode } from 'react';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 type FormFieldProps = {
   label: string;
@@ -14,7 +14,7 @@ type FormFieldProps = {
 /** Label, control, then either the error or a short hint underneath. */
 export function FormField(props: FormFieldProps) {
   return (
-    <div className={cn("flex flex-col gap-1.5", props.className)}>
+    <div className={cn('flex flex-col gap-1.5', props.className)}>
       <Label htmlFor={props.htmlFor}>{props.label}</Label>
       {props.children}
       {props.error ? (

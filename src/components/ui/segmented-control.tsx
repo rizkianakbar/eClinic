@@ -1,7 +1,8 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/utils";
-import { segmentedGroup, segmentedItem } from "./segmented";
+import { useId } from 'react';
+import { cn } from '@/lib/utils';
+import { segmentedGroup, segmentedRadioItem } from './segmented';
 
 type SegmentedControlProps<T extends string> = {
   label: string;
@@ -11,22 +12,26 @@ type SegmentedControlProps<T extends string> = {
   className?: string;
 };
 
-/** A small set of mutually exclusive views (filters, modes). */
+/** A small set of mutually exclusive views (filters, modes): native radios, so arrow keys move between them. */
 export function SegmentedControl<T extends string>(props: SegmentedControlProps<T>) {
+  const name = useId();
+
   return (
-    <div role="radiogroup" aria-label={props.label} className={cn(segmentedGroup, props.className)}>
+    <fieldset className={cn(segmentedGroup, props.className)}>
+      <legend className="sr-only">{props.label}</legend>
       {props.options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          role="radio"
-          aria-checked={props.value === option.value}
-          onClick={() => props.onChange(option.value)}
-          className={segmentedItem(props.value === option.value)}
-        >
+        <label key={option.value} className={segmentedRadioItem}>
+          <input
+            type="radio"
+            name={name}
+            value={option.value}
+            checked={props.value === option.value}
+            onChange={() => props.onChange(option.value)}
+            className="sr-only"
+          />
           {option.label}
-        </button>
+        </label>
       ))}
-    </div>
+    </fieldset>
   );
 }

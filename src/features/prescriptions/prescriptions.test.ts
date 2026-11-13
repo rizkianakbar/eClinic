@@ -1,80 +1,85 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from 'vitest';
 import {
   compoundFormSchema,
   compoundSchema,
   prescriptionItemFormSchema,
   prescriptionItemSchema,
-} from "./prescriptions.lib";
+} from './prescriptions.lib';
 
-const MED_A = "6f1c1a52-1f7e-4c55-9d0a-0b8f6f3e2a11";
-const MED_B = "0c6a3f2e-7d4b-4c1e-8a59-3b2d1e0f9c77";
+const MED_A = '6f1c1a52-1f7e-4c55-9d0a-0b8f6f3e2a11';
+const MED_B = '0c6a3f2e-7d4b-4c1e-8a59-3b2d1e0f9c77';
 
-describe("prescriptionItemSchema", () => {
-  it("requires a medicine, a whole quantity and a signa", () => {
-    expect(prescriptionItemSchema.parse({ medicine_id: MED_A, qty: "10", signa: " 3 x 1 " })).toEqual({
+describe('prescriptionItemSchema', () => {
+  it('requires a medicine, a whole quantity and a signa', () => {
+    expect(prescriptionItemSchema.parse({ medicine_id: MED_A, qty: '10', signa: ' 3 x 1 ' })).toEqual({
       medicine_id: MED_A,
       qty: 10,
-      signa: "3 x 1",
+      signa: '3 x 1',
     });
+
     const messages = prescriptionItemSchema
-      .safeParse({ medicine_id: "", qty: "1.5", signa: "" })
+      .safeParse({ medicine_id: '', qty: '1.5', signa: '' })
       .error?.issues.map((issue) => issue.message);
+
     expect(messages).toEqual(
-      expect.arrayContaining(["Pilih obat.", "Jumlah harus bilangan bulat.", "Aturan pakai (signa) wajib diisi."]),
+      expect.arrayContaining(['Pilih obat.', 'Jumlah harus bilangan bulat.', 'Aturan pakai (signa) wajib diisi.']),
     );
   });
 });
 
-describe("compoundSchema", () => {
+describe('compoundSchema', () => {
   const valid = {
-    form: "puyer",
-    quantity: "10",
-    signa: "3 x 1 puyer",
+    form: 'puyer',
+    quantity: '10',
+    signa: '3 x 1 puyer',
     ingredients: [
-      { medicine_id: MED_A, qty: "5" },
-      { medicine_id: MED_B, qty: "3" },
+      { medicine_id: MED_A, qty: '5' },
+      { medicine_id: MED_B, qty: '3' },
     ],
   };
 
-  it("parses a racikan with its ingredients", () => {
+  it('parses a racikan with its ingredients', () => {
     expect(compoundSchema.parse(valid)).toMatchObject({ quantity: 10, ingredients: [{ qty: 5 }, { qty: 3 }] });
   });
 
-  it("needs at least one ingredient and no duplicates", () => {
+  it('needs at least one ingredient and no duplicates', () => {
     expect(compoundSchema.safeParse({ ...valid, ingredients: [] }).error?.issues[0]?.message).toBe(
-      "Tambahkan minimal satu bahan racikan.",
+      'Tambahkan minimal satu bahan racikan.',
     );
+
     expect(
       compoundSchema.safeParse({ ...valid, ingredients: [valid.ingredients[0], valid.ingredients[0]] }).error?.issues[0]
         ?.message,
-    ).toBe("Bahan racikan tidak boleh dobel.");
+    ).toBe('Bahan racikan tidak boleh dobel.');
   });
 });
 
-describe("form schemas", () => {
-  const med = { id: MED_A, name: "Paracetamol 500 mg", unit: "tablet" };
+describe('form schemas', () => {
+  const med = { id: MED_A, name: 'Paracetamol 500 mg', unit: 'tablet' };
 
-  it("turn a picked medicine into medicine_id", () => {
-    expect(prescriptionItemFormSchema.parse({ medicine: med, qty: "10", signa: "3 x 1" })).toEqual({
+  it('turn a picked medicine into medicine_id', () => {
+    expect(prescriptionItemFormSchema.parse({ medicine: med, qty: '10', signa: '3 x 1' })).toEqual({
       medicine_id: MED_A,
       qty: 10,
-      signa: "3 x 1",
+      signa: '3 x 1',
     });
-    expect(prescriptionItemFormSchema.safeParse({ medicine: null, qty: "1", signa: "x" }).error?.issues[0]?.message).toBe(
-      "Pilih obat.",
-    );
+
+    expect(
+      prescriptionItemFormSchema.safeParse({ medicine: null, qty: '1', signa: 'x' }).error?.issues[0]?.message,
+    ).toBe('Pilih obat.');
   });
 
-  it("validates racikan ingredients through the server schema", () => {
+  it('validates racikan ingredients through the server schema', () => {
     const result = compoundFormSchema.safeParse({
-      form: "puyer",
-      quantity: "10",
-      signa: "3 x 1",
+      form: 'puyer',
+      quantity: '10',
+      signa: '3 x 1',
       ingredients: [
-        { medicine: med, qty: "5" },
-        { medicine: med, qty: "2" },
+        { medicine: med, qty: '5' },
+        { medicine: med, qty: '2' },
       ],
     });
-    expect(result.error?.issues[0]?.message).toBe("Bahan racikan tidak boleh dobel.");
+
+    expect(result.error?.issues[0]?.message).toBe('Bahan racikan tidak boleh dobel.');
   });
 });

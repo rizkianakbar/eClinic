@@ -1,7 +1,13 @@
-import "server-only";
-import { addDays } from "@/lib/dates";
-import type { SupabaseClient } from "@/lib/supabase/server";
-import { escapeLike, parsePatientSearch, patientWriteErrorMessage, type PatientStats, type PatientValues } from "./patients.lib";
+import 'server-only';
+import { addDays } from '@/lib/dates';
+import type { SupabaseClient } from '@/lib/supabase/server';
+import {
+  escapeLike,
+  type PatientStats,
+  type PatientValues,
+  parsePatientSearch,
+  patientWriteErrorMessage,
+} from './patients.lib';
 
 type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -12,11 +18,13 @@ export async function createPatient(
   values: PatientValues,
 ): Promise<Result<{ id: string }>> {
   const { data, error } = await supabase
-    .from("patients")
+    .from('patients')
     .insert({ ...values, clinic_id: clinicId })
-    .select("id")
+    .select('id')
     .single();
+
   if (error) return { ok: false, error: patientWriteErrorMessage(error) };
+
   return { ok: true, data };
 }
 
@@ -25,30 +33,29 @@ export async function updatePatient(
   patientId: string,
   values: PatientValues,
 ): Promise<Result<void>> {
-  const { data, error } = await supabase
-    .from("patients")
-    .update(values)
-    .eq("id", patientId)
-    .select("id")
-    .maybeSingle();
+  const { data, error } = await supabase.from('patients').update(values).eq('id', patientId).select('id').maybeSingle();
+
   if (error) return { ok: false, error: patientWriteErrorMessage(error) };
-  if (!data) return { ok: false, error: "Pasien tidak ditemukan. Muat ulang halaman lalu coba lagi." };
+  if (!data) return { ok: false, error: 'Pasien tidak ditemukan. Muat ulang halaman lalu coba lagi.' };
+
   return { ok: true, data: undefined };
 }
 
 export async function getPatient(supabase: SupabaseClient, patientId: string) {
   const { data, error } = await supabase
-    .from("patients")
-    .select("id, mrn, full_name, nik, bpjs_number, birth_date, sex, phone, address, is_active")
-    .eq("id", patientId)
+    .from('patients')
+    .select('id, mrn, full_name, nik, bpjs_number, birth_date, sex, phone, address, is_active')
+    .eq('id', patientId)
     .maybeSingle();
+
   if (error) throw new Error(`getPatient failed: ${error.code}`);
+
   return data;
 }
 
 export const PATIENTS_PAGE_SIZE = 25;
 
-export type PatientPayerFilter = "all" | "bpjs" | "umum";
+export type PatientPayerFilter = 'all' | 'bpjs' | 'umum';
 
 /**
  * One page of patients, newest first, filtered like the search box and by
@@ -59,31 +66,42 @@ export async function listPatients(
   options: { query: string; page: number; payer?: PatientPayerFilter },
 ) {
   const from = (options.page - 1) * PATIENTS_PAGE_SIZE;
+
   let request = supabase
-    .from("patients")
+    .from('patients')
     // Visit dates come embedded (one round trip): count and last visit are worked out below.
-    .select("id, mrn, full_name, nik, bpjs_number, birth_date, sex, phone, is_active, created_at, visits(visit_date)", { count: "exact" })
-    .neq("visits.status", "cancelled");
-  if (options.payer === "bpjs") request = request.not("bpjs_number", "is", null);
-  if (options.payer === "umum") request = request.is("bpjs_number", null);
+    .select('id, mrn, full_name, nik, bpjs_number, birth_date, sex, phone, is_active, created_at, visits(visit_date)', {
+      count: 'exact',
+    })
+    .neq('visits.status', 'cancelled');
+
+  if (options.payer === 'bpjs') request = request.not('bpjs_number', 'is', null);
+  if (options.payer === 'umum') request = request.is('bpjs_number', null);
+
   const search = parsePatientSearch(options.query);
-  if (search?.kind === "number") {
+
+  if (search?.kind === 'number') {
     request = request.or(
       `mrn.eq.${search.digits},nik.eq.${search.digits},bpjs_number.eq.${search.digits},phone.ilike.*${search.phone}*`,
     );
-  } else if (search?.kind === "name") {
-    request = request.ilike("full_name", `%${escapeLike(search.text)}%`);
+  } else if (search?.kind === 'name') {
+    request = request.ilike('full_name', `%${escapeLike(search.text)}%`);
   }
+
   const { data, count, error } = await request
-    .order("created_at", { ascending: false })
+    .order('created_at', { ascending: false })
     .range(from, from + PATIENTS_PAGE_SIZE - 1);
+
   if (error) throw new Error(`listPatients failed: ${error.code}`);
 
   return {
     patients: data.map(({ visits, ...patient }) => ({
       ...patient,
       visitCount: visits.length,
-      lastVisit: visits.reduce<string | null>((last, visit) => (!last || visit.visit_date > last ? visit.visit_date : last), null),
+      lastVisit: visits.reduce<string | null>(
+        (last, visit) => (!last || visit.visit_date > last ? visit.visit_date : last),
+        null,
+      ),
     })),
     total: count ?? 0,
   };
@@ -91,12 +109,15 @@ export async function listPatients(
 
 /** The composition panel's figures, computed in the database over all active patients (one round trip). */
 export async function getPatientStats(supabase: SupabaseClient, today: string): Promise<PatientStats> {
-  const { data, error } = await supabase.rpc("patient_demographics", {
+  const { data, error } = await supabase.rpc('patient_demographics', {
     p_today: today,
     p_week_ago: addDays(today, -6),
     p_month_start: `${today.slice(0, 7)}-01`,
   });
+
   if (error) throw new Error(`getPatientStats failed: ${error.code}`);
-  const stats = data as Omit<PatientStats, "female">;
+
+  const stats = data as Omit<PatientStats, 'female'>;
+
   return { ...stats, female: stats.total - stats.male };
 }

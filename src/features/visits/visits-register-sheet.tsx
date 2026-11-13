@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { CalendarPlusIcon } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import type { PracticeSession } from "./visits.lib";
-import { VisitsRegisterForm } from "./visits-register-form";
+import { CalendarPlusIcon } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import type { PracticeSession } from './visits.lib';
+import { VisitsRegisterForm } from './visits-register-form';
 
 type VisitsRegisterSheetProps = {
   patientId: string;
@@ -41,6 +41,7 @@ export function VisitsRegisterSheet(props: VisitsRegisterSheetProps) {
           layout="panel"
           onRegistered={(visit) => {
             setOpen(false);
+
             toast.success(`Nomor antrean ${visit.queueNo}`, {
               description: `${visit.session.poliName} · ${visit.session.doctorName}`,
               duration: 10_000,

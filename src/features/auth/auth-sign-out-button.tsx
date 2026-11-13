@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { LogOutIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useSignOut } from "./auth.hooks";
+import { LogOutIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useSignOut } from './auth.hooks';
 
 export function SignOutButton() {
   const signOut = useSignOut();
@@ -10,7 +10,7 @@ export function SignOutButton() {
   return (
     <Button variant="destructive-outline" disabled={signOut.isPending} onClick={() => signOut.mutate()}>
       <LogOutIcon />
-      {signOut.isPending ? "Keluar…" : "Keluar dari akun ini"}
+      {signOut.isPending ? 'Keluar…' : 'Keluar dari akun ini'}
     </Button>
   );
 }

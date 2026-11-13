@@ -1,28 +1,28 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageUpIcon, LoaderCircleIcon, Trash2Icon } from "lucide-react";
-import Image from "next/image";
-import { useRef } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { FormField } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
-import { segmentedGroup, segmentedItem } from "@/components/ui/segmented";
-import { Textarea } from "@/components/ui/textarea";
-import { useActionMutation } from "@/lib/query";
-import { cn } from "@/lib/utils";
-import { removeClinicLogoAction, updateClinicProfileAction, uploadClinicLogoAction } from "./settings.actions";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ImageUpIcon, LoaderCircleIcon, Trash2Icon } from 'lucide-react';
+import Image from 'next/image';
+import { useRef } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/ui/form-field';
+import { Input } from '@/components/ui/input';
+import { segmentedGroup, segmentedItem } from '@/components/ui/segmented';
+import { Textarea } from '@/components/ui/textarea';
+import { useActionMutation } from '@/lib/query';
+import { cn } from '@/lib/utils';
+import { removeClinicLogoAction, updateClinicProfileAction, uploadClinicLogoAction } from './settings.actions';
 import {
+  type ClinicProfileInput,
+  type ClinicProfileValues,
   clinicProfileSchema,
   LOGO_TYPES,
   logoFileError,
-  type ClinicProfileInput,
-  type ClinicProfileValues,
-} from "./settings.lib";
-import type { getClinicProfile } from "./settings.service";
-import { SettingsLetterhead } from "./settings-letterhead";
+} from './settings.lib';
+import type { getClinicProfile } from './settings.service';
+import { SettingsLetterhead } from './settings-letterhead';
 
 type SettingsClinicFormProps = {
   clinic: NonNullable<Awaited<ReturnType<typeof getClinicProfile>>>;
@@ -56,31 +56,38 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
   const upload = useActionMutation(uploadClinicLogoAction);
   const remove = useActionMutation(removeClinicLogoAction);
   const fileRef = useRef<HTMLInputElement>(null);
+
   const form = useForm<ClinicProfileInput, unknown, ClinicProfileValues>({
     resolver: zodResolver(clinicProfileSchema),
     defaultValues: {
       name: clinic.name,
-      address: clinic.address ?? "",
-      phone: clinic.phone ?? "",
-      email: clinic.email ?? "",
-      license_no: clinic.license_no ?? "",
+      address: clinic.address ?? '',
+      phone: clinic.phone ?? '',
+      email: clinic.email ?? '',
+      license_no: clinic.license_no ?? '',
       idle_logout_minutes: String(clinic.idle_logout_minutes),
     },
   });
+
   const { errors, isDirty } = form.formState;
   const live = useWatch({ control: form.control });
   const idle = Number(live.idle_logout_minutes);
 
   function pickLogo(file: File | undefined) {
     if (!file) return;
+
     const problem = logoFileError(file);
+
     if (problem) {
       toast.error(problem);
+
       return;
     }
+
     const data = new FormData();
-    data.set("logo", file);
-    upload.mutate(data, { onSuccess: () => toast.success("Logo diperbarui.") });
+
+    data.set('logo', file);
+    upload.mutate(data, { onSuccess: () => toast.success('Logo diperbarui.') });
   }
 
   const logoBusy = upload.isPending || remove.isPending;
@@ -92,12 +99,11 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
       onSubmit={form.handleSubmit((values) =>
         save.mutate(values, {
           onSuccess: () => {
-            toast.success("Profil klinik tersimpan.");
+            toast.success('Profil klinik tersimpan.');
             form.reset(form.getValues());
           },
         }),
-      )}
-    >
+      )}>
       <div className="flex min-w-0 flex-col gap-4">
         <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           <Section title="Identitas" description="Nama dan logo yang tampil di kop surat, kuitansi, dan laporan.">
@@ -106,16 +112,25 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={logoBusy}
-                aria-label={clinic.logoUrl ? "Ganti logo" : "Unggah logo"}
+                aria-label={clinic.logoUrl ? 'Ganti logo' : 'Unggah logo'}
                 className={cn(
-                  "group relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted/50 transition-colors hover:border-primary/60 focus-visible:ring-3 focus-visible:ring-primary/20 focus-visible:outline-none",
-                  !clinic.logoUrl && "border-dashed",
-                )}
-              >
+                  'group relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted/50 transition-colors hover:border-primary/60 focus-visible:ring-3 focus-visible:ring-primary/20 focus-visible:outline-none',
+                  !clinic.logoUrl && 'border-dashed',
+                )}>
                 {clinic.logoUrl ? (
-                  <Image src={clinic.logoUrl} alt="Logo klinik" width={80} height={80} unoptimized className="size-full object-contain p-1.5" />
+                  <Image
+                    src={clinic.logoUrl}
+                    alt="Logo klinik"
+                    width={80}
+                    height={80}
+                    unoptimized
+                    className="size-full object-contain p-1.5"
+                  />
                 ) : (
-                  <ImageUpIcon className="size-6 text-muted-foreground transition-colors group-hover:text-primary" aria-hidden />
+                  <ImageUpIcon
+                    className="size-6 text-muted-foreground transition-colors group-hover:text-primary"
+                    aria-hidden
+                  />
                 )}
                 {logoBusy && (
                   <span className="absolute inset-0 flex items-center justify-center bg-card/80">
@@ -125,8 +140,13 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
               </button>
               <div className="flex min-w-0 flex-col gap-1.5">
                 <div className="flex flex-wrap gap-2">
-                  <Button type="button" variant="outline" size="sm" disabled={logoBusy} onClick={() => fileRef.current?.click()}>
-                    {clinic.logoUrl ? "Ganti logo" : "Unggah logo"}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={logoBusy}
+                    onClick={() => fileRef.current?.click()}>
+                    {clinic.logoUrl ? 'Ganti logo' : 'Unggah logo'}
                   </Button>
                   {clinic.logoUrl && (
                     <Button
@@ -135,45 +155,55 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
                       size="sm"
                       disabled={logoBusy}
                       className="text-muted-foreground hover:text-destructive"
-                      onClick={() => remove.mutate(undefined, { onSuccess: () => toast.success("Logo dihapus.") })}
-                    >
+                      onClick={() => remove.mutate(undefined, { onSuccess: () => toast.success('Logo dihapus.') })}>
                       <Trash2Icon aria-hidden />
                       Hapus
                     </Button>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">PNG, JPG, atau WEBP, maksimal 1 MB. Latar transparan paling rapi.</p>
+                <p className="text-xs text-muted-foreground">
+                  PNG, JPG, atau WEBP, maksimal 1 MB. Latar transparan paling rapi.
+                </p>
               </div>
               <input
                 ref={fileRef}
                 type="file"
-                accept={LOGO_TYPES.join(",")}
+                accept={LOGO_TYPES.join(',')}
                 className="sr-only"
                 tabIndex={-1}
                 onChange={(event) => {
                   pickLogo(event.target.files?.[0]);
-                  event.target.value = "";
+                  event.target.value = '';
                 }}
               />
             </div>
             <FormField label="Nama klinik" htmlFor="clinic_name" error={errors.name?.message}>
-              <Input id="clinic_name" {...form.register("name")} />
+              <Input id="clinic_name" {...form.register('name')} />
             </FormField>
-            <FormField label="Nomor izin klinik" htmlFor="clinic_license" error={errors.license_no?.message} hint="Tampil di bawah alamat pada kop surat">
-              <Input id="clinic_license" placeholder="Contoh: 503/123/DPMPTSP/2026" {...form.register("license_no")} />
+            <FormField
+              label="Nomor izin klinik"
+              htmlFor="clinic_license"
+              error={errors.license_no?.message}
+              hint="Tampil di bawah alamat pada kop surat">
+              <Input id="clinic_license" placeholder="Contoh: 503/123/DPMPTSP/2026" {...form.register('license_no')} />
             </FormField>
           </Section>
 
           <Section title="Kontak" description="Alamat dan nomor yang bisa dihubungi pasien.">
             <FormField label="Alamat" htmlFor="clinic_address" error={errors.address?.message}>
-              <Textarea id="clinic_address" rows={2} placeholder="Jalan, kelurahan, kecamatan, kota" {...form.register("address")} />
+              <Textarea
+                id="clinic_address"
+                rows={2}
+                placeholder="Jalan, kelurahan, kecamatan, kota"
+                {...form.register('address')}
+              />
             </FormField>
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField label="Telepon" htmlFor="clinic_phone" error={errors.phone?.message}>
-                <Input id="clinic_phone" type="tel" {...form.register("phone")} />
+                <Input id="clinic_phone" type="tel" {...form.register('phone')} />
               </FormField>
               <FormField label="Email" htmlFor="clinic_email" error={errors.email?.message} hint="Opsional">
-                <Input id="clinic_email" type="email" {...form.register("email")} />
+                <Input id="clinic_email" type="email" {...form.register('email')} />
               </FormField>
             </div>
           </Section>
@@ -183,24 +213,38 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
               label="Keluar otomatis setelah"
               htmlFor="clinic_idle"
               error={errors.idle_logout_minutes?.message}
-              hint="Lebih pendek lebih aman di meja depan; terlalu pendek membuat dokter sering login ulang."
-            >
+              hint="Lebih pendek lebih aman di meja depan; terlalu pendek membuat dokter sering login ulang.">
               <div className="flex flex-wrap items-center gap-3">
-                <div className={segmentedGroup} role="group" aria-label="Pilihan cepat">
+                <fieldset className={segmentedGroup}>
+                  <legend className="sr-only">Pilihan cepat</legend>
                   {IDLE_PRESETS.map((minutes) => (
                     <button
                       key={minutes}
                       type="button"
                       className={segmentedItem(idle === minutes)}
-                      onClick={() => form.setValue("idle_logout_minutes", String(minutes), { shouldDirty: true, shouldValidate: true })}
-                    >
+                      onClick={() =>
+                        form.setValue('idle_logout_minutes', String(minutes), {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }>
                       {minutes}
                     </button>
                   ))}
-                </div>
+                </fieldset>
                 <div className="relative w-28">
-                  <Input id="clinic_idle" type="number" inputMode="numeric" min={1} max={240} className="pr-14" {...form.register("idle_logout_minutes")} />
-                  <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground">menit</span>
+                  <Input
+                    id="clinic_idle"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={240}
+                    className="pr-14"
+                    {...form.register('idle_logout_minutes')}
+                  />
+                  <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground">
+                    menit
+                  </span>
                 </div>
               </div>
             </FormField>
@@ -209,11 +253,10 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
 
         <div
           className={cn(
-            "sticky bottom-4 z-10 flex items-center justify-between gap-3 rounded-xl border bg-card/95 px-4 py-2.5 shadow-[0_8px_24px_rgb(20_32_29/0.10)] backdrop-blur transition-[opacity,translate] duration-200 ease-[var(--ease-out)]",
-            isDirty ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0",
+            'sticky bottom-4 z-10 flex items-center justify-between gap-3 rounded-xl border bg-card/95 px-4 py-2.5 shadow-[0_8px_24px_rgb(20_32_29/0.10)] backdrop-blur transition-[opacity,translate] duration-200 ease-out',
+            isDirty ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0',
           )}
-          aria-hidden={!isDirty}
-        >
+          aria-hidden={!isDirty}>
           <p className="flex items-center gap-2 text-sm">
             <span className="size-2 rounded-full bg-amber-500" aria-hidden />
             Ada perubahan yang belum disimpan
@@ -223,13 +266,13 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
               Batalkan
             </Button>
             <Button type="submit" size="sm" disabled={save.isPending}>
-              {save.isPending ? "Menyimpan…" : "Simpan profil"}
+              {save.isPending ? 'Menyimpan…' : 'Simpan profil'}
             </Button>
           </div>
         </div>
       </div>
 
-      <aside className="flex flex-col gap-2.5 xl:sticky xl:top-[4.75rem]">
+      <aside className="flex flex-col gap-2.5 xl:sticky xl:top-19">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">Pratinjau kop surat</h2>
           <span className="text-xs text-muted-foreground">berubah saat Anda mengetik</span>
@@ -238,7 +281,7 @@ export function SettingsClinicForm(props: SettingsClinicFormProps) {
           <div className="origin-top rounded-md bg-white p-5 text-black shadow-[0_1px_3px_rgb(20_32_29/0.12)]">
             <SettingsLetterhead
               clinic={{
-                name: live.name || "Nama klinik",
+                name: live.name || 'Nama klinik',
                 address: live.address || null,
                 phone: live.phone || null,
                 email: live.email || null,

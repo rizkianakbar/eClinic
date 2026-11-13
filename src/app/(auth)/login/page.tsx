@@ -1,16 +1,16 @@
-import { HeartPulseIcon } from "lucide-react";
-import type { Metadata } from "next";
-import { LoginForm } from "@/features/auth/auth-login-form";
-import { devLoginEnabled, listTestAccounts } from "@/features/auth/auth.service";
-import { AuthTestAccounts } from "@/features/auth/auth-test-accounts";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { JOURNEY } from "@/features/visits/visits.lib";
+import { HeartPulseIcon } from 'lucide-react';
+import type { Metadata } from 'next';
+import { devLoginEnabled, listTestAccounts } from '@/features/auth/auth.service';
+import { LoginForm } from '@/features/auth/auth-login-form';
+import { AuthTestAccounts } from '@/features/auth/auth-test-accounts';
+import { JOURNEY } from '@/features/visits/visits.lib';
+import { createAdminClient } from '@/lib/supabase/admin';
 
-export const metadata: Metadata = { title: "Masuk" };
+export const metadata: Metadata = { title: 'Masuk' };
 
-const STATION_DOTS = ["#d4952b", "#3a7bd5", "#7a5bd1", "#22936f", "#8fa29d"];
+const STATION_DOTS = ['#d4952b', '#3a7bd5', '#7a5bd1', '#22936f', '#8fa29d'];
 
-export default async function LoginPage(props: PageProps<"/login">) {
+export default async function LoginPage(props: PageProps<'/login'>) {
   const { reason } = await props.searchParams;
   const testAccounts = devLoginEnabled() ? await listTestAccounts(createAdminClient()) : [];
 
@@ -33,9 +33,15 @@ export default async function LoginPage(props: PageProps<"/login">) {
             {JOURNEY.map((station, index) => (
               <li key={station.status} className="relative flex flex-col items-center gap-2.5 text-center">
                 {index < JOURNEY.length - 1 && (
-                  <span className="absolute top-1.5 left-1/2 h-0.5 w-full -translate-y-1/2" style={{ background: STATION_DOTS[index] }} />
+                  <span
+                    className="absolute top-1.5 left-1/2 h-0.5 w-full -translate-y-1/2"
+                    style={{ background: STATION_DOTS[index] }}
+                  />
                 )}
-                <span className="relative size-3 rounded-full ring-4 ring-[#0f2f28]" style={{ background: STATION_DOTS[index] }} />
+                <span
+                  className="relative size-3 rounded-full ring-4 ring-[#0f2f28]"
+                  style={{ background: STATION_DOTS[index] }}
+                />
                 <span className="text-xs text-white/70">{station.short}</span>
               </li>
             ))}
@@ -57,8 +63,10 @@ export default async function LoginPage(props: PageProps<"/login">) {
             <h1 className="text-[1.75rem] leading-tight font-semibold tracking-tight">Masuk</h1>
             <p className="text-sm text-muted-foreground">Gunakan email dan kata sandi akun staf Anda.</p>
           </div>
-          {reason === "idle" && (
-            <p role="status" className="rounded-lg border border-status-waiting/20 bg-status-waiting-soft px-3.5 py-3 text-sm text-status-waiting">
+          {reason === 'idle' && (
+            <p
+              role="status"
+              className="rounded-lg border border-status-waiting/20 bg-status-waiting-soft px-3.5 py-3 text-sm text-status-waiting">
               Anda keluar otomatis karena komputer tidak dipakai beberapa saat. Silakan masuk kembali.
             </p>
           )}

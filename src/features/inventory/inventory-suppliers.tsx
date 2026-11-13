@@ -1,10 +1,10 @@
-import { DataImportDialog } from "@/features/data-import/data-import-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { SettingsActiveToggle } from "@/features/settings/settings-active-toggle";
-import { setSupplierActiveAction } from "./inventory.actions";
-import type { listSuppliers } from "./inventory.service";
-import { InventorySupplierDialog } from "./inventory-supplier-dialog";
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DataImportDialog } from '@/features/data-import/data-import-dialog';
+import { SettingsActiveToggle } from '@/features/settings/settings-active-toggle';
+import { setSupplierActiveAction } from './inventory.actions';
+import type { listSuppliers } from './inventory.service';
+import { InventorySupplierDialog } from './inventory-supplier-dialog';
 
 type InventorySuppliersProps = {
   suppliers: Awaited<ReturnType<typeof listSuppliers>>;
@@ -35,13 +35,13 @@ export function InventorySuppliers(props: InventorySuppliersProps) {
           </TableHeader>
           <TableBody>
             {props.suppliers.map((supplier) => (
-              <TableRow key={supplier.id} className={supplier.is_active ? undefined : "text-muted-foreground"}>
+              <TableRow key={supplier.id} className={supplier.is_active ? undefined : 'text-muted-foreground'}>
                 <TableCell className="font-medium">{supplier.name}</TableCell>
-                <TableCell>{supplier.phone ?? "-"}</TableCell>
-                <TableCell className="max-w-xs truncate">{supplier.address ?? "-"}</TableCell>
+                <TableCell>{supplier.phone ?? '-'}</TableCell>
+                <TableCell className="max-w-xs truncate">{supplier.address ?? '-'}</TableCell>
                 <TableCell>
-                  <Badge variant={supplier.is_active ? "secondary" : "outline"}>
-                    {supplier.is_active ? "Aktif" : "Nonaktif"}
+                  <Badge variant={supplier.is_active ? 'secondary' : 'outline'}>
+                    {supplier.is_active ? 'Aktif' : 'Nonaktif'}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">

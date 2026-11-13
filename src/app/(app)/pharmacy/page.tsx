@@ -1,22 +1,24 @@
-import type { Metadata } from "next";
-import { LiveIndicator } from "@/components/ui/live-indicator";
-import { PageHeader } from "@/components/ui/page-header";
-import { listLowStock, listPharmacyDesk } from "@/features/home/home.service";
-import { HomePharmacy } from "@/features/home/home-pharmacy";
-import { nearExpiryCutoff } from "@/features/inventory/inventory.lib";
-import { countStockAlerts } from "@/features/inventory/inventory.service";
-import { listDispensedToday } from "@/features/pharmacy/pharmacy.service";
-import { VisitsLiveRefresh } from "@/features/visits/visits-live-refresh";
-import { requireRole } from "@/lib/auth";
-import { formatDate, todayInJakarta } from "@/lib/dates";
-import { createClient } from "@/lib/supabase/server";
+import type { Metadata } from 'next';
+import { LiveIndicator } from '@/components/ui/live-indicator';
+import { PageHeader } from '@/components/ui/page-header';
+import { listLowStock, listPharmacyDesk } from '@/features/home/home.service';
+import { HomePharmacy } from '@/features/home/home-pharmacy';
+import { nearExpiryCutoff } from '@/features/inventory/inventory.lib';
+import { countStockAlerts } from '@/features/inventory/inventory.service';
+import { listDispensedToday } from '@/features/pharmacy/pharmacy.service';
+import { VisitsLiveRefresh } from '@/features/visits/visits-live-refresh';
+import { requireRole } from '@/lib/auth';
+import { formatDate, todayInJakarta } from '@/lib/dates';
+import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: "Resep masuk" };
+export const metadata: Metadata = { title: 'Resep masuk' };
 
 export default async function PharmacyPage() {
-  await requireRole("pharmacist");
+  await requireRole('pharmacist');
+
   const today = todayInJakarta();
   const supabase = await createClient();
+
   const [waiting, lowStock, dispensed, alerts] = await Promise.all([
     listPharmacyDesk(supabase),
     listLowStock(supabase),
@@ -36,7 +38,7 @@ export default async function PharmacyPage() {
           </span>
         }
       />
-      {/* eslint-disable-next-line react-hooks/purity -- server render time for the wait timers */}
+      {/* Date.now() here is the server render time for the wait timers (first paint; they tick on the client). */}
       <HomePharmacy waiting={waiting} lowStock={lowStock} dispensed={dispensed} alerts={alerts} now={Date.now()} />
     </>
   );

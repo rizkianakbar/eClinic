@@ -1,28 +1,18 @@
-"use client";
+'use client';
 
-import {
-  CheckIcon,
-  CircleAlertIcon,
-  IdCardIcon,
-  PhoneIcon,
-  UserRoundIcon,
-  XIcon,
-} from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { SEX_LABELS } from "@/features/patients/patients.constants";
-import type { SearchPatient } from "@/features/patients/patients.hooks";
-import { ageInYears, formatIdNumber, formatPhone, initials } from "@/features/patients/patients.lib";
-import { PatientSearch } from "@/features/patients/patients-search";
-import { toHourMinute } from "@/features/schedules/schedules.lib";
-import { cn } from "@/lib/utils";
-import { PAYER_LABELS, VISIT_STATUS_LABELS } from "./visits.constants";
-import type { PracticeSession } from "./visits.lib";
-import {
-  VisitsRegisterForm,
-  type RegisteredVisit,
-} from "./visits-register-form";
+import { CheckIcon, CircleAlertIcon, IdCardIcon, PhoneIcon, UserRoundIcon, XIcon } from 'lucide-react';
+import Link from 'next/link';
+import { type ReactNode, useEffect, useEffectEvent, useState } from 'react';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { SEX_LABELS } from '@/features/patients/patients.constants';
+import type { SearchPatient } from '@/features/patients/patients.hooks';
+import { ageInYears, formatIdNumber, formatPhone, initials } from '@/features/patients/patients.lib';
+import { PatientSearch } from '@/features/patients/patients-search';
+import { toHourMinute } from '@/features/schedules/schedules.lib';
+import { cn } from '@/lib/utils';
+import { PAYER_LABELS, VISIT_STATUS_LABELS } from './visits.constants';
+import type { PracticeSession } from './visits.lib';
+import { type RegisteredVisit, VisitsRegisterForm } from './visits-register-form';
 
 type TodayEntry = {
   queueNo: number;
@@ -61,21 +51,21 @@ export function VisitsRegistrationDesk(props: VisitsRegistrationDeskProps) {
     setRound((value) => value + 1); // remounts the search: empty and focused
   }
 
+  // Esc goes back to an empty search. An effect event: it always calls the latest next() without re-subscribing.
+  const onEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key === 'Escape' && !document.querySelector('[role=dialog]')) next();
+  });
+
   useEffect(() => {
     if (!selected && !ticket) return;
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape" && !document.querySelector("[role=dialog]"))
-        next();
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+
+    window.addEventListener('keydown', onEscape);
+
+    return () => window.removeEventListener('keydown', onEscape);
   }, [selected, ticket]);
 
   const notes = Object.fromEntries(
-    Object.entries(props.registeredToday).map(([id, entry]) => [
-      id,
-      `Terdaftar · No. ${entry.queueNo}`,
-    ]),
+    Object.entries(props.registeredToday).map(([id, entry]) => [id, `Terdaftar · No. ${entry.queueNo}`]),
   );
 
   return (
@@ -98,22 +88,13 @@ export function VisitsRegistrationDesk(props: VisitsRegistrationDeskProps) {
         {props.children}
       </div>
 
-      <aside
-        aria-label="Pendaftaran"
-        className="flex flex-col gap-2.5 lg:sticky lg:top-20"
-      >
-        <h2 className="text-sm font-semibold">
-          {ticket ? "3. Nomor antrean" : "2. Pilih dokter dan daftarkan"}
-        </h2>
+      <aside aria-label="Pendaftaran" className="flex flex-col gap-2.5 lg:sticky lg:top-20">
+        <h2 className="text-sm font-semibold">{ticket ? '3. Nomor antrean' : '2. Pilih dokter dan daftarkan'}</h2>
         {ticket ? (
           <QueueTicket ticket={ticket} onNext={next} />
         ) : selected ? (
           <div className="overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
-            <PatientCard
-              patient={selected}
-              today={props.registeredToday[selected.id]}
-              onClose={next}
-            />
+            <PatientCard patient={selected} today={props.registeredToday[selected.id]} onClose={next} />
             <div className="p-4">
               <VisitsRegisterForm
                 key={selected.id}
@@ -123,9 +104,7 @@ export function VisitsRegistrationDesk(props: VisitsRegistrationDeskProps) {
                 canManageSchedules={props.canManageSchedules}
                 now={props.now}
                 layout="panel"
-                onRegistered={(visit) =>
-                  setTicket({ ...visit, patient: selected })
-                }
+                onRegistered={(visit) => setTicket({ ...visit, patient: selected })}
               />
             </div>
           </div>
@@ -145,6 +124,7 @@ type PatientCardProps = {
 
 function PatientCard(props: PatientCardProps) {
   const { patient } = props;
+
   return (
     <div className="flex flex-col gap-3 border-b bg-muted/30 p-4">
       <div className="flex items-start gap-3">
@@ -154,11 +134,8 @@ function PatientCard(props: PatientCardProps) {
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold">{patient.full_name}</p>
           <p className="text-[0.8125rem] text-muted-foreground">
-            {SEX_LABELS[patient.sex as keyof typeof SEX_LABELS]},{" "}
-            {ageInYears(patient.birth_date)} tahun · RM{" "}
-            <span className="tabular font-medium text-foreground">
-              {patient.mrn}
-            </span>
+            {SEX_LABELS[patient.sex as keyof typeof SEX_LABELS]}, {ageInYears(patient.birth_date)} tahun · RM{' '}
+            <span className="tabular font-medium text-foreground">{patient.mrn}</span>
           </p>
         </div>
         <Button
@@ -166,45 +143,28 @@ function PatientCard(props: PatientCardProps) {
           size="icon-xs"
           aria-label="Pilih pasien lain (Esc)"
           title="Pilih pasien lain (Esc)"
-          onClick={props.onClose}
-        >
+          onClick={props.onClose}>
           <XIcon />
         </Button>
       </div>
       <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.8125rem]">
-        <Fact
-          icon={<IdCardIcon />}
-          label="NIK"
-          value={patient.nik ? formatIdNumber(patient.nik) : "Belum ada"}
-        />
-        <Fact
-          icon={<PhoneIcon />}
-          label="HP"
-          value={patient.phone ? formatPhone(patient.phone) : "Belum ada"}
-        />
-        <Fact
-          icon={<UserRoundIcon />}
-          label="BPJS"
-          value={patient.bpjs_number ?? "Bukan peserta"}
-          wide
-        />
+        <Fact icon={<IdCardIcon />} label="NIK" value={patient.nik ? formatIdNumber(patient.nik) : 'Belum ada'} />
+        <Fact icon={<PhoneIcon />} label="HP" value={patient.phone ? formatPhone(patient.phone) : 'Belum ada'} />
+        <Fact icon={<UserRoundIcon />} label="BPJS" value={patient.bpjs_number ?? 'Bukan peserta'} wide />
       </dl>
       {props.today && (
         <p className="flex items-start gap-2 rounded-lg bg-status-waiting-soft px-3 py-2 text-[0.8125rem] text-status-waiting">
           <CircleAlertIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
           <span>
-            Sudah terdaftar hari ini: nomor{" "}
-            <span className="font-semibold">{props.today.queueNo}</span>,{" "}
-            {props.today.poliName} (
-            {VISIT_STATUS_LABELS[props.today.status].toLowerCase()}). Daftarkan
-            lagi hanya jika ke poli lain.
+            Sudah terdaftar hari ini: nomor <span className="font-semibold">{props.today.queueNo}</span>,{' '}
+            {props.today.poliName} ({VISIT_STATUS_LABELS[props.today.status].toLowerCase()}). Daftarkan lagi hanya jika
+            ke poli lain.
           </span>
         </p>
       )}
       <Link
         href={`/patients/${patient.id}`}
-        className="w-fit text-[0.8125rem] font-medium text-primary hover:underline"
-      >
+        className="w-fit text-[0.8125rem] font-medium text-primary hover:underline">
         Buka data dan riwayat pasien
       </Link>
     </div>
@@ -220,12 +180,7 @@ type FactProps = {
 
 function Fact(props: FactProps) {
   return (
-    <div
-      className={cn(
-        "flex min-w-0 items-center gap-1.5",
-        props.wide && "col-span-2",
-      )}
-    >
+    <div className={cn('flex min-w-0 items-center gap-1.5', props.wide && 'col-span-2')}>
       <span className="text-muted-foreground [&_svg]:size-3.5" aria-hidden>
         {props.icon}
       </span>
@@ -243,6 +198,7 @@ type QueueTicketProps = {
 /** What to tell the patient: a big number, where to wait, who they will see. */
 function QueueTicket(props: QueueTicketProps) {
   const { ticket } = props;
+
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-[0_8px_30px_-12px_rgb(15_31_27/0.25)] motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-[0.98] motion-safe:duration-200">
       <div className="flex items-center gap-2 border-b bg-secondary/60 px-4 py-2.5 text-sm font-medium text-secondary-foreground">
@@ -252,35 +208,25 @@ function QueueTicket(props: QueueTicketProps) {
         Terdaftar di antrean
       </div>
       <div className="flex flex-col items-center gap-1 px-4 pt-6 pb-5 text-center">
-        <p className="text-[0.8125rem] font-medium text-muted-foreground">
-          Nomor antrean
-        </p>
-        <p className="numeral text-[5rem] text-status-waiting">
-          {ticket.queueNo}
-        </p>
+        <p className="text-[0.8125rem] font-medium text-muted-foreground">Nomor antrean</p>
+        <p className="numeral text-[5rem] text-status-waiting">{ticket.queueNo}</p>
         <p className="mt-1 font-semibold">{ticket.patient.full_name}</p>
         <p className="text-sm text-muted-foreground">
           {ticket.session.poliName} · {ticket.session.doctorName}
         </p>
         <p className="tabular text-sm text-muted-foreground">
-          Praktik {toHourMinute(ticket.session.startTime)}–
-          {toHourMinute(ticket.session.endTime)} · {PAYER_LABELS[ticket.payer]}
+          Praktik {toHourMinute(ticket.session.startTime)}–{toHourMinute(ticket.session.endTime)} ·{' '}
+          {PAYER_LABELS[ticket.payer]}
         </p>
       </div>
       <div className="flex flex-col gap-2 border-t bg-muted/30 p-4">
         <Button size="lg" autoFocus className="w-full" onClick={props.onNext}>
           Pasien berikutnya
-          <kbd className="ml-1 rounded bg-white/15 px-1.5 font-sans text-[0.6875rem] font-medium">
-            Enter
-          </kbd>
+          <kbd className="ml-1 rounded bg-white/15 px-1.5 font-sans text-[0.6875rem] font-medium">Enter</kbd>
         </Button>
         <Link
           href={`/patients/${ticket.patient.id}`}
-          className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
-            "w-full",
-          )}
-        >
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'w-full')}>
           Buka data pasien
         </Link>
       </div>

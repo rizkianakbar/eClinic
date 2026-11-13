@@ -1,11 +1,11 @@
-import { ChevronLeftIcon } from "lucide-react";
-import Link from "next/link";
-import { Tag } from "@/components/ui/tag";
-import { initials } from "@/features/patients/patients.lib";
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDate, formatDateTime } from "@/lib/dates";
-import { formatRupiah } from "@/lib/money";
-import type { getPurchase } from "./inventory.service";
+import { ChevronLeftIcon } from 'lucide-react';
+import Link from 'next/link';
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tag } from '@/components/ui/tag';
+import { initials } from '@/features/patients/patients.lib';
+import { formatDate, formatDateTime } from '@/lib/dates';
+import { formatRupiah } from '@/lib/money';
+import type { getPurchase } from './inventory.service';
 
 type InventoryPurchaseProps = {
   purchase: NonNullable<Awaited<ReturnType<typeof getPurchase>>>;
@@ -20,21 +20,20 @@ export function InventoryPurchase(props: InventoryPurchaseProps) {
       <div className="flex flex-col gap-3">
         <Link
           href="/inventory/purchases"
-          className="-ml-1 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-0.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
+          className="-ml-1 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-0.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
           <ChevronLeftIcon className="size-4" aria-hidden />
           Semua pembelian
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="flex size-11 items-center justify-center rounded-xl bg-secondary text-sm font-semibold text-secondary-foreground">
-              {initials(purchase.supplier?.name ?? "?")}
+              {initials(purchase.supplier?.name ?? '?')}
             </span>
             <div className="flex flex-col gap-1">
               <h2 className="text-[1.25rem] leading-tight font-semibold tracking-tight">{purchase.supplier?.name}</h2>
               <div className="flex flex-wrap gap-1.5">
                 <Tag>
-                  Faktur <span className="tabular font-semibold">{purchase.invoice_no ?? "tanpa nomor"}</span>
+                  Faktur <span className="tabular font-semibold">{purchase.invoice_no ?? 'tanpa nomor'}</span>
                 </Tag>
                 <Tag>{formatDate(purchase.purchase_date)}</Tag>
                 <Tag>

@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { XIcon } from "lucide-react";
-import { Controller, useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { PrescriptionsMedicinePicker } from "@/features/prescriptions/prescriptions-medicine-picker";
-import { formatRupiah } from "@/lib/money";
-import { useActionMutation } from "@/lib/query";
-import { addConsumableAction, removeConsumableAction } from "./exam.actions";
-import { consumableFormSchema, type ConsumableFormInput, type ConsumableValues } from "./exam.lib";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { XIcon } from 'lucide-react';
+import { Controller, useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { PrescriptionsMedicinePicker } from '@/features/prescriptions/prescriptions-medicine-picker';
+import { formatRupiah } from '@/lib/money';
+import { useActionMutation } from '@/lib/query';
+import { addConsumableAction, removeConsumableAction } from './exam.actions';
+import { type ConsumableFormInput, type ConsumableValues, consumableFormSchema } from './exam.lib';
 
 type Consumable = { id: string; qty: number; medicine: { name: string; unit: string; price: number } | null };
 
@@ -19,16 +19,18 @@ type ExamConsumablesProps = {
   editable: boolean;
 };
 
-const EMPTY: ConsumableFormInput = { medicine: null, qty: "1" };
+const EMPTY: ConsumableFormInput = { medicine: null, qty: '1' };
 
 /** Bahan habis pakai for one procedure: taken from stock when the record is signed, billed automatically. */
 export function ExamConsumables(props: ExamConsumablesProps) {
   const add = useActionMutation((values: ConsumableValues) => addConsumableAction(props.procedureId, values));
   const remove = useActionMutation(removeConsumableAction);
+
   const form = useForm<ConsumableFormInput, unknown, ConsumableValues>({
     resolver: zodResolver(consumableFormSchema),
     defaultValues: EMPTY,
   });
+
   const { errors } = form.formState;
 
   if (!props.editable && props.consumables.length === 0) return null;
@@ -48,8 +50,7 @@ export function ExamConsumables(props: ExamConsumablesProps) {
               variant="ghost"
               aria-label="Hapus bahan"
               disabled={remove.isPending}
-              onClick={() => remove.mutate(item.id)}
-            >
+              onClick={() => remove.mutate(item.id)}>
               <XIcon />
             </Button>
           )}
@@ -59,8 +60,7 @@ export function ExamConsumables(props: ExamConsumablesProps) {
         <form
           noValidate
           className="flex flex-wrap items-start gap-1"
-          onSubmit={form.handleSubmit((values) => add.mutate(values, { onSuccess: () => form.reset(EMPTY) }))}
-        >
+          onSubmit={form.handleSubmit((values) => add.mutate(values, { onSuccess: () => form.reset(EMPTY) }))}>
           <div className="min-w-48 flex-1">
             <Controller
               control={form.control}
@@ -75,7 +75,7 @@ export function ExamConsumables(props: ExamConsumablesProps) {
               )}
             />
           </div>
-          <Input aria-label="Jumlah" inputMode="numeric" className="w-16" {...form.register("qty")} />
+          <Input aria-label="Jumlah" inputMode="numeric" className="w-16" {...form.register('qty')} />
           <Button type="submit" size="sm" variant="ghost" disabled={add.isPending}>
             Tambah bahan
           </Button>

@@ -1,12 +1,12 @@
-import type { Metadata } from "next";
-import { LiveIndicator } from "@/components/ui/live-indicator";
-import { PageHeader } from "@/components/ui/page-header";
-import { QUEUE_VIEWER_ROLES } from "@/features/queue/queue.lib";
-import { QueueBoard } from "@/features/queue/queue-board";
-import { requireRole } from "@/lib/auth";
-import { formatDate, todayInJakarta } from "@/lib/dates";
+import type { Metadata } from 'next';
+import { LiveIndicator } from '@/components/ui/live-indicator';
+import { PageHeader } from '@/components/ui/page-header';
+import { QUEUE_VIEWER_ROLES } from '@/features/queue/queue.lib';
+import { QueueBoard } from '@/features/queue/queue-board';
+import { requireRole } from '@/lib/auth';
+import { formatDate, todayInJakarta } from '@/lib/dates';
 
-export const metadata: Metadata = { title: "Antrean" };
+export const metadata: Metadata = { title: 'Antrean' };
 
 export default async function QueuePage() {
   const session = await requireRole(...QUEUE_VIEWER_ROLES);

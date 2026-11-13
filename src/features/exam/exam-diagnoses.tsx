@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { PlusIcon, StarIcon, XIcon } from "lucide-react";
-import { useRef, useState, type KeyboardEvent } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Floating } from "@/components/ui/floating";
-import { Input } from "@/components/ui/input";
-import { useActionMutation } from "@/lib/query";
-import { cn } from "@/lib/utils";
-import { addDiagnosisAction, removeDiagnosisAction, setPrimaryDiagnosisAction } from "./exam.actions";
-import { useIcd10Search } from "./exam.hooks";
-import { parseIcd10Search } from "./exam.lib";
-import type { listDiagnoses } from "./exam.service";
+import { PlusIcon, StarIcon, XIcon } from 'lucide-react';
+import { type KeyboardEvent, useRef, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Floating } from '@/components/ui/floating';
+import { Input } from '@/components/ui/input';
+import { useActionMutation } from '@/lib/query';
+import { cn } from '@/lib/utils';
+import { addDiagnosisAction, removeDiagnosisAction, setPrimaryDiagnosisAction } from './exam.actions';
+import { useIcd10Search } from './exam.hooks';
+import { parseIcd10Search } from './exam.lib';
+import type { listDiagnoses } from './exam.service';
 
 type ExamDiagnosesProps = {
   visitId: string;
@@ -61,8 +61,7 @@ export function ExamDiagnoses(props: ExamDiagnosesProps) {
                   variant="ghost"
                   aria-label={`Hapus diagnosis ${diagnosis.icd10_code}`}
                   disabled={busy}
-                  onClick={() => remove.mutate(diagnosis.id)}
-                >
+                  onClick={() => remove.mutate(diagnosis.id)}>
                   <XIcon />
                 </Button>
               )}
@@ -83,7 +82,7 @@ type Icd10PickerProps = {
 /** Type a disease name or code; arrows to move, Enter to add. */
 function Icd10Picker(props: Icd10PickerProps) {
   const anchor = useRef<HTMLDivElement>(null);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [highlighted, setHighlighted] = useState(0);
   const search = useIcd10Search(query);
   const results = parseIcd10Search(query) ? (search.data ?? []) : [];
@@ -91,18 +90,18 @@ function Icd10Picker(props: Icd10PickerProps) {
 
   function pick(code: string) {
     props.onPick(code);
-    setQuery("");
+    setQuery('');
     setHighlighted(0);
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "ArrowDown") {
+    if (event.key === 'ArrowDown') {
       event.preventDefault();
       setHighlighted(Math.min(active + 1, results.length - 1));
-    } else if (event.key === "ArrowUp") {
+    } else if (event.key === 'ArrowUp') {
       event.preventDefault();
       setHighlighted(Math.max(active - 1, 0));
-    } else if (event.key === "Enter" && results[active]) {
+    } else if (event.key === 'Enter' && results[active]) {
       event.preventDefault();
       pick(results[active].code);
     }
@@ -111,7 +110,10 @@ function Icd10Picker(props: Icd10PickerProps) {
   return (
     <div className="relative">
       <div ref={anchor} className="relative">
-        <PlusIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+        <PlusIcon
+          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+          aria-hidden
+        />
         <Input
           type="search"
           aria-label="Cari diagnosis ICD-10"
@@ -124,26 +126,26 @@ function Icd10Picker(props: Icd10PickerProps) {
             setHighlighted(0);
           }}
           onKeyDown={onKeyDown}
-          onBlur={() => setTimeout(() => setQuery(""), 150)}
+          onBlur={() => setTimeout(() => setQuery(''), 150)}
         />
       </div>
       {parseIcd10Search(query) && (
         <Floating anchor={anchor}>
           {!search.isPending && results.length === 0 ? (
-            <p className="px-3 py-3 text-sm text-muted-foreground">
-              Tidak ditemukan. Coba kata lain atau kode ICD-10.
-            </p>
+            <p className="px-3 py-3 text-sm text-muted-foreground">Tidak ditemukan. Coba kata lain atau kode ICD-10.</p>
           ) : (
             <ul className="min-h-0 overflow-y-auto p-1">
               {results.map((item, index) => (
                 <li key={item.code}>
                   <button
                     type="button"
-                    className={cn("flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left text-sm", index === active && "bg-muted")}
+                    className={cn(
+                      'flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left text-sm',
+                      index === active && 'bg-muted',
+                    )}
                     onMouseEnter={() => setHighlighted(index)}
                     onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => pick(item.code)}
-                  >
+                    onClick={() => pick(item.code)}>
                     <span className="tabular w-14 shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-center text-xs font-semibold">
                       {item.code}
                     </span>

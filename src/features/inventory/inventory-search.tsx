@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { SearchIcon } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { useDebouncedValue } from "@/lib/query";
+import { SearchIcon } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { useDebouncedValue } from '@/lib/query';
 
 type InventorySearchProps = {
   query: string;
@@ -21,16 +21,23 @@ export function InventorySearch(props: InventorySearchProps) {
 
   useEffect(() => {
     if (debounced === props.query) return;
+
     const params = new URLSearchParams(searchParams);
-    params.delete("page");
-    if (debounced) params.set("q", debounced);
-    else params.delete("q");
+
+    params.delete('page');
+
+    if (debounced) params.set('q', debounced);
+    else params.delete('q');
+
     router.replace(params.size > 0 ? `${pathname}?${params}` : pathname);
   }, [debounced, props.query, pathname, router, searchParams]);
 
   return (
     <div className="relative w-full max-w-xs">
-      <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-muted-foreground" aria-hidden />
+      <SearchIcon
+        className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-muted-foreground"
+        aria-hidden
+      />
       <Input
         type="search"
         enterKeyHint="search"

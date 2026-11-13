@@ -1,4 +1,5 @@
-import Image from "next/image";
+import Image from 'next/image';
+
 type SettingsLetterheadProps = {
   clinic: {
     name: string;
@@ -13,7 +14,7 @@ type SettingsLetterheadProps = {
 /** Clinic letterhead (kop surat) for printed letters and reports. */
 export function SettingsLetterhead(props: SettingsLetterheadProps) {
   const { clinic } = props;
-  const contact = [clinic.phone && `Telp. ${clinic.phone}`, clinic.email].filter(Boolean).join(" · ");
+  const contact = [clinic.phone && `Telp. ${clinic.phone}`, clinic.email].filter(Boolean).join(' · ');
 
   return (
     <header className="flex items-center gap-4 border-b-2 border-black pb-3">

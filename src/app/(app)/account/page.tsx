@@ -1,30 +1,30 @@
-import type { Metadata } from "next";
-import type { ReactNode } from "react";
-import { AppShellTextSizePreview } from "@/features/app-shell/app-shell-text-size-preview";
-import { ROLE_LABELS } from "@/features/auth/auth.constants";
-import { getOwnProfile } from "@/features/auth/auth.service";
-import { AuthChangePasswordForm } from "@/features/auth/auth-change-password-form";
-import { SignOutButton } from "@/features/auth/auth-sign-out-button";
-import { initials } from "@/features/patients/patients.lib";
-import { requireRole } from "@/lib/auth";
-import { formatDate } from "@/lib/dates";
-import { createClient } from "@/lib/supabase/server";
+import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
+import { AppShellTextSizePreview } from '@/features/app-shell/app-shell-text-size-preview';
+import { ROLE_LABELS } from '@/features/auth/auth.constants';
+import { getOwnProfile } from '@/features/auth/auth.service';
+import { AuthChangePasswordForm } from '@/features/auth/auth-change-password-form';
+import { SignOutButton } from '@/features/auth/auth-sign-out-button';
+import { initials } from '@/features/patients/patients.lib';
+import { requireRole } from '@/lib/auth';
+import { formatDate } from '@/lib/dates';
+import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: "Akun saya" };
+export const metadata: Metadata = { title: 'Akun saya' };
 
 const SHORTCUTS: [string[], string][] = [
-  [["Ctrl", "K"], "Cari pasien dari halaman mana pun (⌘ K di Mac)"],
-  [["/"], "Cari pasien (saat tidak sedang mengetik)"],
-  [["↑", "↓"], "Pilih hasil pencarian"],
-  [["Enter"], "Buka pasien, atau daftarkan kunjungan"],
-  [["Ctrl", "S"], "Simpan draf catatan SOAP"],
-  [["Esc"], "Tutup panel atau dialog"],
+  [['Ctrl', 'K'], 'Cari pasien dari halaman mana pun (⌘ K di Mac)'],
+  [['/'], 'Cari pasien (saat tidak sedang mengetik)'],
+  [['↑', '↓'], 'Pilih hasil pencarian'],
+  [['Enter'], 'Buka pasien, atau daftarkan kunjungan'],
+  [['Ctrl', 'S'], 'Simpan draf catatan SOAP'],
+  [['Esc'], 'Tutup panel atau dialog'],
 ];
 
 export default async function AccountPage() {
   const session = await requireRole();
   const profile = await getOwnProfile(await createClient(), session.userId);
-  const clinical = session.role === "doctor" || session.role === "nurse" || session.role === "pharmacist";
+  const clinical = session.role === 'doctor' || session.role === 'nurse' || session.role === 'pharmacist';
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-10">
@@ -44,15 +44,18 @@ export default async function AccountPage() {
       <Section title="Profil" description="Data diri Anda di klinik. Untuk mengubahnya, hubungi admin klinik.">
         <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
           <Fact label="Nama lengkap" value={session.fullName} />
-          <Fact label="Email (untuk masuk)" value={profile?.email ?? "–"} />
+          <Fact label="Email (untuk masuk)" value={profile?.email ?? '–'} />
           <Fact label="Peran" value={ROLE_LABELS[session.role]} />
           <Fact label="Klinik" value={session.clinicName} />
-          {clinical && <Fact label="NIK" value={profile?.nik ?? "Belum diisi"} />}
-          {clinical && <Fact label="Nomor SIP" value={profile?.sip_number ?? "Belum diisi"} />}
+          {clinical && <Fact label="NIK" value={profile?.nik ?? 'Belum diisi'} />}
+          {clinical && <Fact label="Nomor SIP" value={profile?.sip_number ?? 'Belum diisi'} />}
         </dl>
       </Section>
 
-      <Section id="kata-sandi" title="Kata sandi" description="Gunakan minimal 8 karakter. Jangan pakai kata sandi yang sama dengan akun lain.">
+      <Section
+        id="kata-sandi"
+        title="Kata sandi"
+        description="Gunakan minimal 8 karakter. Jangan pakai kata sandi yang sama dengan akun lain.">
         <AuthChangePasswordForm />
       </Section>
 
@@ -60,7 +63,10 @@ export default async function AccountPage() {
         <AppShellTextSizePreview />
       </Section>
 
-      <Section id="pintasan" title="Pintasan keyboard" description="Lebih cepat tanpa mouse, terutama di meja pendaftaran.">
+      <Section
+        id="pintasan"
+        title="Pintasan keyboard"
+        description="Lebih cepat tanpa mouse, terutama di meja pendaftaran.">
         <ul className="flex flex-col divide-y">
           {SHORTCUTS.map(([keys, label]) => (
             <li key={label} className="flex items-center justify-between gap-4 py-2.5 text-sm first:pt-0 last:pb-0">
@@ -69,8 +75,7 @@ export default async function AccountPage() {
                 {keys.map((key) => (
                   <kbd
                     key={key}
-                    className="flex h-6 min-w-6 items-center justify-center rounded-md border bg-background px-1.5 font-sans text-xs font-medium shadow-[0_1px_0_var(--border)]"
-                  >
+                    className="flex h-6 min-w-6 items-center justify-center rounded-md border bg-background px-1.5 font-sans text-xs font-medium shadow-[0_1px_0_var(--border)]">
                     {key}
                   </kbd>
                 ))}
@@ -82,8 +87,7 @@ export default async function AccountPage() {
 
       <Section
         title="Sesi"
-        description={`Komputer bersama: Anda otomatis keluar setelah ${session.idleLogoutMinutes} menit tidak dipakai. Keluar sendiri saat meninggalkan meja.`}
-      >
+        description={`Komputer bersama: Anda otomatis keluar setelah ${session.idleLogoutMinutes} menit tidak dipakai. Keluar sendiri saat meninggalkan meja.`}>
         <SignOutButton />
       </Section>
     </div>
@@ -100,7 +104,9 @@ type SectionProps = {
 /** Label and explanation on the left, the setting on the right. */
 function Section(props: SectionProps) {
   return (
-    <section id={props.id} className="scroll-mt-24 grid gap-4 border-t pt-8 md:grid-cols-[16rem_minmax(0,1fr)] md:gap-10">
+    <section
+      id={props.id}
+      className="scroll-mt-24 grid gap-4 border-t pt-8 md:grid-cols-[16rem_minmax(0,1fr)] md:gap-10">
       <div className="flex flex-col gap-1">
         <h2 className="text-sm font-semibold">{props.title}</h2>
         <p className="text-[0.8125rem] text-muted-foreground">{props.description}</p>

@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { FormField } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDate } from "@/lib/dates";
-import { useActionMutation } from "@/lib/query";
-import { cn } from "@/lib/utils";
-import { postStockOpnameAction } from "./inventory.actions";
-import { opnameFormSchema, type OpnameFormInput, type OpnameValues } from "./inventory.lib";
-import type { listOpnameBatches } from "./inventory.service";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/ui/form-field';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatDate } from '@/lib/dates';
+import { useActionMutation } from '@/lib/query';
+import { cn } from '@/lib/utils';
+import { postStockOpnameAction } from './inventory.actions';
+import { type OpnameFormInput, type OpnameValues, opnameFormSchema } from './inventory.lib';
+import type { listOpnameBatches } from './inventory.service';
 
 type InventoryOpnameFormProps = {
   batches: Awaited<ReturnType<typeof listOpnameBatches>>;
@@ -24,16 +24,23 @@ type InventoryOpnameFormProps = {
 /** Type the physical count for the batches you checked; blank rows are not part of the opname. */
 export function InventoryOpnameForm(props: InventoryOpnameFormProps) {
   const router = useRouter();
-  const [filter, setFilter] = useState("");
+  const [filter, setFilter] = useState('');
   const post = useActionMutation(postStockOpnameAction);
+
   const form = useForm<OpnameFormInput, unknown, OpnameValues>({
     resolver: zodResolver(opnameFormSchema),
     defaultValues: {
-      note: "",
-      rows: props.batches.map((batch) => ({ batch_id: batch.id, system_qty: batch.qty_on_hand, counted: "", reason: "" })),
+      note: '',
+      rows: props.batches.map((batch) => ({
+        batch_id: batch.id,
+        system_qty: batch.qty_on_hand,
+        counted: '',
+        reason: '',
+      })),
     },
   });
-  const rows = useWatch({ control: form.control, name: "rows" });
+
+  const rows = useWatch({ control: form.control, name: 'rows' });
   const { errors } = form.formState;
   const needle = filter.trim().toLowerCase();
 
@@ -48,12 +55,11 @@ export function InventoryOpnameForm(props: InventoryOpnameFormProps) {
       onSubmit={form.handleSubmit((values) =>
         post.mutate(values, {
           onSuccess: (opname) => {
-            toast.success("Stok opname disimpan. Stok sudah disesuaikan.");
+            toast.success('Stok opname disimpan. Stok sudah disesuaikan.');
             router.push(`/inventory/opname/${opname.id}`);
           },
         }),
-      )}
-    >
+      )}>
       <Input
         type="search"
         aria-label="Saring obat"
@@ -76,14 +82,15 @@ export function InventoryOpnameForm(props: InventoryOpnameFormProps) {
         </TableHeader>
         <TableBody>
           {props.batches.map((batch, index) => {
-            const counted = rows[index]?.counted ?? "";
+            const counted = rows[index]?.counted ?? '';
             const difference = /^\d+$/.test(counted) ? Number(counted) - batch.qty_on_hand : null;
-            const hidden = needle !== "" && !(batch.medicine?.name ?? "").toLowerCase().includes(needle);
+            const hidden = needle !== '' && !(batch.medicine?.name ?? '').toLowerCase().includes(needle);
+
             return (
-              <TableRow key={batch.id} className={cn(hidden && "hidden")}>
+              <TableRow key={batch.id} className={cn(hidden && 'hidden')}>
                 <TableCell className="font-medium">{batch.medicine?.name}</TableCell>
                 <TableCell className="tabular">{batch.batch_no}</TableCell>
-                <TableCell className={cn(batch.expiry_date <= props.today && "font-medium text-destructive")}>
+                <TableCell className={cn(batch.expiry_date <= props.today && 'font-medium text-destructive')}>
                   {formatDate(batch.expiry_date)}
                 </TableCell>
                 <TableCell className="text-right">
@@ -97,8 +104,8 @@ export function InventoryOpnameForm(props: InventoryOpnameFormProps) {
                     {...form.register(`rows.${index}.counted`)}
                   />
                 </TableCell>
-                <TableCell className={cn(difference !== null && difference !== 0 && "font-medium text-destructive")}>
-                  {difference === null ? "" : difference > 0 ? `+${difference}` : difference}
+                <TableCell className={cn(difference !== null && difference !== 0 && 'font-medium text-destructive')}>
+                  {difference === null ? '' : difference > 0 ? `+${difference}` : difference}
                 </TableCell>
                 <TableCell>
                   {difference !== null && difference !== 0 && (
@@ -121,12 +128,17 @@ export function InventoryOpnameForm(props: InventoryOpnameFormProps) {
       {Array.isArray(errors.rows) && errors.rows.some(Boolean) && (
         <p className="text-sm text-destructive">Periksa baris yang ditandai merah.</p>
       )}
-      <FormField label="Catatan" htmlFor="opname_note" error={errors.note?.message} hint="opsional" className="max-w-xl">
-        <Input id="opname_note" {...form.register("note")} />
+      <FormField
+        label="Catatan"
+        htmlFor="opname_note"
+        error={errors.note?.message}
+        hint="opsional"
+        className="max-w-xl">
+        <Input id="opname_note" {...form.register('note')} />
       </FormField>
       <div>
         <Button type="submit" disabled={post.isPending}>
-          {post.isPending ? "Menyimpan..." : "Simpan stok opname"}
+          {post.isPending ? 'Menyimpan...' : 'Simpan stok opname'}
         </Button>
       </div>
     </form>

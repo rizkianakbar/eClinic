@@ -1,25 +1,30 @@
-import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
-import { formatTime } from "@/lib/dates";
-import { cn } from "@/lib/utils";
-import { vitalItems, type VitalItem } from "./exam.lib";
-import type { listVitals } from "./exam.service";
+import { ArrowDownIcon, ArrowUpIcon } from 'lucide-react';
+import { formatTime } from '@/lib/dates';
+import { cn } from '@/lib/utils';
+import { type VitalItem, vitalItems } from './exam.lib';
+import type { listVitals } from './exam.service';
 
 type ExamVitalsProps = {
   vitals: Awaited<ReturnType<typeof listVitals>>;
   /** "rail": two columns for the side panel. */
-  layout?: "row" | "rail";
+  layout?: 'row' | 'rail';
 };
 
 /** The latest reading as a row of figures, out-of-range ones marked; earlier readings as text. */
 export function ExamVitals(props: ExamVitalsProps) {
   if (props.vitals.length === 0) {
-    return <p className="text-sm text-muted-foreground">Belum ada tanda vital. Perawat atau dokter bisa mencatatnya sebelum pemeriksaan.</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        Belum ada tanda vital. Perawat atau dokter bisa mencatatnya sebelum pemeriksaan.
+      </p>
+    );
   }
 
   const [latest, ...earlier] = props.vitals;
+
   return (
     <div className="flex flex-col gap-3">
-      <dl className={cn("grid grid-cols-2 gap-2", props.layout !== "rail" && "sm:grid-cols-4 xl:grid-cols-8")}>
+      <dl className={cn('grid grid-cols-2 gap-2', props.layout !== 'rail' && 'sm:grid-cols-4 xl:grid-cols-8')}>
         {vitalItems(latest).map((item) => (
           <VitalTile key={item.key} item={item} />
         ))}
@@ -28,8 +33,13 @@ export function ExamVitals(props: ExamVitalsProps) {
         Dicatat pukul {formatTime(latest.created_at)}
         {earlier.length > 0 &&
           ` · sebelumnya: ${earlier
-            .map((reading) => `${formatTime(reading.created_at)} (${vitalItems(reading).map((item) => `${item.label} ${item.value}`).join(", ")})`)
-            .join("; ")}`}
+            .map(
+              (reading) =>
+                `${formatTime(reading.created_at)} (${vitalItems(reading)
+                  .map((item) => `${item.label} ${item.value}`)
+                  .join(', ')})`,
+            )
+            .join('; ')}`}
       </p>
     </div>
   );
@@ -41,22 +51,22 @@ type VitalTileProps = {
 
 function VitalTile(props: VitalTileProps) {
   const { item } = props;
-  const Arrow = item.flag === "high" ? ArrowUpIcon : ArrowDownIcon;
+  const Arrow = item.flag === 'high' ? ArrowUpIcon : ArrowDownIcon;
+
   return (
     <div
       className={cn(
-        "flex flex-col gap-1 rounded-lg border px-3 py-2",
-        item.flag ? "border-status-cancelled/25 bg-status-cancelled-soft/60" : "bg-muted/40",
-      )}
-    >
+        'flex flex-col gap-1 rounded-lg border px-3 py-2',
+        item.flag ? 'border-status-cancelled/25 bg-status-cancelled-soft/60' : 'bg-muted/40',
+      )}>
       <dt className="text-xs font-medium text-muted-foreground">{item.label}</dt>
       <dd className="flex items-baseline gap-1">
-        <span className={cn("numeral text-[1.125rem]", item.flag && "text-status-cancelled")}>{item.value}</span>
+        <span className={cn('numeral text-[1.125rem]', item.flag && 'text-status-cancelled')}>{item.value}</span>
         <span className="text-xs text-muted-foreground">{item.unit}</span>
         {item.flag && (
           <span className="ml-auto inline-flex items-center gap-0.5 text-[0.6875rem] font-semibold text-status-cancelled">
             <Arrow className="size-3" aria-hidden />
-            {item.flagLabel ?? (item.flag === "high" ? "Tinggi" : "Rendah")}
+            {item.flagLabel ?? (item.flag === 'high' ? 'Tinggi' : 'Rendah')}
           </span>
         )}
       </dd>

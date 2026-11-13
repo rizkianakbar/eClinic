@@ -1,54 +1,58 @@
-import type { Metadata } from "next";
-import { ChevronLeftIcon } from "lucide-react";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { z } from "zod";
-import { Elapsed } from "@/components/ui/elapsed";
-import { nearExpiryCutoff } from "@/features/inventory/inventory.lib";
-import { ageInYears, initials } from "@/features/patients/patients.lib";
-import { SEX_LABELS } from "@/features/patients/patients.constants";
-import { availableFromBatches, buildDrugLabels, toDispenseLines } from "@/features/pharmacy/pharmacy.lib";
-import { getDispensation, getPharmacyVisit, listUsableBatches } from "@/features/pharmacy/pharmacy.service";
-import { PharmacyDispenseForm } from "@/features/pharmacy/pharmacy-dispense-form";
-import { PharmacyDispensed } from "@/features/pharmacy/pharmacy-dispensed";
-import { getPrescription } from "@/features/prescriptions/prescriptions.service";
-import { VisitsJourneyPosition } from "@/features/visits/visits-journey-line";
-import { requireRole } from "@/lib/auth";
-import { todayInJakarta } from "@/lib/dates";
-import { createClient } from "@/lib/supabase/server";
-import { cn } from "@/lib/utils";
+import { ChevronLeftIcon } from 'lucide-react';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { z } from 'zod';
+import { Elapsed } from '@/components/ui/elapsed';
+import { nearExpiryCutoff } from '@/features/inventory/inventory.lib';
+import { SEX_LABELS } from '@/features/patients/patients.constants';
+import { ageInYears, initials } from '@/features/patients/patients.lib';
+import { availableFromBatches, buildDrugLabels, toDispenseLines } from '@/features/pharmacy/pharmacy.lib';
+import { getDispensation, getPharmacyVisit, listUsableBatches } from '@/features/pharmacy/pharmacy.service';
+import { PharmacyDispenseForm } from '@/features/pharmacy/pharmacy-dispense-form';
+import { PharmacyDispensed } from '@/features/pharmacy/pharmacy-dispensed';
+import { getPrescription } from '@/features/prescriptions/prescriptions.service';
+import { VisitsJourneyPosition } from '@/features/visits/visits-journey-line';
+import { requireRole } from '@/lib/auth';
+import { todayInJakarta } from '@/lib/dates';
+import { createClient } from '@/lib/supabase/server';
+import { cn } from '@/lib/utils';
 
-export const metadata: Metadata = { title: "Penyerahan obat" };
+export const metadata: Metadata = { title: 'Penyerahan obat' };
 
-export default async function DispensePage(props: PageProps<"/pharmacy/[visitId]">) {
-  await requireRole("pharmacist");
+export default async function DispensePage(props: PageProps<'/pharmacy/[visitId]'>) {
+  await requireRole('pharmacist');
+
   const { visitId } = await props.params;
+
   if (!z.uuid().safeParse(visitId).success) notFound();
 
   const supabase = await createClient();
+
   const [visit, prescription, dispensation] = await Promise.all([
     getPharmacyVisit(supabase, visitId),
     getPrescription(supabase, visitId),
     getDispensation(supabase, visitId),
   ]);
+
   if (!visit?.patient) notFound();
 
   const medicineIds = [
     ...prescription.items,
     ...prescription.compounds.flatMap((compound) => compound.ingredients),
   ].flatMap((item) => (item.medicine ? [item.medicine.id] : []));
+
   const batches = await listUsableBatches(supabase, medicineIds);
   const lines = toDispenseLines(prescription, availableFromBatches(batches), batches);
   const { patient } = visit;
-  const bpjs = visit.payer_type === "bpjs";
-  const waiting = visit.status === "to_pharmacy" && !dispensation;
+  const bpjs = visit.payer_type === 'bpjs';
+  const waiting = visit.status === 'to_pharmacy' && !dispensation;
 
   return (
     <div className="flex flex-col gap-6">
       <Link
         href="/pharmacy"
-        className="-mb-2 -ml-1 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-0.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-      >
+        className="-mb-2 -ml-1 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-0.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
         <ChevronLeftIcon className="size-4" aria-hidden />
         Resep masuk
       </Link>
@@ -63,16 +67,22 @@ export default async function DispensePage(props: PageProps<"/pharmacy/[visitId]
           </span>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate text-[1.375rem] leading-tight font-semibold tracking-tight">{patient.full_name}</h1>
-              <span className={cn("rounded-md px-1.5 text-xs leading-5 font-medium", bpjs ? "bg-bpjs-soft text-bpjs" : "bg-muted text-muted-foreground")}>
-                {bpjs ? "BPJS" : "Umum"}
+              <h1 className="truncate text-[1.375rem] leading-tight font-semibold tracking-tight">
+                {patient.full_name}
+              </h1>
+              <span
+                className={cn(
+                  'rounded-md px-1.5 text-xs leading-5 font-medium',
+                  bpjs ? 'bg-bpjs-soft text-bpjs' : 'bg-muted text-muted-foreground',
+                )}>
+                {bpjs ? 'BPJS' : 'Umum'}
               </span>
-              {/* eslint-disable-next-line react-hooks/purity -- server render time for the wait timer */}
+              {/* Date.now() here is the server render time for the wait timer (first paint; they tick on the client). */}
               {waiting && <Elapsed since={visit.updated_at} now={Date.now()} />}
             </div>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              RM <span className="tabular font-medium text-foreground">{patient.mrn}</span> ·{" "}
-              {SEX_LABELS[patient.sex as keyof typeof SEX_LABELS]}, {ageInYears(patient.birth_date)} tahun · resep dari{" "}
+              RM <span className="tabular font-medium text-foreground">{patient.mrn}</span> ·{' '}
+              {SEX_LABELS[patient.sex as keyof typeof SEX_LABELS]}, {ageInYears(patient.birth_date)} tahun · resep dari{' '}
               <span className="font-medium text-foreground">{visit.doctor?.full_name}</span>, {visit.poli?.name}
             </p>
           </div>
@@ -88,7 +98,9 @@ export default async function DispensePage(props: PageProps<"/pharmacy/[visitId]
           patientName={patient.full_name}
           labels={buildDrugLabels(
             prescription,
-            new Set(dispensation.items.filter((item) => item.status === "given").map((item) => item.prescription_item_id)),
+            new Set(
+              dispensation.items.filter((item) => item.status === 'given').map((item) => item.prescription_item_id),
+            ),
           )}
         />
       ) : waiting ? (
@@ -97,7 +109,12 @@ export default async function DispensePage(props: PageProps<"/pharmacy/[visitId]
             Resep kosong. Hubungi dokter pemeriksa.
           </p>
         ) : (
-          <PharmacyDispenseForm visitId={visit.id} lines={lines} bpjs={bpjs} nearExpiryCutoff={nearExpiryCutoff(todayInJakarta())} />
+          <PharmacyDispenseForm
+            visitId={visit.id}
+            lines={lines}
+            bpjs={bpjs}
+            nearExpiryCutoff={nearExpiryCutoff(todayInJakarta())}
+          />
         )
       ) : (
         <p className="rounded-2xl border border-dashed bg-card px-5 py-8 text-center text-sm text-muted-foreground">

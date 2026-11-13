@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
 type ReportsSectionProps = {
   title: string;
@@ -15,7 +15,9 @@ export function ReportsSection(props: ReportsSectionProps) {
         <h3 className="text-sm font-semibold">{props.title}</h3>
         {props.aside && <span className="text-xs text-muted-foreground">{props.aside}</span>}
       </div>
-      <div className="flex-1 overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">{props.children}</div>
+      <div className="flex-1 overflow-hidden rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
+        {props.children}
+      </div>
     </section>
   );
 }

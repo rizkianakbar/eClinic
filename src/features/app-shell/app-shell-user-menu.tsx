@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   BuildingIcon,
@@ -9,8 +9,8 @@ import {
   TimerIcon,
   UserRoundIcon,
   UsersIcon,
-} from "lucide-react";
-import Link from "next/link";
+} from 'lucide-react';
+import Link from 'next/link';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,8 +20,8 @@ import {
   DropdownMenuLinkItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useSignOut } from "@/features/auth/auth.hooks";
+} from '@/components/ui/dropdown-menu';
+import { useSignOut } from '@/features/auth/auth.hooks';
 
 type AppShellUserMenuProps = {
   fullName: string;
@@ -51,8 +51,7 @@ export function AppShellUserMenu(props: AppShellUserMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Menu akun"
-        className="flex size-9 items-center justify-center rounded-full transition-[box-shadow] hover:ring-4 hover:ring-black/5 data-[popup-open]:ring-4 data-[popup-open]:ring-black/5"
-      >
+        className="flex size-9 items-center justify-center rounded-full transition-shadow hover:ring-4 hover:ring-black/5 data-popup-open:ring-4 data-popup-open:ring-black/5">
         <span className="flex size-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,#1d6b57,#0f3d33)] text-[0.6875rem] font-semibold text-white">
           {props.initials}
         </span>
@@ -65,7 +64,9 @@ export function AppShellUserMenu(props: AppShellUserMenuProps) {
           <span className="min-w-0">
             <span className="block truncate font-medium">{props.fullName}</span>
             <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="shrink-0 rounded-md bg-secondary px-1.5 leading-5 font-medium text-secondary-foreground">{props.roleLabel}</span>
+              <span className="shrink-0 rounded-md bg-secondary px-1.5 leading-5 font-medium text-secondary-foreground">
+                {props.roleLabel}
+              </span>
               <span className="truncate">{props.clinicName}</span>
             </span>
           </span>
@@ -116,7 +117,7 @@ export function AppShellUserMenu(props: AppShellUserMenuProps) {
         </p>
         <DropdownMenuItem tone="destructive" disabled={signOut.isPending} onClick={() => signOut.mutate()}>
           <LogOutIcon />
-          {signOut.isPending ? "Keluar…" : "Keluar"}
+          {signOut.isPending ? 'Keluar…' : 'Keluar'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

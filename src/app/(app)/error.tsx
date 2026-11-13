@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { TriangleAlertIcon } from "lucide-react";
-import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { TriangleAlertIcon } from 'lucide-react';
+import Link from 'next/link';
+import { Button, buttonVariants } from '@/components/ui/button';
 
 type AppErrorProps = {
   error: Error & { digest?: string };
@@ -22,7 +22,7 @@ export default function AppError(props: AppErrorProps) {
           Periksa koneksi internet lalu coba lagi. Jika terus terjadi, laporkan ke admin klinik
           {props.error.digest && (
             <>
-              {" "}
+              {' '}
               dengan kode <span className="tabular font-medium text-foreground">{props.error.digest}</span>
             </>
           )}
@@ -31,7 +31,7 @@ export default function AppError(props: AppErrorProps) {
       </div>
       <div className="flex gap-2">
         <Button onClick={() => props.reset()}>Coba lagi</Button>
-        <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
+        <Link href="/dashboard" className={buttonVariants({ variant: 'outline' })}>
           Ke beranda
         </Link>
       </div>

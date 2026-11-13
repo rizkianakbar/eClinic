@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { ChevronRightIcon, CoffeeIcon, MegaphoneIcon } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Elapsed } from "@/components/ui/elapsed";
-import { Panel, PanelEmpty } from "@/components/ui/panel";
-import { SEX_LABELS } from "@/features/patients/patients.constants";
-import { ageInYears } from "@/features/patients/patients.lib";
-import { toHourMinute } from "@/features/schedules/schedules.lib";
-import type { PracticeSession } from "@/features/visits/visits.lib";
-import { STATION_COLORS } from "@/features/visits/visits-journey-line";
-import { cn } from "@/lib/utils";
-import { callVisitAction, skipVisitAction, startExamAction } from "./queue.actions";
-import { useDeskDetails, useQueueAction, useQueueBoard, type DeskDetails } from "./queue.hooks";
-import { buildLanes, canCall, canSkip, canStartExam, type Actor, type QueueVisit } from "./queue.lib";
-import { DoctorRoom } from "./queue-board";
-import { QueueVitalChips } from "./queue-vital-chips";
+import { ChevronRightIcon, CoffeeIcon, MegaphoneIcon } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Elapsed } from '@/components/ui/elapsed';
+import { Panel, PanelEmpty } from '@/components/ui/panel';
+import { SEX_LABELS } from '@/features/patients/patients.constants';
+import { ageInYears } from '@/features/patients/patients.lib';
+import { toHourMinute } from '@/features/schedules/schedules.lib';
+import type { PracticeSession } from '@/features/visits/visits.lib';
+import { STATION_COLORS } from '@/features/visits/visits-journey-line';
+import { cn } from '@/lib/utils';
+import { callVisitAction, skipVisitAction, startExamAction } from './queue.actions';
+import { type DeskDetails, useDeskDetails, useQueueAction, useQueueBoard } from './queue.hooks';
+import { type Actor, buildLanes, canCall, canSkip, canStartExam, type QueueVisit } from './queue.lib';
+import { DoctorRoom } from './queue-board';
+import { QueueVitalChips } from './queue-vital-chips';
 
 type QueueDeskProps = {
   actor: Actor;
@@ -38,17 +38,28 @@ export function QueueDesk(props: QueueDeskProps) {
   const lanes = buildLanes(mine);
   const waiting = [...lanes.called, ...lanes.waiting];
   const finished = [...lanes.inExam, ...lanes.toPharmacy, ...lanes.toCashier, ...lanes.done];
+
   const details = useDeskDetails(
     props.visitDate,
-    mine.filter((visit) => visit.status !== "cancelled").map((visit) => visit.id),
+    mine.filter((visit) => visit.status !== 'cancelled').map((visit) => visit.id),
   );
+
   const vitals = details.data?.vitals ?? new Map();
 
   const quota = props.sessions.reduce((sum, session) => sum + session.quota, 0);
   const taken = props.sessions.reduce((sum, session) => sum + session.taken, 0);
-  const longest = waiting.reduce((max, visit) => Math.max(max, minutesSince(visit.created_at ?? visit.updated_at, props.now)), 0);
+
+  const longest = waiting.reduce(
+    (max, visit) => Math.max(max, minutesSince(visit.created_at ?? visit.updated_at, props.now)),
+    0,
+  );
+
   const seen = lanes.toPharmacy.length + lanes.toCashier.length + lanes.done.length;
-  const bpjsSeen = [...lanes.toPharmacy, ...lanes.toCashier, ...lanes.done].filter((visit) => visit.payer_type === "bpjs").length;
+
+  const bpjsSeen = [...lanes.toPharmacy, ...lanes.toCashier, ...lanes.done].filter(
+    (visit) => visit.payer_type === 'bpjs',
+  ).length;
+
   const triaged = waiting.filter((visit) => vitals.has(visit.id)).length;
 
   return (
@@ -77,7 +88,10 @@ export function QueueDesk(props: QueueDeskProps) {
           </dd>
           <dd className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
             <span
-              className={cn("block h-full rounded-full", taken >= quota && quota > 0 ? "bg-status-cancelled" : "bg-primary")}
+              className={cn(
+                'block h-full rounded-full',
+                taken >= quota && quota > 0 ? 'bg-status-cancelled' : 'bg-primary',
+              )}
               style={{ width: `${quota ? Math.min(100, Math.round((taken / quota) * 100)) : 0}%` }}
             />
           </dd>
@@ -86,13 +100,15 @@ export function QueueDesk(props: QueueDeskProps) {
           <dd className="numeral text-[1.5rem]">{waiting.length}</dd>
           <dd className="text-xs text-muted-foreground">
             {waiting.length === 0
-              ? "Ruang tunggu kosong"
+              ? 'Ruang tunggu kosong'
               : `${triaged} sudah tanda vital · terlama ${longest < 60 ? `${longest} mnt` : `${Math.floor(longest / 60)} j ${longest % 60} m`}`}
           </dd>
         </DayFigure>
         <DayFigure label="Selesai diperiksa">
           <dd className="numeral text-[1.5rem]">{seen}</dd>
-          <dd className="text-xs text-muted-foreground">{seen === 0 ? "Belum ada" : `${bpjsSeen} BPJS · ${seen - bpjsSeen} umum`}</dd>
+          <dd className="text-xs text-muted-foreground">
+            {seen === 0 ? 'Belum ada' : `${bpjsSeen} BPJS · ${seen - bpjsSeen} umum`}
+          </dd>
         </DayFigure>
       </dl>
 
@@ -101,22 +117,41 @@ export function QueueDesk(props: QueueDeskProps) {
           title="Antrean saya"
           count={waiting.length}
           dot="bg-line-waiting"
-          link={{ href: "/queue", label: "Papan antrean" }}
-        >
+          link={{ href: '/queue', label: 'Papan antrean' }}>
           {board.isPending ? (
             <div className="h-40 animate-pulse bg-muted/60" />
           ) : waiting.length + lanes.skipped.length === 0 ? (
-            <PanelEmpty icon={<CoffeeIcon />} title="Tidak ada pasien menunggu" description="Pasien yang didaftarkan ke jadwal Anda muncul di sini." />
+            <PanelEmpty
+              icon={<CoffeeIcon />}
+              title="Tidak ada pasien menunggu"
+              description="Pasien yang didaftarkan ke jadwal Anda muncul di sini."
+            />
           ) : (
             <ol className="divide-y">
               {waiting.map((visit) => (
-                <WaitingRow key={visit.id} visit={visit} actor={props.actor} visitDate={props.visitDate} details={details.data} now={props.now} />
+                <WaitingRow
+                  key={visit.id}
+                  visit={visit}
+                  actor={props.actor}
+                  visitDate={props.visitDate}
+                  details={details.data}
+                  now={props.now}
+                />
               ))}
               {lanes.skipped.length > 0 && (
                 <>
-                  <li className="bg-muted/40 px-4 py-1.5 text-xs font-medium text-muted-foreground">Dilewati, bisa dipanggil ulang</li>
+                  <li className="bg-muted/40 px-4 py-1.5 text-xs font-medium text-muted-foreground">
+                    Dilewati, bisa dipanggil ulang
+                  </li>
                   {lanes.skipped.map((visit) => (
-                    <WaitingRow key={visit.id} visit={visit} actor={props.actor} visitDate={props.visitDate} details={details.data} now={props.now} />
+                    <WaitingRow
+                      key={visit.id}
+                      visit={visit}
+                      actor={props.actor}
+                      visitDate={props.visitDate}
+                      details={details.data}
+                      now={props.now}
+                    />
                   ))}
                 </>
               )}
@@ -132,10 +167,18 @@ export function QueueDesk(props: QueueDeskProps) {
               {finished.map((visit) => {
                 const station = STATION_COLORS[visit.status as keyof typeof STATION_COLORS] ?? STATION_COLORS.done;
                 const diagnosis = details.data?.diagnoses.get(visit.id);
+
                 return (
                   <li key={visit.id}>
-                    <Link href={`/exam/${visit.id}`} className="group flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50">
-                      <span className={cn("numeral flex size-8 shrink-0 items-center justify-center rounded-lg text-sm", station.soft, station.text)}>
+                    <Link
+                      href={`/exam/${visit.id}`}
+                      className="group flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50">
+                      <span
+                        className={cn(
+                          'numeral flex size-8 shrink-0 items-center justify-center rounded-lg text-sm',
+                          station.soft,
+                          station.text,
+                        )}>
                         {visit.queue_no}
                       </span>
                       <span className="min-w-0 flex-1">
@@ -143,17 +186,23 @@ export function QueueDesk(props: QueueDeskProps) {
                         <span className="block truncate text-xs text-muted-foreground">
                           {diagnosis ? (
                             <>
-                              <span className="tabular font-semibold text-foreground/70">{diagnosis.code}</span> {diagnosis.name}
+                              <span className="tabular font-semibold text-foreground/70">{diagnosis.code}</span>{' '}
+                              {diagnosis.name}
                             </>
-                          ) : visit.status === "in_exam" ? (
-                            "Sedang diperiksa"
+                          ) : visit.status === 'in_exam' ? (
+                            'Sedang diperiksa'
                           ) : (
-                            "Tanpa diagnosis"
+                            'Tanpa diagnosis'
                           )}
                         </span>
                       </span>
-                      <span className={cn("shrink-0 text-xs font-medium", station.text)}>{STATUS_SHORT[visit.status] ?? ""}</span>
-                      <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                      <span className={cn('shrink-0 text-xs font-medium', station.text)}>
+                        {STATUS_SHORT[visit.status] ?? ''}
+                      </span>
+                      <ChevronRightIcon
+                        className="size-4 shrink-0 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5"
+                        aria-hidden
+                      />
                     </Link>
                   </li>
                 );
@@ -167,10 +216,10 @@ export function QueueDesk(props: QueueDeskProps) {
 }
 
 const STATUS_SHORT: Record<string, string> = {
-  in_exam: "Periksa",
-  to_pharmacy: "Farmasi",
-  to_cashier: "Kasir",
-  done: "Pulang",
+  in_exam: 'Periksa',
+  to_pharmacy: 'Farmasi',
+  to_cashier: 'Kasir',
+  done: 'Pulang',
 };
 
 function DayFigure(props: { label: string; children: React.ReactNode }) {
@@ -203,21 +252,22 @@ function WaitingRow(props: WaitingRowProps) {
   const patient = visit.patient;
 
   return (
-    <li className={cn("flex items-start gap-3 px-4 py-3", called && "bg-status-waiting-soft/40")}>
+    <li className={cn('flex items-start gap-3 px-4 py-3', called && 'bg-status-waiting-soft/40')}>
       <span
         className={cn(
-          "numeral flex size-10 shrink-0 items-center justify-center rounded-lg text-lg",
-          called ? cn(color.line, "text-white") : cn(color.soft, color.text),
-          visit.skipped_at && "opacity-60",
-        )}
-      >
+          'numeral flex size-10 shrink-0 items-center justify-center rounded-lg text-lg',
+          called ? cn(color.line, 'text-white') : cn(color.soft, color.text),
+          visit.skipped_at && 'opacity-60',
+        )}>
         {visit.queue_no}
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-          <p className="min-w-0 truncate text-sm font-semibold">{patient?.full_name ?? "-"}</p>
-          {visit.payer_type === "bpjs" && (
-            <span className="shrink-0 rounded bg-bpjs-soft px-1.5 text-[0.6875rem] leading-5 font-semibold text-bpjs">BPJS</span>
+          <p className="min-w-0 truncate text-sm font-semibold">{patient?.full_name ?? '-'}</p>
+          {visit.payer_type === 'bpjs' && (
+            <span className="shrink-0 rounded bg-bpjs-soft px-1.5 text-[0.6875rem] leading-5 font-semibold text-bpjs">
+              BPJS
+            </span>
           )}
           <span className="text-[0.8125rem] text-muted-foreground">
             {patient && `${SEX_LABELS[patient.sex as keyof typeof SEX_LABELS]}, ${ageInYears(patient.birth_date)} th`}
@@ -225,7 +275,7 @@ function WaitingRow(props: WaitingRowProps) {
         </div>
         <QueueVitalChips reading={props.details?.vitals.get(visit.id)} essentialOnly />
         {called && (
-          <p className={cn("flex items-center gap-1.5 text-xs font-medium", color.text)}>
+          <p className={cn('flex items-center gap-1.5 text-xs font-medium', color.text)}>
             <MegaphoneIcon className="size-3.5" aria-hidden />
             Sudah dipanggil, menunggu masuk
           </p>
@@ -235,7 +285,10 @@ function WaitingRow(props: WaitingRowProps) {
         <Elapsed since={visit.created_at ?? visit.updated_at} now={props.now} />
         <div className="flex gap-1.5">
           {canStartExam(actor, visit) && called && (
-            <Button size="xs" disabled={pending} onClick={() => start.mutate(visit.id, { onSuccess: () => router.push(`/exam/${visit.id}`) })}>
+            <Button
+              size="xs"
+              disabled={pending}
+              onClick={() => start.mutate(visit.id, { onSuccess: () => router.push(`/exam/${visit.id}`) })}>
               Mulai periksa
             </Button>
           )}
@@ -244,10 +297,11 @@ function WaitingRow(props: WaitingRowProps) {
               size="xs"
               variant="outline"
               disabled={pending}
-              onClick={() => call.mutate(visit.id, { onSuccess: () => toast.success(`Nomor ${visit.queue_no} dipanggil.`) })}
-            >
+              onClick={() =>
+                call.mutate(visit.id, { onSuccess: () => toast.success(`Nomor ${visit.queue_no} dipanggil.`) })
+              }>
               <MegaphoneIcon />
-              {visit.called_at || visit.skipped_at ? "Ulang" : "Panggil"}
+              {visit.called_at || visit.skipped_at ? 'Ulang' : 'Panggil'}
             </Button>
           )}
           {canSkip(actor, visit) && called && (

@@ -1,40 +1,42 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusIcon, XIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { FormField } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PrescriptionsMedicinePicker } from "@/features/prescriptions/prescriptions-medicine-picker";
-import { formatRupiah, parseRupiah } from "@/lib/money";
-import { useActionMutation } from "@/lib/query";
-import { receivePurchaseAction } from "./inventory.actions";
-import { purchaseFormSchema, type PurchaseFormInput, type PurchaseFormValues } from "./inventory.lib";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { PlusIcon, XIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/ui/form-field';
+import { Input } from '@/components/ui/input';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PrescriptionsMedicinePicker } from '@/features/prescriptions/prescriptions-medicine-picker';
+import { formatRupiah, parseRupiah } from '@/lib/money';
+import { useActionMutation } from '@/lib/query';
+import { receivePurchaseAction } from './inventory.actions';
+import { type PurchaseFormInput, type PurchaseFormValues, purchaseFormSchema } from './inventory.lib';
 
 type InventoryPurchaseFormProps = {
   today: string;
   suppliers: { id: string; name: string }[];
 };
 
-const EMPTY_LINE = { medicine: null, batch_no: "", expiry_date: "", qty: "", unit_cost: "" };
+const EMPTY_LINE = { medicine: null, batch_no: '', expiry_date: '', qty: '', unit_cost: '' };
 
 export function InventoryPurchaseForm(props: InventoryPurchaseFormProps) {
   const router = useRouter();
   const receive = useActionMutation(receivePurchaseAction);
+
   const form = useForm<PurchaseFormInput, unknown, PurchaseFormValues>({
     resolver: zodResolver(purchaseFormSchema(props.today)),
-    defaultValues: { supplier_id: "", invoice_no: "", purchase_date: props.today, note: "", items: [EMPTY_LINE] },
+    defaultValues: { supplier_id: '', invoice_no: '', purchase_date: props.today, note: '', items: [EMPTY_LINE] },
   });
-  const lines = useFieldArray({ control: form.control, name: "items" });
-  const items = useWatch({ control: form.control, name: "items" });
+
+  const lines = useFieldArray({ control: form.control, name: 'items' });
+  const items = useWatch({ control: form.control, name: 'items' });
   const { errors } = form.formState;
 
-  const subtotals = items.map((item) => (Number(item.qty) || 0) * (parseRupiah(String(item.unit_cost ?? "")) ?? 0));
+  const subtotals = items.map((item) => (Number(item.qty) || 0) * (parseRupiah(String(item.unit_cost ?? '')) ?? 0));
   const total = subtotals.reduce((sum, value) => sum + value, 0);
   const lineError = errors.items?.root?.message ?? errors.items?.message;
 
@@ -53,15 +55,18 @@ export function InventoryPurchaseForm(props: InventoryPurchaseFormProps) {
       onSubmit={form.handleSubmit((values) =>
         receive.mutate(values, {
           onSuccess: (purchase) => {
-            toast.success("Pembelian tersimpan. Stok bertambah.");
+            toast.success('Pembelian tersimpan. Stok bertambah.');
             router.push(`/inventory/purchases/${purchase.id}`);
           },
         }),
-      )}
-    >
+      )}>
       <div className="grid max-w-3xl gap-4 sm:grid-cols-3">
         <FormField label="Supplier" htmlFor="supplier_id" error={errors.supplier_id?.message}>
-          <NativeSelect id="supplier_id" className="w-full" aria-invalid={Boolean(errors.supplier_id)} {...form.register("supplier_id")}>
+          <NativeSelect
+            id="supplier_id"
+            className="w-full"
+            aria-invalid={Boolean(errors.supplier_id)}
+            {...form.register('supplier_id')}>
             <NativeSelectOption value="">Pilih...</NativeSelectOption>
             {props.suppliers.map((supplier) => (
               <NativeSelectOption key={supplier.id} value={supplier.id}>
@@ -71,10 +76,10 @@ export function InventoryPurchaseForm(props: InventoryPurchaseFormProps) {
           </NativeSelect>
         </FormField>
         <FormField label="No. faktur" htmlFor="invoice_no" error={errors.invoice_no?.message} hint="opsional">
-          <Input id="invoice_no" {...form.register("invoice_no")} />
+          <Input id="invoice_no" {...form.register('invoice_no')} />
         </FormField>
         <FormField label="Tanggal" htmlFor="purchase_date" error={errors.purchase_date?.message}>
-          <Input id="purchase_date" type="date" max={props.today} {...form.register("purchase_date")} />
+          <Input id="purchase_date" type="date" max={props.today} {...form.register('purchase_date')} />
         </FormField>
       </div>
 
@@ -94,12 +99,14 @@ export function InventoryPurchaseForm(props: InventoryPurchaseFormProps) {
           <TableBody>
             {lines.fields.map((field, index) => {
               const lineErrors = errors.items?.[index];
+
               const message =
                 lineErrors?.medicine?.message ??
                 lineErrors?.batch_no?.message ??
                 lineErrors?.expiry_date?.message ??
                 lineErrors?.qty?.message ??
                 lineErrors?.unit_cost?.message;
+
               return (
                 <TableRow key={field.id} className="align-top">
                   <TableCell>
@@ -118,7 +125,11 @@ export function InventoryPurchaseForm(props: InventoryPurchaseFormProps) {
                     {message && <p className="mt-1 text-sm whitespace-normal text-destructive">{message}</p>}
                   </TableCell>
                   <TableCell>
-                    <Input aria-label="No. batch" aria-invalid={Boolean(lineErrors?.batch_no)} {...form.register(`items.${index}.batch_no`)} />
+                    <Input
+                      aria-label="No. batch"
+                      aria-invalid={Boolean(lineErrors?.batch_no)}
+                      {...form.register(`items.${index}.batch_no`)}
+                    />
                   </TableCell>
                   <TableCell>
                     <Input
@@ -153,8 +164,7 @@ export function InventoryPurchaseForm(props: InventoryPurchaseFormProps) {
                       size="icon-sm"
                       aria-label="Hapus baris"
                       disabled={lines.fields.length === 1}
-                      onClick={() => lines.remove(index)}
-                    >
+                      onClick={() => lines.remove(index)}>
                       <XIcon />
                     </Button>
                   </TableCell>
@@ -175,12 +185,12 @@ export function InventoryPurchaseForm(props: InventoryPurchaseFormProps) {
       </div>
 
       <FormField label="Catatan" htmlFor="note" error={errors.note?.message} hint="opsional" className="max-w-3xl">
-        <Input id="note" {...form.register("note")} />
+        <Input id="note" {...form.register('note')} />
       </FormField>
 
       <div>
         <Button type="submit" disabled={receive.isPending}>
-          {receive.isPending ? "Menyimpan..." : "Simpan pembelian"}
+          {receive.isPending ? 'Menyimpan...' : 'Simpan pembelian'}
         </Button>
       </div>
     </form>

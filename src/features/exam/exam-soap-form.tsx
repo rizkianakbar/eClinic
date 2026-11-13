@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckIcon, CircleIcon, PenLineIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { CheckIcon, CircleIcon, PenLineIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -15,12 +15,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { useActionMutation } from "@/lib/query";
-import { cn } from "@/lib/utils";
-import { saveSoapDraftAction, signVisitAction } from "./exam.actions";
-import { soapSchema, type SoapInput, type SoapValues } from "./exam.lib";
-import { ExamSoapSheet } from "./exam-soap-sheet";
+} from '@/components/ui/dialog';
+import { useActionMutation } from '@/lib/query';
+import { cn } from '@/lib/utils';
+import { saveSoapDraftAction, signVisitAction } from './exam.actions';
+import { type SoapInput, type SoapValues, soapSchema } from './exam.lib';
+import { ExamSoapSheet } from './exam-soap-sheet';
 
 type ExamSoapFormProps = {
   visitId: string;
@@ -39,18 +39,20 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
   const [confirming, setConfirming] = useState(false);
   const save = useActionMutation((values: SoapValues) => saveSoapDraftAction(props.visitId, values));
   const sign = useActionMutation((values: SoapValues) => signVisitAction(props.visitId, values));
+
   const form = useForm<SoapInput, unknown, SoapValues>({
     resolver: zodResolver(soapSchema),
     defaultValues: props.defaultValues,
   });
+
   const { errors, isDirty } = form.formState;
   const values = useWatch({ control: form.control });
-  const hasNotes = Object.values(values).some((value) => (value ?? "").trim() !== "");
+  const hasNotes = Object.values(values).some((value) => (value ?? '').trim() !== '');
 
   const onSave = form.handleSubmit((submitted) =>
     save.mutate(submitted, {
       onSuccess: () => {
-        toast.success("Draf tersimpan.");
+        toast.success('Draf tersimpan.');
         form.reset(submitted);
       },
     }),
@@ -60,8 +62,12 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
     sign.mutate(submitted, {
       onSuccess: (result) => {
         form.reset(submitted);
-        toast.success(`Rekam medis ditandatangani. Pasien diteruskan ke ${result.status === "to_pharmacy" ? "farmasi" : "kasir"}.`);
-        router.push("/queue");
+
+        toast.success(
+          `Rekam medis ditandatangani. Pasien diteruskan ke ${result.status === 'to_pharmacy' ? 'farmasi' : 'kasir'}.`,
+        );
+
+        router.push('/queue');
       },
     }),
   );
@@ -71,21 +77,24 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
     function onBeforeUnload(event: BeforeUnloadEvent) {
       if (isDirty) event.preventDefault();
     }
+
     function onKeyDown(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
         event.preventDefault();
         onSave();
       }
     }
-    window.addEventListener("beforeunload", onBeforeUnload);
-    window.addEventListener("keydown", onKeyDown);
+
+    window.addEventListener('beforeunload', onBeforeUnload);
+    window.addEventListener('keydown', onKeyDown);
+
     return () => {
-      window.removeEventListener("beforeunload", onBeforeUnload);
-      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      window.removeEventListener('keydown', onKeyDown);
     };
   }, [isDirty, onSave]);
 
-  const nextStation = props.prescriptionCount > 0 ? "farmasi" : "kasir";
+  const nextStation = props.prescriptionCount > 0 ? 'farmasi' : 'kasir';
 
   return (
     <form noValidate onSubmit={onSave}>
@@ -125,8 +134,13 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
             {isDirty && <li className="font-medium text-status-waiting">Belum disimpan</li>}
           </ol>
           <div className="flex gap-2">
-            <Button type="submit" variant="outline" size="sm" disabled={save.isPending || !isDirty} title="Simpan draf (Ctrl+S)">
-              {save.isPending ? "Menyimpan…" : "Simpan draf"}
+            <Button
+              type="submit"
+              variant="outline"
+              size="sm"
+              disabled={save.isPending || !isDirty}
+              title="Simpan draf (Ctrl+S)">
+              {save.isPending ? 'Menyimpan…' : 'Simpan draf'}
             </Button>
             <Dialog open={confirming} onOpenChange={setConfirming}>
               <Button
@@ -134,8 +148,7 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
                 size="sm"
                 onClick={() => setConfirming(true)}
                 disabled={!props.hasPrimaryDiagnosis}
-                title={props.hasPrimaryDiagnosis ? undefined : "Pilih diagnosis utama dulu"}
-              >
+                title={props.hasPrimaryDiagnosis ? undefined : 'Pilih diagnosis utama dulu'}>
                 <PenLineIcon />
                 Tanda tangani & selesai
               </Button>
@@ -143,14 +156,14 @@ export function ExamSoapForm(props: ExamSoapFormProps) {
                 <DialogHeader>
                   <DialogTitle>Tanda tangani rekam medis?</DialogTitle>
                   <DialogDescription>
-                    Catatan SOAP dan diagnosis akan dikunci; koreksi setelahnya lewat amandemen. Pasien diteruskan ke{" "}
+                    Catatan SOAP dan diagnosis akan dikunci; koreksi setelahnya lewat amandemen. Pasien diteruskan ke{' '}
                     {nextStation}.
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
                   <DialogClose render={<Button variant="outline" />}>Batal</DialogClose>
                   <Button onClick={() => onSign()} disabled={sign.isPending}>
-                    {sign.isPending ? "Menandatangani…" : "Tanda tangani"}
+                    {sign.isPending ? 'Menandatangani…' : 'Tanda tangani'}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -174,10 +187,9 @@ function Step(props: StepProps) {
       <a
         href={props.href}
         className={cn(
-          "inline-flex items-center gap-1.5 font-medium transition-colors hover:text-foreground",
-          props.done ? "text-foreground" : "text-muted-foreground",
-        )}
-      >
+          'inline-flex items-center gap-1.5 font-medium transition-colors hover:text-foreground',
+          props.done ? 'text-foreground' : 'text-muted-foreground',
+        )}>
         {props.done ? (
           <span className="flex size-4 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <CheckIcon className="size-3" strokeWidth={3} aria-hidden />
@@ -186,7 +198,7 @@ function Step(props: StepProps) {
           <CircleIcon className="size-4 text-input" aria-hidden />
         )}
         {props.children}
-        <span className="sr-only">{props.done ? "(sudah)" : "(belum)"}</span>
+        <span className="sr-only">{props.done ? '(sudah)' : '(belum)'}</span>
       </a>
     </li>
   );

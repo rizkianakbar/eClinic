@@ -1,16 +1,18 @@
-import type { Metadata } from "next";
-import { listDoctors, listSchedules } from "@/features/schedules/schedules.service";
-import { Schedules } from "@/features/schedules/schedules";
-import { listPolis } from "@/features/settings/settings.service";
-import { requireRole } from "@/lib/auth";
-import { isoWeekday, todayInJakarta } from "@/lib/dates";
-import { createClient } from "@/lib/supabase/server";
+import type { Metadata } from 'next';
+import { Schedules } from '@/features/schedules/schedules';
+import { listDoctors, listSchedules } from '@/features/schedules/schedules.service';
+import { listPolis } from '@/features/settings/settings.service';
+import { requireRole } from '@/lib/auth';
+import { isoWeekday, todayInJakarta } from '@/lib/dates';
+import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: "Jadwal dokter" };
+export const metadata: Metadata = { title: 'Jadwal dokter' };
 
 export default async function SchedulesPage() {
-  await requireRole("owner", "admin");
+  await requireRole('owner', 'admin');
+
   const supabase = await createClient();
+
   const [schedules, doctors, polis] = await Promise.all([
     listSchedules(supabase),
     listDoctors(supabase),

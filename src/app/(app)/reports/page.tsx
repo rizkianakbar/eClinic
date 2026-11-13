@@ -1,24 +1,31 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
-import { parseRange, parseReportTab, rangeDays, type DateRange, type ReportTab } from "@/features/reports/reports.lib";
-import { getDoctorFees, getProfitLoss, getRevenueReport, getTopDiseases, getVisitReport } from "@/features/reports/reports.service";
-import { ReportsDoctorFees } from "@/features/reports/reports-doctor-fees";
-import { ReportsExportLinks } from "@/features/reports/reports-export-links";
-import { ReportsProfitLoss } from "@/features/reports/reports-profit-loss";
-import { ReportsRangeFilter } from "@/features/reports/reports-range-filter";
-import { ReportsRevenue } from "@/features/reports/reports-revenue";
-import { ReportsTabs } from "@/features/reports/reports-tabs";
-import { ReportsTopDiseases } from "@/features/reports/reports-top-diseases";
-import { ReportsVisits } from "@/features/reports/reports-visits";
-import { requireRole } from "@/lib/auth";
-import { formatDate, todayInJakarta } from "@/lib/dates";
-import { createClient } from "@/lib/supabase/server";
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import { Skeleton, SkeletonCard } from '@/components/ui/skeleton';
+import { type DateRange, parseRange, parseReportTab, type ReportTab, rangeDays } from '@/features/reports/reports.lib';
+import {
+  getDoctorFees,
+  getProfitLoss,
+  getRevenueReport,
+  getTopDiseases,
+  getVisitReport,
+} from '@/features/reports/reports.service';
+import { ReportsDoctorFees } from '@/features/reports/reports-doctor-fees';
+import { ReportsExportLinks } from '@/features/reports/reports-export-links';
+import { ReportsProfitLoss } from '@/features/reports/reports-profit-loss';
+import { ReportsRangeFilter } from '@/features/reports/reports-range-filter';
+import { ReportsRevenue } from '@/features/reports/reports-revenue';
+import { ReportsTabs } from '@/features/reports/reports-tabs';
+import { ReportsTopDiseases } from '@/features/reports/reports-top-diseases';
+import { ReportsVisits } from '@/features/reports/reports-visits';
+import { requireRole } from '@/lib/auth';
+import { formatDate, todayInJakarta } from '@/lib/dates';
+import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: "Laporan" };
+export const metadata: Metadata = { title: 'Laporan' };
 
-export default async function ReportsPage(props: PageProps<"/reports">) {
-  await requireRole("owner");
+export default async function ReportsPage(props: PageProps<'/reports'>) {
+  await requireRole('owner');
+
   const searchParams = await props.searchParams;
   const today = todayInJakarta();
   const range = parseRange(searchParams, today);
@@ -55,23 +62,24 @@ export default async function ReportsPage(props: PageProps<"/reports">) {
 async function ReportBody(props: { tab: ReportTab; range: DateRange; days: string[] }) {
   const supabase = await createClient();
   const { range } = props;
+
   switch (props.tab) {
-    case "revenue":
+    case 'revenue':
       return <ReportsRevenue report={await getRevenueReport(supabase, range)} days={props.days} />;
-    case "doctor-fees":
+    case 'doctor-fees':
       return <ReportsDoctorFees fees={await getDoctorFees(supabase, range)} />;
-    case "profit-loss":
+    case 'profit-loss':
       return <ReportsProfitLoss profitLoss={await getProfitLoss(supabase, range)} />;
-    case "visits":
+    case 'visits':
       return <ReportsVisits rows={await getVisitReport(supabase, range)} days={props.days.length} />;
-    case "top-diseases":
+    case 'top-diseases':
       return <ReportsTopDiseases rows={await getTopDiseases(supabase, range)} />;
   }
 }
 
 function ReportSkeleton() {
   return (
-    <div className="flex flex-col gap-6" aria-busy aria-label="Memuat laporan">
+    <div className="flex flex-col gap-6" role="status" aria-busy aria-label="Memuat laporan">
       <Skeleton className="h-24 rounded-xl" />
       <Skeleton className="h-64 rounded-xl" />
       <div className="grid gap-6 md:grid-cols-2">

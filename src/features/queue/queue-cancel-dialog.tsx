@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -12,12 +12,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { FormField } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
-import { cancelVisitAction } from "./queue.actions";
-import { useQueueAction } from "./queue.hooks";
-import { cancelVisitSchema, type CancelVisitValues, type QueueVisit } from "./queue.lib";
+} from '@/components/ui/dialog';
+import { FormField } from '@/components/ui/form-field';
+import { Input } from '@/components/ui/input';
+import { cancelVisitAction } from './queue.actions';
+import { useQueueAction } from './queue.hooks';
+import { type CancelVisitValues, cancelVisitSchema, type QueueVisit } from './queue.lib';
 
 type QueueCancelDialogProps = {
   visit: QueueVisit;
@@ -26,13 +26,16 @@ type QueueCancelDialogProps = {
 
 export function QueueCancelDialog(props: QueueCancelDialogProps) {
   const [open, setOpen] = useState(false);
+
   const cancel = useQueueAction(props.visitDate, (values: CancelVisitValues) =>
     cancelVisitAction(props.visit.id, values),
   );
+
   const form = useForm<CancelVisitValues>({
     resolver: zodResolver(cancelVisitSchema),
-    defaultValues: { reason: "" },
+    defaultValues: { reason: '' },
   });
+
   const { errors } = form.formState;
 
   return (
@@ -41,8 +44,7 @@ export function QueueCancelDialog(props: QueueCancelDialogProps) {
       onOpenChange={(next) => {
         setOpen(next);
         if (!next) form.reset();
-      }}
-    >
+      }}>
       <Button variant="ghost" size="xs" onClick={() => setOpen(true)}>
         Batalkan
       </Button>
@@ -64,20 +66,19 @@ export function QueueCancelDialog(props: QueueCancelDialogProps) {
                 form.reset();
               },
             }),
-          )}
-        >
+          )}>
           <FormField label="Alasan" htmlFor="cancel_reason" error={errors.reason?.message}>
             <Input
               id="cancel_reason"
               autoFocus
               placeholder="contoh: pasien pulang, salah poli"
               aria-invalid={Boolean(errors.reason)}
-              {...form.register("reason")}
+              {...form.register('reason')}
             />
           </FormField>
           <DialogFooter>
             <Button type="submit" variant="destructive" disabled={cancel.isPending}>
-              {cancel.isPending ? "Membatalkan..." : "Batalkan antrean"}
+              {cancel.isPending ? 'Membatalkan...' : 'Batalkan antrean'}
             </Button>
           </DialogFooter>
         </form>

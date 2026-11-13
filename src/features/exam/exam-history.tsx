@@ -1,6 +1,6 @@
-import { HistoryIcon } from "lucide-react";
-import { formatDate } from "@/lib/dates";
-import type { listPreviousVisits } from "./exam.service";
+import { HistoryIcon } from 'lucide-react';
+import { formatDate } from '@/lib/dates';
+import type { listPreviousVisits } from './exam.service';
 
 type ExamHistoryProps = {
   visits: Awaited<ReturnType<typeof listPreviousVisits>>;
@@ -22,11 +22,18 @@ export function ExamHistory(props: ExamHistoryProps) {
       {props.visits.map((visit) => {
         const notes = visit.notes.filter((note) => note.signed_at);
         const diagnoses = [...visit.diagnoses].sort((a, b) => Number(b.is_primary) - Number(a.is_primary));
+
         // One prescription per visit (unique visit_id), so it arrives as an object.
-        const medicines = (visit.prescriptions?.items ?? []).map((item) => `${item.medicine?.name} ${item.qty} ${item.medicine?.unit}`);
+        const medicines = (visit.prescriptions?.items ?? []).map(
+          (item) => `${item.medicine?.name} ${item.qty} ${item.medicine?.unit}`,
+        );
+
         return (
           <li key={visit.id} className="relative text-sm">
-            <span className="absolute top-1.5 -left-[1.6875rem] size-2.5 rounded-full border-2 border-card bg-input" aria-hidden />
+            <span
+              className="absolute top-1.5 -left-6.75 size-2.5 rounded-full border-2 border-card bg-input"
+              aria-hidden
+            />
             <p className="font-semibold">{formatDate(visit.visit_date)}</p>
             <p className="mb-2 text-[0.8125rem] text-muted-foreground">
               {visit.poli?.name} · {visit.doctor?.full_name}
@@ -44,11 +51,11 @@ export function ExamHistory(props: ExamHistoryProps) {
               {medicines.length > 0 && (
                 <p>
                   <span className="text-muted-foreground">Obat: </span>
-                  {medicines.join(", ")}
+                  {medicines.join(', ')}
                 </p>
               )}
-              {notes.map((note, index) => (
-                <div key={index} className="text-muted-foreground">
+              {notes.map((note) => (
+                <div key={note.id} className="text-muted-foreground">
                   {note.assessment && (
                     <p>
                       <span className="font-semibold text-foreground">A</span> {note.assessment}

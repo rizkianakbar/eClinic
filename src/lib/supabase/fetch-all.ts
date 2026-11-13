@@ -1,4 +1,4 @@
-import "server-only";
+import 'server-only';
 
 /** Supabase's API returns at most this many rows per request (PostgREST max-rows), whatever `.limit()` says. */
 export const MAX_ROWS = 1000;
@@ -13,9 +13,12 @@ type Page<T> = PromiseLike<{ data: T[] | null; error: { code?: string } | null }
  */
 export async function fetchAll<T>(label: string, page: (from: number, to: number) => Page<T>): Promise<T[]> {
   const rows: T[] = [];
+
   for (let from = 0; ; from += MAX_ROWS) {
     const { data, error } = await page(from, from + MAX_ROWS - 1);
+
     if (error) throw new Error(`${label} failed: ${error.code}`);
+
     rows.push(...(data ?? []));
     if (!data || data.length < MAX_ROWS) return rows;
   }

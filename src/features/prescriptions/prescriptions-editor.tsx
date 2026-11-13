@@ -1,26 +1,22 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { FlaskConicalIcon, PillIcon, PlusIcon, XIcon } from "lucide-react";
-import { Controller, useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useActionMutation } from "@/lib/query";
-import {
-  addPrescriptionItemAction,
-  removeCompoundAction,
-  removePrescriptionItemAction,
-} from "./prescriptions.actions";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FlaskConicalIcon, PillIcon, PlusIcon, XIcon } from 'lucide-react';
+import { Controller, useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useActionMutation } from '@/lib/query';
+import { addPrescriptionItemAction, removeCompoundAction, removePrescriptionItemAction } from './prescriptions.actions';
 import {
   COMPOUND_FORM_LABELS,
-  prescriptionItemFormSchema,
-  SIGNA_SUGGESTIONS,
   type PrescriptionItemFormInput,
   type PrescriptionItemValues,
-} from "./prescriptions.lib";
-import type { getPrescription } from "./prescriptions.service";
-import { PrescriptionsCompoundDialog } from "./prescriptions-compound-dialog";
-import { PrescriptionsMedicinePicker } from "./prescriptions-medicine-picker";
+  prescriptionItemFormSchema,
+  SIGNA_SUGGESTIONS,
+} from './prescriptions.lib';
+import type { getPrescription } from './prescriptions.service';
+import { PrescriptionsCompoundDialog } from './prescriptions-compound-dialog';
+import { PrescriptionsMedicinePicker } from './prescriptions-medicine-picker';
 
 type Prescription = Awaited<ReturnType<typeof getPrescription>>;
 
@@ -30,7 +26,7 @@ type PrescriptionsEditorProps = {
   editable: boolean;
 };
 
-const EMPTY: PrescriptionItemFormInput = { medicine: null, qty: "", signa: "" };
+const EMPTY: PrescriptionItemFormInput = { medicine: null, qty: '', signa: '' };
 
 export function PrescriptionsEditor(props: PrescriptionsEditorProps) {
   const { items, compounds } = props.prescription;
@@ -42,7 +38,9 @@ export function PrescriptionsEditor(props: PrescriptionsEditorProps) {
     <div className="flex flex-col gap-2">
       {items.length === 0 && compounds.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          {props.editable ? "Belum ada obat. Tanpa resep, pasien langsung ke kasir setelah ditandatangani." : "Tidak ada resep."}
+          {props.editable
+            ? 'Belum ada obat. Tanpa resep, pasien langsung ke kasir setelah ditandatangani.'
+            : 'Tidak ada resep.'}
         </p>
       ) : (
         <ul className="overflow-hidden rounded-lg border text-sm">
@@ -66,8 +64,7 @@ export function PrescriptionsEditor(props: PrescriptionsEditorProps) {
                   variant="ghost"
                   aria-label="Hapus obat"
                   disabled={busy}
-                  onClick={() => removeItem.mutate(item.id)}
-                >
+                  onClick={() => removeItem.mutate(item.id)}>
                   <XIcon />
                 </Button>
               )}
@@ -100,8 +97,7 @@ export function PrescriptionsEditor(props: PrescriptionsEditorProps) {
                   variant="ghost"
                   aria-label="Hapus racikan"
                   disabled={busy}
-                  onClick={() => removeCompound.mutate(compound.id)}
-                >
+                  onClick={() => removeCompound.mutate(compound.id)}>
                   <XIcon />
                 </Button>
               )}
@@ -121,10 +117,12 @@ type ItemFormProps = {
 
 function ItemForm(props: ItemFormProps) {
   const add = useActionMutation((values: PrescriptionItemValues) => addPrescriptionItemAction(props.visitId, values));
+
   const form = useForm<PrescriptionItemFormInput, unknown, PrescriptionItemValues>({
     resolver: zodResolver(prescriptionItemFormSchema),
     defaultValues: EMPTY,
   });
+
   const { errors } = form.formState;
   const firstError = errors.medicine?.message ?? errors.qty?.message ?? errors.signa?.message;
 
@@ -132,8 +130,7 @@ function ItemForm(props: ItemFormProps) {
     <form
       noValidate
       className="flex flex-col gap-1"
-      onSubmit={form.handleSubmit((values) => add.mutate(values, { onSuccess: () => form.reset(EMPTY) }))}
-    >
+      onSubmit={form.handleSubmit((values) => add.mutate(values, { onSuccess: () => form.reset(EMPTY) }))}>
       <div className="flex flex-wrap items-start gap-2">
         <div className="min-w-56 flex-1">
           <Controller
@@ -155,7 +152,7 @@ function ItemForm(props: ItemFormProps) {
           placeholder="Jumlah"
           inputMode="numeric"
           aria-invalid={Boolean(errors.qty)}
-          {...form.register("qty")}
+          {...form.register('qty')}
         />
         <Input
           className="min-w-48 flex-1"
@@ -163,7 +160,7 @@ function ItemForm(props: ItemFormProps) {
           placeholder="Aturan pakai, contoh: 3 x 1 sesudah makan"
           list="rx_signa_suggestions"
           aria-invalid={Boolean(errors.signa)}
-          {...form.register("signa")}
+          {...form.register('signa')}
         />
         <Button type="submit" variant="outline" disabled={add.isPending}>
           <PlusIcon />

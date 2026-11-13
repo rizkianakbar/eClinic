@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { KeyRoundIcon } from "lucide-react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { KeyRoundIcon } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -13,12 +13,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { FormField } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
-import { useActionMutation } from "@/lib/query";
-import { resetStaffPasswordAction } from "./settings.actions";
-import { staffPasswordSchema, type StaffPasswordValues } from "./settings.lib";
+} from '@/components/ui/dialog';
+import { FormField } from '@/components/ui/form-field';
+import { Input } from '@/components/ui/input';
+import { useActionMutation } from '@/lib/query';
+import { resetStaffPasswordAction } from './settings.actions';
+import { type StaffPasswordValues, staffPasswordSchema } from './settings.lib';
 
 type SettingsStaffPasswordDialogProps = {
   staffId: string;
@@ -27,13 +27,16 @@ type SettingsStaffPasswordDialogProps = {
 
 export function SettingsStaffPasswordDialog(props: SettingsStaffPasswordDialogProps) {
   const [open, setOpen] = useState(false);
+
   const reset = useActionMutation((values: StaffPasswordValues) =>
     resetStaffPasswordAction(props.staffId, values.password),
   );
+
   const form = useForm<StaffPasswordValues>({
     resolver: zodResolver(staffPasswordSchema),
-    defaultValues: { password: "" },
+    defaultValues: { password: '' },
   });
+
   const { errors } = form.formState;
 
   return (
@@ -42,8 +45,7 @@ export function SettingsStaffPasswordDialog(props: SettingsStaffPasswordDialogPr
       onOpenChange={(next) => {
         setOpen(next);
         if (!next) form.reset();
-      }}
-    >
+      }}>
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
         <KeyRoundIcon />
         Atur ulang kata sandi
@@ -61,26 +63,29 @@ export function SettingsStaffPasswordDialog(props: SettingsStaffPasswordDialogPr
           onSubmit={form.handleSubmit((values) =>
             reset.mutate(values, {
               onSuccess: () => {
-                toast.success("Kata sandi diganti.");
+                toast.success('Kata sandi diganti.');
                 setOpen(false);
                 form.reset();
               },
             }),
-          )}
-        >
-          <FormField label="Kata sandi baru" htmlFor="new_password" error={errors.password?.message} hint="min. 8 karakter">
+          )}>
+          <FormField
+            label="Kata sandi baru"
+            htmlFor="new_password"
+            error={errors.password?.message}
+            hint="min. 8 karakter">
             <Input
               id="new_password"
               type="text"
               autoComplete="new-password"
               autoFocus
               aria-invalid={Boolean(errors.password)}
-              {...form.register("password")}
+              {...form.register('password')}
             />
           </FormField>
           <DialogFooter>
             <Button type="submit" disabled={reset.isPending}>
-              {reset.isPending ? "Menyimpan..." : "Simpan kata sandi"}
+              {reset.isPending ? 'Menyimpan...' : 'Simpan kata sandi'}
             </Button>
           </DialogFooter>
         </form>

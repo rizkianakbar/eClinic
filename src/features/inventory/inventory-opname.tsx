@@ -1,7 +1,7 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDate, formatDateTime } from "@/lib/dates";
-import { cn } from "@/lib/utils";
-import type { getStockOpname } from "./inventory.service";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatDate, formatDateTime } from '@/lib/dates';
+import { cn } from '@/lib/utils';
+import type { getStockOpname } from './inventory.service';
 
 type InventoryOpnameProps = {
   opname: NonNullable<Awaited<ReturnType<typeof getStockOpname>>>;
@@ -10,6 +10,7 @@ type InventoryOpnameProps = {
 /** A posted stock opname (read-only). */
 export function InventoryOpname(props: InventoryOpnameProps) {
   const { opname } = props;
+
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -36,14 +37,18 @@ export function InventoryOpname(props: InventoryOpnameProps) {
               <TableCell>{item.medicine?.name}</TableCell>
               <TableCell className="tabular">
                 {item.batch?.batch_no}
-                {item.batch && <span className="ml-1 font-sans text-xs text-muted-foreground">ED {formatDate(item.batch.expiry_date)}</span>}
+                {item.batch && (
+                  <span className="ml-1 font-sans text-xs text-muted-foreground">
+                    ED {formatDate(item.batch.expiry_date)}
+                  </span>
+                )}
               </TableCell>
               <TableCell className="text-right">{item.system_qty}</TableCell>
               <TableCell className="text-right">{item.counted_qty}</TableCell>
-              <TableCell className={cn("text-right", item.difference !== 0 && "font-medium text-destructive")}>
+              <TableCell className={cn('text-right', item.difference !== 0 && 'font-medium text-destructive')}>
                 {item.difference > 0 ? `+${item.difference}` : item.difference}
               </TableCell>
-              <TableCell>{item.reason ?? "-"}</TableCell>
+              <TableCell>{item.reason ?? '-'}</TableCell>
             </TableRow>
           ))}
         </TableBody>

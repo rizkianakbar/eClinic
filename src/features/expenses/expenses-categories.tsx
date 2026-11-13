@@ -1,7 +1,7 @@
-import { formatRupiah } from "@/lib/money";
-import { cn } from "@/lib/utils";
-import { expenseStyle } from "./expenses.constants";
-import type { expenseSummary } from "./expenses.lib";
+import { formatRupiah } from '@/lib/money';
+import { cn } from '@/lib/utils';
+import { expenseStyle } from './expenses.constants';
+import type { expenseSummary } from './expenses.lib';
 
 type ExpensesCategoriesProps = {
   summary: ReturnType<typeof expenseSummary>;
@@ -37,10 +37,11 @@ export function ExpensesCategories(props: ExpensesCategoriesProps) {
             <ul className="flex flex-col gap-3.5 p-4">
               {summary.byCategory.map((row) => {
                 const style = expenseStyle(row.category);
+
                 return (
                   <li key={row.category} className="flex flex-col gap-1.5 text-sm">
                     <span className="flex items-center gap-2">
-                      <span className={cn("flex size-6 shrink-0 items-center justify-center rounded-md", style.tone)}>
+                      <span className={cn('flex size-6 shrink-0 items-center justify-center rounded-md', style.tone)}>
                         <style.icon className="size-3.5" aria-hidden />
                       </span>
                       <span className="flex-1 font-medium">{row.category}</span>
@@ -48,7 +49,10 @@ export function ExpensesCategories(props: ExpensesCategoriesProps) {
                     </span>
                     <span className="flex items-center gap-2 pl-8">
                       <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                        <span className={cn("block h-full rounded-full", style.bar)} style={{ width: `${(row.total / top) * 100}%` }} />
+                        <span
+                          className={cn('block h-full rounded-full', style.bar)}
+                          style={{ width: `${(row.total / top) * 100}%` }}
+                        />
                       </span>
                       <span className="tabular w-24 text-right text-xs text-muted-foreground">
                         {Math.round((row.total / Math.max(1, summary.total)) * 100)}% · {row.count}×

@@ -1,6 +1,6 @@
-import { SearchXIcon } from "lucide-react";
-import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { SearchXIcon } from 'lucide-react';
+import Link from 'next/link';
+import { buttonVariants } from '@/components/ui/button';
 
 export default function AppNotFound() {
   return (
@@ -14,7 +14,7 @@ export default function AppNotFound() {
           Tautan ini mungkin salah, atau datanya milik klinik lain. Kembali lalu buka dari daftar.
         </p>
       </div>
-      <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
+      <Link href="/dashboard" className={buttonVariants({ variant: 'outline' })}>
         Ke beranda
       </Link>
     </div>

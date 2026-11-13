@@ -1,31 +1,39 @@
-import { CalendarClockIcon, ListTreeIcon, PillIcon, SettingsIcon, StethoscopeIcon, TagIcon, UsersIcon } from "lucide-react";
-import Link from "next/link";
-import { Panel, PanelEmpty } from "@/components/ui/panel";
-import { AUDIT_TABLE_LABELS } from "@/features/settings/settings.constants";
-import type { listAuditLogs } from "@/features/settings/settings.service";
-import { formatDateTime } from "@/lib/dates";
+import {
+  CalendarClockIcon,
+  ListTreeIcon,
+  PillIcon,
+  SettingsIcon,
+  StethoscopeIcon,
+  TagIcon,
+  UsersIcon,
+} from 'lucide-react';
+import Link from 'next/link';
+import { Panel, PanelEmpty } from '@/components/ui/panel';
+import { AUDIT_TABLE_LABELS } from '@/features/settings/settings.constants';
+import type { listAuditLogs } from '@/features/settings/settings.service';
+import { formatDateTime } from '@/lib/dates';
 
 type HomeAdminProps = {
-  activity: Awaited<ReturnType<typeof listAuditLogs>>["logs"];
+  activity: Awaited<ReturnType<typeof listAuditLogs>>['logs'];
 };
 
-const VERBS: Record<string, string> = { insert: "menambah", update: "mengubah", delete: "menghapus" };
+const VERBS: Record<string, string> = { insert: 'menambah', update: 'mengubah', delete: 'menghapus' };
 
 const SHORTCUTS = [
-  { href: "/settings/staff", label: "Staf", hint: "Tambah, nonaktifkan, atur ulang sandi", icon: UsersIcon },
-  { href: "/settings/schedules", label: "Jadwal dokter", hint: "Hari, jam praktik, kuota", icon: CalendarClockIcon },
-  { href: "/settings/polis", label: "Poli", hint: "Poli dan biaya konsultasi", icon: StethoscopeIcon },
-  { href: "/settings/services", label: "Tarif layanan", hint: "Tindakan dan paket", icon: TagIcon },
-  { href: "/settings/medicines", label: "Obat", hint: "Daftar obat dan harga", icon: PillIcon },
-  { href: "/settings/icd10", label: "ICD-10", hint: "Daftar diagnosis", icon: ListTreeIcon },
-  { href: "/settings/clinic", label: "Profil klinik", hint: "Logo, alamat, kop surat", icon: SettingsIcon },
+  { href: '/settings/staff', label: 'Staf', hint: 'Tambah, nonaktifkan, atur ulang sandi', icon: UsersIcon },
+  { href: '/settings/schedules', label: 'Jadwal dokter', hint: 'Hari, jam praktik, kuota', icon: CalendarClockIcon },
+  { href: '/settings/polis', label: 'Poli', hint: 'Poli dan biaya konsultasi', icon: StethoscopeIcon },
+  { href: '/settings/services', label: 'Tarif layanan', hint: 'Tindakan dan paket', icon: TagIcon },
+  { href: '/settings/medicines', label: 'Obat', hint: 'Daftar obat dan harga', icon: PillIcon },
+  { href: '/settings/icd10', label: 'ICD-10', hint: 'Daftar diagnosis', icon: ListTreeIcon },
+  { href: '/settings/clinic', label: 'Profil klinik', hint: 'Logo, alamat, kop surat', icon: SettingsIcon },
 ] as const;
 
 /** The admin's desk: what changed recently, and the settings they touch most. */
 export function HomeAdmin(props: HomeAdminProps) {
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-      <Panel title="Aktivitas terbaru" link={{ href: "/settings/activity", label: "Log aktivitas" }}>
+      <Panel title="Aktivitas terbaru" link={{ href: '/settings/activity', label: 'Log aktivitas' }}>
         {props.activity.length === 0 ? (
           <PanelEmpty title="Belum ada perubahan minggu ini" />
         ) : (
@@ -34,11 +42,13 @@ export function HomeAdmin(props: HomeAdminProps) {
               <li key={log.id} className="flex items-start gap-3 border-b px-4 py-3 text-sm last:border-0">
                 <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary/60" aria-hidden />
                 <span className="min-w-0 flex-1">
-                  <span className="font-medium">{log.actorName}</span>{" "}
-                  <span className="text-muted-foreground">{VERBS[log.action] ?? log.action}</span>{" "}
+                  <span className="font-medium">{log.actorName}</span>{' '}
+                  <span className="text-muted-foreground">{VERBS[log.action] ?? log.action}</span>{' '}
                   {(AUDIT_TABLE_LABELS[log.table_name] ?? log.table_name).toLowerCase()}
                 </span>
-                <span className="tabular shrink-0 text-[0.8125rem] text-muted-foreground">{formatDateTime(log.created_at)}</span>
+                <span className="tabular shrink-0 text-[0.8125rem] text-muted-foreground">
+                  {formatDateTime(log.created_at)}
+                </span>
               </li>
             ))}
           </ul>

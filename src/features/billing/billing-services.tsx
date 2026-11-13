@@ -1,23 +1,25 @@
-import { DataImportDialog } from "@/features/data-import/data-import-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { SettingsActiveToggle } from "@/features/settings/settings-active-toggle";
-import { formatRupiah } from "@/lib/money";
-import { setServiceActiveAction } from "./billing.actions";
-import { SERVICE_TYPE_LABELS } from "./billing.constants";
-import { doctorFeeAmount, type ServiceValues } from "./billing.lib";
-import type { listServices } from "./billing.service";
-import { BillingPackageDialog } from "./billing-package-dialog";
-import { BillingServiceDialog } from "./billing-service-dialog";
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DataImportDialog } from '@/features/data-import/data-import-dialog';
+import { SettingsActiveToggle } from '@/features/settings/settings-active-toggle';
+import { formatRupiah } from '@/lib/money';
+import { setServiceActiveAction } from './billing.actions';
+import { SERVICE_TYPE_LABELS } from './billing.constants';
+import { doctorFeeAmount, type ServiceValues } from './billing.lib';
+import type { listServices } from './billing.service';
+import { BillingPackageDialog } from './billing-package-dialog';
+import { BillingServiceDialog } from './billing-service-dialog';
 
 type BillingServicesProps = {
   services: Awaited<ReturnType<typeof listServices>>;
 };
 
 function feeLabel(service: { price: number; doctor_fee_type: string; doctor_fee_value: number }) {
-  if (service.doctor_fee_type === "none") return "-";
+  if (service.doctor_fee_type === 'none') return '-';
+
   const amount = formatRupiah(doctorFeeAmount(service));
-  return service.doctor_fee_type === "percent" ? `${service.doctor_fee_value}% (${amount})` : amount;
+
+  return service.doctor_fee_type === 'percent' ? `${service.doctor_fee_value}% (${amount})` : amount;
 }
 
 export function BillingServices(props: BillingServicesProps) {
@@ -50,16 +52,16 @@ export function BillingServices(props: BillingServicesProps) {
           </TableHeader>
           <TableBody>
             {props.services.map((service) => (
-              <TableRow key={service.id} className={service.is_active ? undefined : "text-muted-foreground"}>
+              <TableRow key={service.id} className={service.is_active ? undefined : 'text-muted-foreground'}>
                 <TableCell>
                   <p className="font-medium">{service.name}</p>
-                  {service.type === "package" && (
+                  {service.type === 'package' && (
                     <p className="text-xs text-muted-foreground">
                       {service.contents.length > 0
                         ? service.contents
-                            .map((item) => `${item.service?.name}${item.qty > 1 ? ` x${item.qty}` : ""}`)
-                            .join(", ")
-                        : "Isi paket belum diatur"}
+                            .map((item) => `${item.service?.name}${item.qty > 1 ? ` x${item.qty}` : ''}`)
+                            .join(', ')
+                        : 'Isi paket belum diatur'}
                     </p>
                   )}
                 </TableCell>
@@ -67,19 +69,19 @@ export function BillingServices(props: BillingServicesProps) {
                 <TableCell className="text-right">{formatRupiah(service.price)}</TableCell>
                 <TableCell className="text-right">{feeLabel(service)}</TableCell>
                 <TableCell>
-                  <Badge variant={service.is_active ? "secondary" : "outline"}>
-                    {service.is_active ? "Aktif" : "Nonaktif"}
+                  <Badge variant={service.is_active ? 'secondary' : 'outline'}>
+                    {service.is_active ? 'Aktif' : 'Nonaktif'}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <BillingServiceDialog mode="edit" service={service as ServiceValues & { id: string }} />
-                    {service.type === "package" && (
+                    {service.type === 'package' && (
                       <BillingPackageDialog
                         packageId={service.id}
                         packageName={service.name}
                         contents={service.contents.map((item) => ({ service_id: item.service_id, qty: item.qty }))}
-                        services={props.services.filter((other) => other.type !== "package" && other.is_active)}
+                        services={props.services.filter((other) => other.type !== 'package' && other.is_active)}
                       />
                     )}
                     <SettingsActiveToggle

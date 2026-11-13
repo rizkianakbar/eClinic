@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useRef, useState, type KeyboardEvent } from "react";
-import { Floating } from "@/components/ui/floating";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { useMedicineSearch } from "./prescriptions.hooks";
+import { type KeyboardEvent, useRef, useState } from 'react';
+import { Floating } from '@/components/ui/floating';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { useMedicineSearch } from './prescriptions.hooks';
 
 export type PickedMedicine = { id: string; name: string; unit: string };
 
@@ -18,7 +18,7 @@ type PrescriptionsMedicinePickerProps = {
 /** Type to search active medicines; arrows + Enter to pick. Shows the pick with a "change" link. */
 export function PrescriptionsMedicinePicker(props: PrescriptionsMedicinePickerProps) {
   const anchor = useRef<HTMLDivElement>(null);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [highlighted, setHighlighted] = useState(0);
   const search = useMedicineSearch(query);
   const results = query.trim().length >= 2 ? (search.data ?? []) : [];
@@ -39,18 +39,18 @@ export function PrescriptionsMedicinePicker(props: PrescriptionsMedicinePickerPr
 
   function pick(medicine: PickedMedicine) {
     props.onChange(medicine);
-    setQuery("");
+    setQuery('');
     setHighlighted(0);
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "ArrowDown") {
+    if (event.key === 'ArrowDown') {
       event.preventDefault();
       setHighlighted(Math.min(active + 1, results.length - 1));
-    } else if (event.key === "ArrowUp") {
+    } else if (event.key === 'ArrowUp') {
       event.preventDefault();
       setHighlighted(Math.max(active - 1, 0));
-    } else if (event.key === "Enter" && results[active]) {
+    } else if (event.key === 'Enter' && results[active]) {
       event.preventDefault();
       pick(results[active]);
     }
@@ -73,27 +73,26 @@ export function PrescriptionsMedicinePicker(props: PrescriptionsMedicinePickerPr
       />
       {query.trim().length >= 2 && (
         <Floating anchor={anchor}>
-        <ul className="min-h-0 divide-y overflow-y-auto">
-          {results.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-muted-foreground">
-              {search.isPending ? "Mencari..." : "Obat tidak ditemukan atau tidak aktif."}
-            </li>
-          ) : (
-            results.map((medicine, index) => (
-              <li key={medicine.id}>
-                <button
-                  type="button"
-                  className={cn("w-full px-3 py-2 text-left text-sm hover:bg-muted", index === active && "bg-muted")}
-                  onMouseEnter={() => setHighlighted(index)}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => pick(medicine)}
-                >
-                  {medicine.name} <span className="text-muted-foreground">({medicine.unit})</span>
-                </button>
+          <ul className="min-h-0 divide-y overflow-y-auto">
+            {results.length === 0 ? (
+              <li className="px-3 py-2 text-sm text-muted-foreground">
+                {search.isPending ? 'Mencari...' : 'Obat tidak ditemukan atau tidak aktif.'}
               </li>
-            ))
-          )}
-        </ul>
+            ) : (
+              results.map((medicine, index) => (
+                <li key={medicine.id}>
+                  <button
+                    type="button"
+                    className={cn('w-full px-3 py-2 text-left text-sm hover:bg-muted', index === active && 'bg-muted')}
+                    onMouseEnter={() => setHighlighted(index)}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => pick(medicine)}>
+                    {medicine.name} <span className="text-muted-foreground">({medicine.unit})</span>
+                  </button>
+                </li>
+              ))
+            )}
+          </ul>
         </Floating>
       )}
     </div>

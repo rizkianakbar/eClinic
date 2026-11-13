@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 
 /** Opens the browser print dialog. Hidden on paper. */
 export function PrintButton() {

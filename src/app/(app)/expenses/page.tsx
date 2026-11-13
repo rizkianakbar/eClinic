@@ -1,23 +1,24 @@
-import type { Metadata } from "next";
-import { expenseSummary } from "@/features/expenses/expenses.lib";
-import { listExpenses } from "@/features/expenses/expenses.service";
-import { Expenses } from "@/features/expenses/expenses";
-import { ExpensesCategories } from "@/features/expenses/expenses-categories";
-import { ExpensesDialog } from "@/features/expenses/expenses-dialog";
-import { parseRange, rangeDays } from "@/features/reports/reports.lib";
-import { getProfitLoss } from "@/features/reports/reports.service";
-import { ReportsExportLinks } from "@/features/reports/reports-export-links";
-import { ReportsKpis } from "@/features/reports/reports-kpis";
-import { ReportsRangeFilter } from "@/features/reports/reports-range-filter";
-import { requireRole } from "@/lib/auth";
-import { formatDate, todayInJakarta } from "@/lib/dates";
-import { formatRupiah } from "@/lib/money";
-import { createClient } from "@/lib/supabase/server";
+import type { Metadata } from 'next';
+import { Expenses } from '@/features/expenses/expenses';
+import { expenseSummary } from '@/features/expenses/expenses.lib';
+import { listExpenses } from '@/features/expenses/expenses.service';
+import { ExpensesCategories } from '@/features/expenses/expenses-categories';
+import { ExpensesDialog } from '@/features/expenses/expenses-dialog';
+import { parseRange, rangeDays } from '@/features/reports/reports.lib';
+import { getProfitLoss } from '@/features/reports/reports.service';
+import { ReportsExportLinks } from '@/features/reports/reports-export-links';
+import { ReportsKpis } from '@/features/reports/reports-kpis';
+import { ReportsRangeFilter } from '@/features/reports/reports-range-filter';
+import { requireRole } from '@/lib/auth';
+import { formatDate, todayInJakarta } from '@/lib/dates';
+import { formatRupiah } from '@/lib/money';
+import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = { title: "Pengeluaran" };
+export const metadata: Metadata = { title: 'Pengeluaran' };
 
-export default async function ExpensesPage(props: PageProps<"/expenses">) {
-  await requireRole("owner");
+export default async function ExpensesPage(props: PageProps<'/expenses'>) {
+  await requireRole('owner');
+
   const today = todayInJakarta();
   const range = parseRange(await props.searchParams, today);
   const supabase = await createClient();
@@ -45,17 +46,29 @@ export default async function ExpensesPage(props: PageProps<"/expenses">) {
 
       <ReportsKpis
         items={[
-          { label: "Total pengeluaran", value: formatRupiah(summary.total), hint: `${summary.count} catatan${summary.voided ? ` · ${summary.voided} dibatalkan` : ""}` },
-          { label: "Rata-rata per hari", value: formatRupiah(Math.round(summary.total / Math.max(1, days))), hint: `${days} hari` },
-          { label: "Terbesar", value: biggest ? biggest.category : "–", hint: biggest ? formatRupiah(biggest.total) : "Belum ada" },
           {
-            label: profitLoss.profit < 0 ? "Rugi bersih" : "Laba bersih",
+            label: 'Total pengeluaran',
+            value: formatRupiah(summary.total),
+            hint: `${summary.count} catatan${summary.voided ? ` · ${summary.voided} dibatalkan` : ''}`,
+          },
+          {
+            label: 'Rata-rata per hari',
+            value: formatRupiah(Math.round(summary.total / Math.max(1, days))),
+            hint: `${days} hari`,
+          },
+          {
+            label: 'Terbesar',
+            value: biggest ? biggest.category : '–',
+            hint: biggest ? formatRupiah(biggest.total) : 'Belum ada',
+          },
+          {
+            label: profitLoss.profit < 0 ? 'Rugi bersih' : 'Laba bersih',
             value: formatRupiah(profitLoss.profit),
             hint:
               ratio === null
-                ? "Belum ada pendapatan pada periode ini"
+                ? 'Belum ada pendapatan pada periode ini'
                 : `Pengeluaran = ${ratio}% dari pendapatan ${formatRupiah(profitLoss.revenue)}`,
-            tone: profitLoss.profit < 0 ? "negative" : "positive",
+            tone: profitLoss.profit < 0 ? 'negative' : 'positive',
           },
         ]}
       />
@@ -64,7 +77,9 @@ export default async function ExpensesPage(props: PageProps<"/expenses">) {
         <section className="flex min-w-0 flex-col gap-2.5">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
             Catatan pengeluaran
-            <span className="tabular rounded-md bg-muted px-1.5 text-xs leading-5 font-medium text-muted-foreground">{expenses.length}</span>
+            <span className="tabular rounded-md bg-muted px-1.5 text-xs leading-5 font-medium text-muted-foreground">
+              {expenses.length}
+            </span>
           </h2>
           <Expenses expenses={expenses} />
         </section>

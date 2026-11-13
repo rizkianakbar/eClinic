@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusIcon, XIcon } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { formatRupiah } from "@/lib/money";
-import { useActionMutation } from "@/lib/query";
-import { addProcedureAction, removeProcedureAction } from "./exam.actions";
-import { procedureSchema, type ProcedureInput, type ProcedureValues } from "./exam.lib";
-import type { listProcedureOptions, listProcedures } from "./exam.service";
-import { ExamConsumables } from "./exam-consumables";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { PlusIcon, XIcon } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { formatRupiah } from '@/lib/money';
+import { useActionMutation } from '@/lib/query';
+import { addProcedureAction, removeProcedureAction } from './exam.actions';
+import { type ProcedureInput, type ProcedureValues, procedureSchema } from './exam.lib';
+import type { listProcedureOptions, listProcedures } from './exam.service';
+import { ExamConsumables } from './exam-consumables';
 
 type ExamProceduresProps = {
   visitId: string;
@@ -37,9 +37,13 @@ export function ExamProcedures(props: ExamProceduresProps) {
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3">
                   <p className="font-medium">
                     {procedure.service?.name}
-                    {procedure.qty > 1 && <span className="tabular font-normal text-muted-foreground"> × {procedure.qty}</span>}
+                    {procedure.qty > 1 && (
+                      <span className="tabular font-normal text-muted-foreground"> × {procedure.qty}</span>
+                    )}
                   </p>
-                  <p className="tabular text-[0.8125rem] font-medium">{formatRupiah(procedure.price * procedure.qty)}</p>
+                  <p className="tabular text-[0.8125rem] font-medium">
+                    {formatRupiah(procedure.price * procedure.qty)}
+                  </p>
                 </div>
                 <p className="-mt-1.5 text-[0.8125rem] text-muted-foreground">oleh {procedure.performer?.full_name}</p>
                 <ExamConsumables
@@ -54,8 +58,7 @@ export function ExamProcedures(props: ExamProceduresProps) {
                   variant="ghost"
                   aria-label="Hapus tindakan"
                   disabled={remove.isPending}
-                  onClick={() => remove.mutate(procedure.id)}
-                >
+                  onClick={() => remove.mutate(procedure.id)}>
                   <XIcon />
                 </Button>
               )}
@@ -77,11 +80,13 @@ export function ExamProcedures(props: ExamProceduresProps) {
 
 function ProcedureForm(props: ExamProceduresProps) {
   const add = useActionMutation((values: ProcedureValues) => addProcedureAction(props.visitId, values));
-  const empty: ProcedureInput = { service_id: "", qty: "1", performed_by: props.defaultPerformerId };
+  const empty: ProcedureInput = { service_id: '', qty: '1', performed_by: props.defaultPerformerId };
+
   const form = useForm<ProcedureInput, unknown, ProcedureValues>({
     resolver: zodResolver(procedureSchema),
     defaultValues: empty,
   });
+
   const { errors } = form.formState;
   const firstError = errors.service_id?.message ?? errors.qty?.message ?? errors.performed_by?.message;
 
@@ -89,15 +94,13 @@ function ProcedureForm(props: ExamProceduresProps) {
     <form
       noValidate
       className="flex flex-col gap-1"
-      onSubmit={form.handleSubmit((values) => add.mutate(values, { onSuccess: () => form.reset(empty) }))}
-    >
+      onSubmit={form.handleSubmit((values) => add.mutate(values, { onSuccess: () => form.reset(empty) }))}>
       <div className="flex flex-wrap items-start gap-2">
         <NativeSelect
           aria-label="Tindakan"
           className="min-w-56 flex-1"
           aria-invalid={Boolean(errors.service_id)}
-          {...form.register("service_id")}
-        >
+          {...form.register('service_id')}>
           <NativeSelectOption value="">Pilih tindakan...</NativeSelectOption>
           {props.options.services.map((service) => (
             <NativeSelectOption key={service.id} value={service.id}>
@@ -110,9 +113,9 @@ function ProcedureForm(props: ExamProceduresProps) {
           aria-label="Jumlah"
           inputMode="numeric"
           aria-invalid={Boolean(errors.qty)}
-          {...form.register("qty")}
+          {...form.register('qty')}
         />
-        <NativeSelect aria-label="Pelaksana" className="min-w-40" {...form.register("performed_by")}>
+        <NativeSelect aria-label="Pelaksana" className="min-w-40" {...form.register('performed_by')}>
           {props.options.performers.map((performer) => (
             <NativeSelectOption key={performer.id} value={performer.id}>
               {performer.full_name}

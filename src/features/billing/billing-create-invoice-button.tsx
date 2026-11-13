@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { useActionMutation } from "@/lib/query";
-import { createInvoiceAction } from "./billing.actions";
+import { useEffect, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { useActionMutation } from '@/lib/query';
+import { createInvoiceAction } from './billing.actions';
 
 type BillingCreateInvoiceButtonProps = {
   visitId: string;
@@ -21,6 +21,7 @@ export function BillingCreateInvoiceButton(props: BillingCreateInvoiceButtonProp
 
   useEffect(() => {
     if (started.current) return;
+
     started.current = true;
     mutate();
   }, [mutate]);
@@ -32,8 +33,9 @@ export function BillingCreateInvoiceButton(props: BillingCreateInvoiceButtonProp
       </Button>
     );
   }
+
   return (
-    <div className="flex flex-col gap-2" aria-busy aria-label="Menyiapkan tagihan">
+    <div className="flex flex-col gap-2" role="status" aria-busy aria-label="Menyiapkan tagihan">
       <p className="text-sm text-muted-foreground">Menyiapkan tagihan dari konsultasi, tindakan, dan obat…</p>
       {[0, 1, 2].map((row) => (
         <div key={row} className="h-14 animate-pulse rounded-xl bg-muted/70" />

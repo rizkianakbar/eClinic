@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
-import { useQueueBoard } from "@/features/queue/queue.hooks";
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef } from 'react';
+import { useQueueBoard } from '@/features/queue/queue.hooks';
 
 type VisitsLiveRefreshProps = {
   visitDate: string;
@@ -17,11 +17,12 @@ type VisitsLiveRefreshProps = {
 export function VisitsLiveRefresh(props: VisitsLiveRefreshProps) {
   const router = useRouter();
   const board = useQueueBoard(props.visitDate);
-  const signature = board.data?.map((visit) => `${visit.id}:${visit.status}:${visit.updated_at}`).join("|");
+  const signature = board.data?.map((visit) => `${visit.id}:${visit.status}:${visit.updated_at}`).join('|');
   const previous = useRef(signature);
 
   useEffect(() => {
     if (signature === undefined) return;
+
     if (previous.current !== undefined && previous.current !== signature) router.refresh();
     previous.current = signature;
   }, [signature, router]);

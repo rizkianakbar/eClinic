@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -11,8 +11,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { useActionMutation, type ActionResult } from "@/lib/query";
+} from '@/components/ui/dialog';
+import { type ActionResult, useActionMutation } from '@/lib/query';
 
 type SettingsActiveToggleProps = {
   id: string;
@@ -24,7 +24,7 @@ type SettingsActiveToggleProps = {
   /** What deactivating means for this record. */
   consequence: string;
   /** "xs" inside dense cards. */
-  size?: "sm" | "xs";
+  size?: 'sm' | 'xs';
 };
 
 /** Activate directly; deactivate after confirmation. Nothing is ever deleted. */
@@ -43,7 +43,7 @@ export function SettingsActiveToggle(props: SettingsActiveToggleProps) {
 
   if (!props.isActive) {
     return (
-      <Button variant="outline" size={props.size ?? "sm"} disabled={toggle.isPending} onClick={() => run(true)}>
+      <Button variant="outline" size={props.size ?? 'sm'} disabled={toggle.isPending} onClick={() => run(true)}>
         Aktifkan
       </Button>
     );
@@ -53,10 +53,9 @@ export function SettingsActiveToggle(props: SettingsActiveToggleProps) {
     <Dialog open={confirming} onOpenChange={setConfirming}>
       <Button
         variant="ghost"
-        size={props.size ?? "sm"}
+        size={props.size ?? 'sm'}
         className="text-destructive hover:bg-status-cancelled-soft hover:text-destructive"
-        onClick={() => setConfirming(true)}
-      >
+        onClick={() => setConfirming(true)}>
         Nonaktifkan
       </Button>
       <DialogContent>
@@ -67,7 +66,7 @@ export function SettingsActiveToggle(props: SettingsActiveToggleProps) {
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>Batal</DialogClose>
           <Button variant="destructive" disabled={toggle.isPending} onClick={() => run(false)}>
-            {toggle.isPending ? "Memproses..." : "Nonaktifkan"}
+            {toggle.isPending ? 'Memproses...' : 'Nonaktifkan'}
           </Button>
         </DialogFooter>
       </DialogContent>

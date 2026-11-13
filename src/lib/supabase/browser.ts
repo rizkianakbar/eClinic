@@ -1,5 +1,5 @@
-import { createBrowserClient } from "@supabase/ssr";
-import type { Database } from "./database.types";
+import { createBrowserClient } from '@supabase/ssr';
+import type { Database } from './database.types';
 
 /** Supabase client for Client Components (Realtime subscriptions, live queries). RLS applies. */
 export function createClient() {

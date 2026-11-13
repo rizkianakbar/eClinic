@@ -1,9 +1,9 @@
-import Link from "next/link";
-import type { ReactNode } from "react";
-import { initials } from "@/features/patients/patients.lib";
-import type { PracticeSession } from "@/features/visits/visits.lib";
-import { cn } from "@/lib/utils";
-import { clinicHours } from "./home.lib";
+import Link from 'next/link';
+import type { ReactNode } from 'react';
+import { initials } from '@/features/patients/patients.lib';
+import type { PracticeSession } from '@/features/visits/visits.lib';
+import { cn } from '@/lib/utils';
+import { clinicHours } from './home.lib';
 
 type HomeClinicTodayProps = {
   sessions: PracticeSession[];
@@ -14,10 +14,10 @@ type HomeClinicTodayProps = {
 };
 
 const STATE_LABEL = {
-  open: "Buka sekarang",
-  before: "Belum buka",
-  after: "Sudah tutup",
-  closed: "Tidak ada jadwal",
+  open: 'Buka sekarang',
+  before: 'Belum buka',
+  after: 'Sudah tutup',
+  closed: 'Tidak ada jadwal',
 } as const;
 
 /** Is the clinic open, until when, and who is practising today. */
@@ -25,7 +25,7 @@ export function HomeClinicToday(props: HomeClinicTodayProps) {
   const hours = clinicHours(props.sessions, props.now);
   const doctors = [...new Set(props.sessions.map((session) => session.doctorName))];
   const shown = doctors.slice(0, 4);
-  const dot = (time: string) => time.replace(":", ".");
+  const dot = (time: string) => time.replace(':', '.');
 
   return (
     <Frame href={props.href}>
@@ -33,15 +33,15 @@ export function HomeClinicToday(props: HomeClinicTodayProps) {
         <span className="flex items-center gap-2 text-sm font-medium">
           <span
             className={cn(
-              "size-2 rounded-full",
-              hours.state === "open" ? "signal-pulse bg-primary text-primary" : "bg-muted-foreground/40",
+              'size-2 rounded-full',
+              hours.state === 'open' ? 'signal-pulse bg-primary text-primary' : 'bg-muted-foreground/40',
             )}
             aria-hidden
           />
           {STATE_LABEL[hours.state]}
         </span>
         <span className="tabular text-xs text-muted-foreground">
-          {hours.from && hours.to ? `${dot(hours.from)}–${dot(hours.to)} WIB` : "Atur jadwal dokter"}
+          {hours.from && hours.to ? `${dot(hours.from)}–${dot(hours.to)} WIB` : 'Atur jadwal dokter'}
         </span>
       </div>
       {doctors.length > 0 && (
@@ -51,8 +51,7 @@ export function HomeClinicToday(props: HomeClinicTodayProps) {
               <span
                 key={name}
                 title={name}
-                className="flex size-8 items-center justify-center rounded-full bg-secondary text-[0.6875rem] font-semibold text-secondary-foreground ring-2 ring-card"
-              >
+                className="flex size-8 items-center justify-center rounded-full bg-secondary text-[0.6875rem] font-semibold text-secondary-foreground ring-2 ring-card">
                 {initials(name)}
               </span>
             ))}
@@ -65,7 +64,8 @@ export function HomeClinicToday(props: HomeClinicTodayProps) {
           <span className="flex flex-col">
             <span className="text-sm font-medium">{doctors.length} dokter praktik</span>
             <span className="text-xs text-muted-foreground">
-              {props.sessions.length} sesi · kuota {props.sessions.reduce((sum, session) => sum + session.quota, 0)} pasien
+              {props.sessions.length} sesi · kuota {props.sessions.reduce((sum, session) => sum + session.quota, 0)}{' '}
+              pasien
             </span>
           </span>
         </div>
@@ -80,9 +80,10 @@ type FrameProps = {
 };
 
 function Frame(props: FrameProps) {
-  const className = "flex items-stretch divide-x rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]";
+  const className = 'flex items-stretch divide-x rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]';
+
   return props.href ? (
-    <Link href={props.href} title="Jadwal dokter" className={cn(className, "transition-colors hover:border-input")}>
+    <Link href={props.href} title="Jadwal dokter" className={cn(className, 'transition-colors hover:border-input')}>
       {props.children}
     </Link>
   ) : (

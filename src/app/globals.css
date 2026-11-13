@@ -1,6 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 /*
  * e-clinic design tokens.
@@ -147,17 +147,17 @@
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
   }
-  html[data-text-size="large"] {
+  html[data-text-size='large'] {
     font-size: 112.5%;
   }
-  html[data-text-size="xlarge"] {
+  html[data-text-size='xlarge'] {
     font-size: 125%;
   }
 
   body {
     @apply bg-background text-foreground;
     line-height: 1.5;
-    font-feature-settings: "ss01", "cv11";
+    font-feature-settings: 'ss01', 'cv11';
   }
 
   h1,
@@ -180,14 +180,14 @@
 
   button,
   a,
-  [role="button"],
+  [role='button'],
   summary,
-  label:has(input[type="checkbox"]),
-  label:has(input[type="radio"]) {
+  label:has(input[type='checkbox']),
+  label:has(input[type='radio']) {
     touch-action: manipulation;
   }
   button,
-  [role="button"] {
+  [role='button'] {
     -webkit-user-select: none;
     user-select: none;
   }
@@ -207,8 +207,8 @@
     outline-offset: 2px;
   }
 
-  input[type="checkbox"],
-  input[type="radio"] {
+  input[type='checkbox'],
+  input[type='radio'] {
     accent-color: var(--primary);
     width: 1.15rem;
     height: 1.15rem;
@@ -247,8 +247,11 @@
   *,
   *::before,
   *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must override every component's own timing. */
     animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: as above. */
     animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: as above. */
     transition-property: opacity, color, background-color, border-color !important;
   }
 }

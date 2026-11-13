@@ -1,10 +1,10 @@
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatRupiah } from "@/lib/money";
-import { setPoliActiveAction } from "./settings.actions";
-import type { listConsultationServices, listPolis } from "./settings.service";
-import { SettingsActiveToggle } from "./settings-active-toggle";
-import { SettingsPoliDialog } from "./settings-poli-dialog";
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatRupiah } from '@/lib/money';
+import { setPoliActiveAction } from './settings.actions';
+import type { listConsultationServices, listPolis } from './settings.service';
+import { SettingsActiveToggle } from './settings-active-toggle';
+import { SettingsPoliDialog } from './settings-poli-dialog';
 
 type SettingsPolisProps = {
   polis: Awaited<ReturnType<typeof listPolis>>;
@@ -36,15 +36,15 @@ export function SettingsPolis(props: SettingsPolisProps) {
           </TableHeader>
           <TableBody>
             {props.polis.map((poli) => (
-              <TableRow key={poli.id} className={poli.is_active ? undefined : "text-muted-foreground"}>
+              <TableRow key={poli.id} className={poli.is_active ? undefined : 'text-muted-foreground'}>
                 <TableCell className="font-medium">{poli.name}</TableCell>
-                <TableCell>{poli.bpjs_poli_code ?? "-"}</TableCell>
+                <TableCell>{poli.bpjs_poli_code ?? '-'}</TableCell>
                 <TableCell>
-                  {poli.consultation ? `${poli.consultation.name} · ${formatRupiah(poli.consultation.price)}` : "-"}
+                  {poli.consultation ? `${poli.consultation.name} · ${formatRupiah(poli.consultation.price)}` : '-'}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={poli.is_active ? "secondary" : "outline"}>
-                    {poli.is_active ? "Aktif" : "Nonaktif"}
+                  <Badge variant={poli.is_active ? 'secondary' : 'outline'}>
+                    {poli.is_active ? 'Aktif' : 'Nonaktif'}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">

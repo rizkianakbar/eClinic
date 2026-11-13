@@ -1,7 +1,7 @@
-import { UsersIcon } from "lucide-react";
-import { initials } from "@/features/patients/patients.lib";
-import type { getVisitReport } from "./reports.service";
-import { ReportsKpis } from "./reports-kpis";
+import { UsersIcon } from 'lucide-react';
+import { initials } from '@/features/patients/patients.lib';
+import type { getVisitReport } from './reports.service';
+import { ReportsKpis } from './reports-kpis';
 
 type ReportsVisitsProps = {
   rows: Awaited<ReturnType<typeof getVisitReport>>;
@@ -21,10 +21,16 @@ export function ReportsVisits(props: ReportsVisitsProps) {
       </div>
     );
   }
+
   const total = props.rows.reduce(
-    (sum, row) => ({ visits: sum.visits + row.visits, fresh: sum.fresh + row.new_patients, back: sum.back + row.returning_patients }),
+    (sum, row) => ({
+      visits: sum.visits + row.visits,
+      fresh: sum.fresh + row.new_patients,
+      back: sum.back + row.returning_patients,
+    }),
     { visits: 0, fresh: 0, back: 0 },
   );
+
   const rows = [...props.rows].sort((a, b) => b.visits - a.visits);
   const top = Math.max(1, rows[0].visits);
 
@@ -32,10 +38,22 @@ export function ReportsVisits(props: ReportsVisitsProps) {
     <div className="flex flex-col gap-6">
       <ReportsKpis
         items={[
-          { label: "Kunjungan", value: String(total.visits), hint: "Tidak termasuk yang batal" },
-          { label: "Pasien baru", value: String(total.fresh), hint: `${percent(total.fresh, total.visits)}% dari kunjungan` },
-          { label: "Pasien lama", value: String(total.back), hint: `${percent(total.back, total.visits)}% kembali berobat` },
-          { label: "Rata-rata per hari", value: (total.visits / Math.max(1, props.days)).toLocaleString("id-ID", { maximumFractionDigits: 1 }), hint: `${props.days} hari` },
+          { label: 'Kunjungan', value: String(total.visits), hint: 'Tidak termasuk yang batal' },
+          {
+            label: 'Pasien baru',
+            value: String(total.fresh),
+            hint: `${percent(total.fresh, total.visits)}% dari kunjungan`,
+          },
+          {
+            label: 'Pasien lama',
+            value: String(total.back),
+            hint: `${percent(total.back, total.visits)}% kembali berobat`,
+          },
+          {
+            label: 'Rata-rata per hari',
+            value: (total.visits / Math.max(1, props.days)).toLocaleString('id-ID', { maximumFractionDigits: 1 }),
+            hint: `${props.days} hari`,
+          },
         ]}
       />
 
@@ -57,8 +75,7 @@ export function ReportsVisits(props: ReportsVisitsProps) {
           {rows.map((row) => (
             <li
               key={`${row.poli_name}-${row.doctor_name}`}
-              className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 border-b px-5 py-4 last:border-0 md:grid-cols-[2.5rem_minmax(0,14rem)_minmax(0,1fr)_7rem]"
-            >
+              className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 border-b px-5 py-4 last:border-0 md:grid-cols-[2.5rem_minmax(0,14rem)_minmax(0,1fr)_7rem]">
               <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground">
                 {initials(row.doctor_name)}
               </span>
@@ -67,8 +84,14 @@ export function ReportsVisits(props: ReportsVisitsProps) {
                 <span className="block truncate text-xs text-muted-foreground">{row.poli_name}</span>
               </span>
               <span className="col-span-3 row-start-2 md:col-span-1 md:row-start-auto">
-                <span className="flex h-2.5 overflow-hidden rounded-full bg-muted" style={{ width: `${(row.visits / top) * 100}%` }}>
-                  <span className="bg-primary" style={{ width: `${percent(row.new_patients, row.visits)}%` }} title={`${row.new_patients} baru`} />
+                <span
+                  className="flex h-2.5 overflow-hidden rounded-full bg-muted"
+                  style={{ width: `${(row.visits / top) * 100}%` }}>
+                  <span
+                    className="bg-primary"
+                    style={{ width: `${percent(row.new_patients, row.visits)}%` }}
+                    title={`${row.new_patients} baru`}
+                  />
                   <span className="flex-1 bg-primary/30" title={`${row.returning_patients} lama`} />
                 </span>
               </span>

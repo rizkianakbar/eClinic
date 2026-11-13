@@ -1,7 +1,7 @@
-import { ChevronLeftIcon } from "lucide-react";
-import Link from "next/link";
-import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
+import { ChevronLeftIcon } from 'lucide-react';
+import Link from 'next/link';
+import type { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 type PageHeaderProps = {
   title: ReactNode;
@@ -17,12 +17,11 @@ type PageHeaderProps = {
 /** Every page starts the same way: where am I, what is this for, what can I do. */
 export function PageHeader(props: PageHeaderProps) {
   return (
-    <header className={cn("flex flex-col gap-2", props.className)}>
+    <header className={cn('flex flex-col gap-2', props.className)}>
       {props.back && (
         <Link
           href={props.back.href}
-          className="-ml-1 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-0.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
+          className="-ml-1 inline-flex w-fit items-center gap-0.5 rounded-md px-1 py-0.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
           <ChevronLeftIcon className="size-4" aria-hidden />
           {props.back.label}
         </Link>

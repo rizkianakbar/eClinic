@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon } from "lucide-react"
-import { Toaster as Sonner, type ToasterProps } from "sonner"
+import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon } from 'lucide-react';
+import { Toaster as Sonner, type ToasterProps } from 'sonner';
 
 /* Light theme only. */
 const Toaster = ({ ...props }: ToasterProps) => {
@@ -20,22 +20,22 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       style={
         {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "0.75rem",
-          "--width": "22rem",
+          '--normal-bg': 'var(--popover)',
+          '--normal-text': 'var(--popover-foreground)',
+          '--normal-border': 'var(--border)',
+          '--border-radius': '0.75rem',
+          '--width': '22rem',
         } as React.CSSProperties
       }
       toastOptions={{
         classNames: {
-          toast: "!text-sm !leading-snug !gap-2.5 !shadow-[0_12px_32px_-12px_rgb(15_31_27/0.25)]",
-          title: "!font-medium",
+          toast: 'text-sm! leading-snug! gap-2.5! shadow-[0_12px_32px_-12px_rgb(15_31_27/0.25)]!',
+          title: 'font-medium!',
         },
       }}
       {...props}
     />
-  )
-}
+  );
+};
 
-export { Toaster }
+export { Toaster };

@@ -1,8 +1,8 @@
-import { CakeIcon, UserPlusIcon } from "lucide-react";
-import Link from "next/link";
-import { relativeDay, toJakartaDate } from "@/lib/dates";
-import { cn } from "@/lib/utils";
-import { AGE_GROUPS, initials, type PatientStats } from "./patients.lib";
+import { CakeIcon, UserPlusIcon } from 'lucide-react';
+import Link from 'next/link';
+import { relativeDay, toJakartaDate } from '@/lib/dates';
+import { cn } from '@/lib/utils';
+import { AGE_GROUPS, initials, type PatientStats } from './patients.lib';
 
 type PatientsCompositionProps = {
   stats: PatientStats;
@@ -23,26 +23,32 @@ export function PatientsComposition(props: PatientsCompositionProps) {
         <div className="flex flex-col divide-y rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           <Split
             title="Jenis kelamin"
-            left={{ label: "Laki-laki", value: stats.male, tone: "bg-[#3a7bd5]" }}
-            right={{ label: "Perempuan", value: stats.female, tone: "bg-[#d4588a]" }}
+            left={{ label: 'Laki-laki', value: stats.male, tone: 'bg-[#3a7bd5]' }}
+            right={{ label: 'Perempuan', value: stats.female, tone: 'bg-[#d4588a]' }}
           />
           <Split
             title="Pembayaran"
-            left={{ label: "BPJS", value: stats.bpjs, tone: "bg-bpjs" }}
-            right={{ label: "Umum", value: stats.total - stats.bpjs, tone: "bg-primary" }}
+            left={{ label: 'BPJS', value: stats.bpjs, tone: 'bg-bpjs' }}
+            right={{ label: 'Umum', value: stats.total - stats.bpjs, tone: 'bg-primary' }}
           />
           <div className="flex flex-col gap-2.5 p-4">
             <p className="text-xs font-medium text-muted-foreground">Kelompok umur</p>
             <ul className="flex flex-col gap-2">
               {AGE_GROUPS.map((group) => {
                 const count = stats.ages[group.key];
+
                 return (
-                  <li key={group.key} className="grid grid-cols-[8rem_minmax(0,1fr)_2rem] items-center gap-2 text-[0.8125rem]">
+                  <li
+                    key={group.key}
+                    className="grid grid-cols-[8rem_minmax(0,1fr)_2rem] items-center gap-2 text-[0.8125rem]">
                     <span className="truncate">
                       {group.label} <span className="text-xs text-muted-foreground">{group.range}</span>
                     </span>
                     <span className="h-1.5 overflow-hidden rounded-full bg-muted">
-                      <span className="block h-full rounded-full bg-primary/70" style={{ width: `${(count / largestAge) * 100}%` }} />
+                      <span
+                        className="block h-full rounded-full bg-primary/70"
+                        style={{ width: `${(count / largestAge) * 100}%` }}
+                      />
                     </span>
                     <span className="tabular text-right font-medium">{count}</span>
                   </li>
@@ -57,15 +63,24 @@ export function PatientsComposition(props: PatientsCompositionProps) {
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           <CakeIcon className="size-4 text-[#d4588a]" aria-hidden />
           Ulang tahun hari ini
-          <span className="tabular rounded-md bg-muted px-1.5 text-xs leading-5 font-medium text-muted-foreground">{stats.birthdays.length}</span>
+          <span className="tabular rounded-md bg-muted px-1.5 text-xs leading-5 font-medium text-muted-foreground">
+            {stats.birthdays.length}
+          </span>
         </h2>
         <div className="rounded-xl border bg-card shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
           {stats.birthdays.length === 0 ? (
-            <p className="px-4 py-4 text-[0.8125rem] text-muted-foreground">Tidak ada pasien yang berulang tahun hari ini.</p>
+            <p className="px-4 py-4 text-[0.8125rem] text-muted-foreground">
+              Tidak ada pasien yang berulang tahun hari ini.
+            </p>
           ) : (
             <ul>
               {stats.birthdays.map((patient) => (
-                <PersonRow key={patient.id} id={patient.id} name={patient.full_name} detail={`${patient.age} tahun hari ini`} />
+                <PersonRow
+                  key={patient.id}
+                  id={patient.id}
+                  name={patient.full_name}
+                  detail={`${patient.age} tahun hari ini`}
+                />
               ))}
             </ul>
           )}
@@ -110,21 +125,22 @@ type SplitProps = {
 function Split(props: SplitProps) {
   const total = props.left.value + props.right.value;
   const leftShare = percent(props.left.value, total);
+
   return (
     <div className="flex flex-col gap-2.5 p-4">
       <p className="text-xs font-medium text-muted-foreground">{props.title}</p>
       <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-muted">
         {total > 0 && (
           <>
-            <span className={cn("rounded-l-full", props.left.tone)} style={{ width: `${leftShare}%` }} />
-            <span className={cn("flex-1 rounded-r-full", props.right.tone)} />
+            <span className={cn('rounded-l-full', props.left.tone)} style={{ width: `${leftShare}%` }} />
+            <span className={cn('flex-1 rounded-r-full', props.right.tone)} />
           </>
         )}
       </div>
       <div className="flex justify-between text-[0.8125rem]">
         {[props.left, props.right].map((part) => (
           <span key={part.label} className="flex items-center gap-1.5">
-            <span className={cn("size-2 rounded-full", part.tone)} aria-hidden />
+            <span className={cn('size-2 rounded-full', part.tone)} aria-hidden />
             {part.label}
             <span className="tabular font-semibold">{part.value}</span>
             <span className="tabular text-xs text-muted-foreground">{percent(part.value, total)}%</span>
