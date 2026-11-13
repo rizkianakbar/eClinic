@@ -30,8 +30,6 @@ export function AppShellTabs(props: AppShellTabsProps) {
   const sentinel = useRef<HTMLDivElement>(null);
   const nav = useRef<HTMLElement>(null);
   const indicator = useRef<HTMLSpanElement>(null);
-  const logo = useRef<HTMLAnchorElement>(null);
-  const spacer = useRef<HTMLSpanElement>(null);
   // The clicked tab turns active at once: the underline moves on click, not when the server answers.
   const [pending, setPending] = useState<string | null>(null);
   const [seenPath, setSeenPath] = useState(pathname);
@@ -93,42 +91,8 @@ export function AppShellTabs(props: AppShellTabsProps) {
     };
   }, [activeHref]);
 
-  // The logo docks as the header scrolls away: progress 0 (top of page) → 1 (row stuck), written straight to the
-  // two elements that use it, once per frame. Scroll-linked, not timed, so it follows the page exactly.
-  useEffect(() => {
-    const mark = sentinel.current;
-
-    if (!mark) return;
-
-    let frame = 0;
-
-    const update = () => {
-      frame = 0;
-
-      // The row sticks once the header (and the 1px sentinel) has scrolled past.
-      const distance = mark.offsetTop + mark.offsetHeight;
-      const dock = String(Math.min(1, Math.max(0, window.scrollY / distance)));
-
-      logo.current?.style.setProperty('--dock', dock);
-      spacer.current?.style.setProperty('--dock', dock);
-    };
-
-    const schedule = () => {
-      if (!frame) frame = requestAnimationFrame(update);
-    };
-
-    update();
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule);
-
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
-    };
-  }, []);
-
-  // The tab row is sticky; it gets its shadow once the header above has scrolled away.
+  // The tab row is sticky; once the header above has scrolled away it gets its shadow (and, in browsers without
+  // scroll-driven animations, the docked logo: see .shell-dock-* in globals.css).
   useEffect(() => {
     const element = sentinel.current;
 
@@ -160,31 +124,31 @@ export function AppShellTabs(props: AppShellTabsProps) {
   return (
     <>
       <div ref={sentinel} aria-hidden className="h-px" />
+      {/* overflow-x-clip: the tabs slide right to make room for the logo; their far end is clipped, not scrolled. */}
       <div
+        data-stuck={stuck ? '' : undefined}
         className={cn(
-          'sticky top-0 z-40 border-b bg-card/90 backdrop-blur-md transition-shadow duration-200',
+          'sticky top-0 z-40 overflow-x-clip border-b bg-card/90 backdrop-blur-md transition-shadow duration-200',
           stuck && 'shadow-[0_6px_16px_-12px_rgb(15_31_27/0.35)]',
         )}>
         {/* The logo: in the header's spot at the top of the page, docked in this row once it sticks. It travels with
-            the scroll (--dock 0 → 1), so it is one object moving down, not a second logo appearing. */}
+            the scroll, so it is one object moving down, not a second logo appearing. */}
         <Link
-          ref={logo}
           href="/dashboard"
           aria-label={t('nav.dashboard')}
-          className="absolute top-[calc(-3rem-1px)] left-4 z-10 flex sm:left-6 lg:left-8"
-          style={{ translate: '0 calc(var(--dock, 0) * (3.625rem + 1px))' }}>
+          className="shell-dock-logo absolute top-[calc(-3rem-1px)] left-4 z-10 flex sm:left-6 lg:left-8">
           <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.15),0_1px_2px_rgb(10_60_45/0.3)]">
             <HeartPulseIcon className="size-4.5" aria-hidden />
           </span>
         </Link>
-        <div className="flex items-center px-2 sm:px-4 lg:px-6">
-          {/* Room for the logo once it has come down into this row; widens with the scroll. */}
-          <span ref={spacer} aria-hidden className="shrink-0" style={{ width: 'calc(var(--dock, 0) * 3.25rem)' }} />
+        <div className="shell-dock-row flex items-center px-2 sm:px-4 lg:px-6">
           <nav
             ref={nav}
             aria-label={t('nav.main')}
             className={cn(
               'relative -mb-px flex min-w-0 flex-1 items-stretch overflow-x-auto scrollbar-none',
+              // Docked, the row sits 3.25rem further right: the same room at the end keeps the last tab reachable.
+              stuck && 'pr-13',
               SCROLL_EDGE_FADE,
             )}
             onScroll={(event) => markScrollEdges(event.currentTarget)}

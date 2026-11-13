@@ -34,7 +34,8 @@ export function AppShell(props: AppShellProps) {
   return (
     <AppShellLiveProvider role={session.role} userId={session.userId} visitDate={todayInJakarta()}>
       <div className="flex min-h-dvh flex-col">
-        <header className="flex h-16 items-center gap-3 bg-card px-4 pt-[env(safe-area-inset-top)] sm:px-6 lg:px-8">
+        {/* box-content: the notch padding adds to the 4rem instead of squeezing it (--shell-dock-distance counts on it). */}
+        <header className="box-content flex h-16 items-center gap-3 bg-card px-4 pt-[env(safe-area-inset-top)] sm:px-6 lg:px-8">
           {/* The logo's starting spot: the logo itself lives in the tab row (AppShellTabs) and docks there on scroll. */}
           <span className="size-8 shrink-0" aria-hidden />
           <Slash />

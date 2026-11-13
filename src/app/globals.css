@@ -292,6 +292,67 @@
   }
 }
 
+/*
+ * App shell: the logo docks into the sticky tab row as the header scrolls away (AppShellTabs), and the tabs make
+ * room for it. Where the browser supports scroll-driven animations (Safari 26, Chrome) this is tied to the scroll
+ * position on the compositor, so it moves with the finger with no main-thread lag; elsewhere it is a short transition
+ * once the row sticks. Transforms only: nothing re-lays out while scrolling.
+ */
+:root {
+  /* How far the page scrolls before the tab row sticks: the header (taller under a notch) plus the 1px sentinel. */
+  --shell-dock-distance: calc(4rem + 1px + env(safe-area-inset-top, 0px));
+}
+
+.shell-dock-logo,
+.shell-dock-row {
+  will-change: transform;
+}
+
+@keyframes shell-dock-logo {
+  to {
+    transform: translateY(calc(3.625rem + 1px));
+  }
+}
+
+@keyframes shell-dock-row {
+  to {
+    transform: translateX(3.25rem);
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .shell-dock-logo,
+  .shell-dock-row {
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 var(--shell-dock-distance);
+  }
+
+  .shell-dock-logo {
+    animation-name: shell-dock-logo;
+  }
+
+  .shell-dock-row {
+    animation-name: shell-dock-row;
+  }
+}
+
+@supports not (animation-timeline: scroll()) {
+  .shell-dock-logo,
+  .shell-dock-row {
+    transition: transform 250ms var(--ease-out);
+  }
+
+  [data-stuck] > .shell-dock-logo {
+    transform: translateY(calc(3.625rem + 1px));
+  }
+
+  [data-stuck] > .shell-dock-row {
+    transform: translateX(3.25rem);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
