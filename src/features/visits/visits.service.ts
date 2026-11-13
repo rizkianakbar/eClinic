@@ -24,7 +24,7 @@ export async function listTodaySessions(supabase: SupabaseClient): Promise<Pract
 
   const { data: schedules, error } = await supabase
     .from("doctor_schedules")
-    .select("id, start_time, end_time, quota, doctor:profiles(full_name, is_active), poli:polis(name, is_active)")
+    .select("id, doctor_id, start_time, end_time, quota, doctor:profiles(full_name, is_active), poli:polis(name, is_active)")
     .eq("day_of_week", isoWeekday(today))
     .eq("is_active", true)
     .order("start_time");
@@ -50,6 +50,7 @@ export async function listTodaySessions(supabase: SupabaseClient): Promise<Pract
   return open.map((schedule) => ({
     id: schedule.id,
     poliName: schedule.poli!.name,
+    doctorId: schedule.doctor_id,
     doctorName: schedule.doctor!.full_name,
     startTime: schedule.start_time,
     endTime: schedule.end_time,
@@ -62,7 +63,7 @@ export async function listPatientVisits(supabase: SupabaseClient, patientId: str
   const { data, error } = await supabase
     .from("visits")
     .select(
-      "id, visit_date, queue_no, status, payer_type, poli:polis(name), doctor:profiles!visits_doctor_id_fkey(full_name)",
+      "id, visit_date, queue_no, status, payer_type, created_at, cancel_reason, poli:polis(name), doctor:profiles!visits_doctor_id_fkey(full_name)",
     )
     .eq("patient_id", patientId)
     .order("visit_date", { ascending: false })
@@ -70,4 +71,36 @@ export async function listPatientVisits(supabase: SupabaseClient, patientId: str
     .limit(50);
   if (error) throw new Error(`listPatientVisits failed: ${error.code}`);
   return data;
+}
+
+/** One visit with who, where and its timeline stamps (no clinical content). */
+export async function getVisit(supabase: SupabaseClient, visitId: string) {
+  const { data, error } = await supabase
+    .from("visits")
+    .select(
+      "id, visit_date, queue_no, status, payer_type, called_at, skipped_at, cancel_reason, created_at, patient:patients(id, full_name, mrn), poli:polis(name), doctor:profiles!visits_doctor_id_fkey(full_name)",
+    )
+    .eq("id", visitId)
+    .maybeSingle();
+  if (error) throw new Error(`getVisit failed: ${error.code}`);
+  return data;
+}
+
+/**
+ * The primary diagnosis of each visit (clinical roles only: RLS hides diagnoses
+ * from front desk and cashier, who get an empty map).
+ */
+export async function listPrimaryDiagnoses(supabase: SupabaseClient, visitIds: string[]) {
+  const result = new Map<string, { code: string; name: string }>();
+  if (visitIds.length === 0) return result;
+  const { data, error } = await supabase
+    .from("visit_diagnoses")
+    .select("visit_id, icd10_code, icd10:icd10_codes(name, name_id)")
+    .in("visit_id", visitIds)
+    .eq("is_primary", true);
+  if (error) throw new Error(`listPrimaryDiagnoses failed: ${error.code}`);
+  for (const row of data) {
+    result.set(row.visit_id, { code: row.icd10_code, name: row.icd10?.name_id ?? row.icd10?.name ?? row.icd10_code });
+  }
+  return result;
 }
