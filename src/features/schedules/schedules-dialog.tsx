@@ -28,7 +28,7 @@ type Schedule = {
 };
 
 type SchedulesDialogProps = { doctors: Option[]; polis: Option[] } & (
-  | { mode: "create" }
+  | { mode: "create"; /** Preselects this weekday; the trigger becomes a slim "add" row in that day's column. */ day?: number }
   | { mode: "edit"; schedule: Schedule }
 );
 
@@ -37,17 +37,26 @@ export function SchedulesDialog(props: SchedulesDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {props.mode === "create" ? (
+      {props.mode === "create" && props.day ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex h-8 w-full items-center justify-center gap-1 rounded-lg border border-dashed border-black/12 text-[0.8125rem] font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:bg-card hover:text-primary"
+        >
+          <PlusIcon className="size-3.5" aria-hidden />
+          Tambah sesi
+        </button>
+      ) : props.mode === "create" ? (
         <Button onClick={() => setOpen(true)}>
           <PlusIcon />
           Tambah jadwal
         </Button>
       ) : (
-        <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+        <Button variant="ghost" size="xs" onClick={() => setOpen(true)}>
           Ubah
         </Button>
       )}
-      <DialogContent className="sm:max-w-md">
+      <DialogContent variant="drawer">
         <DialogHeader>
           <DialogTitle>{props.mode === "create" ? "Tambah jadwal dokter" : "Ubah jadwal dokter"}</DialogTitle>
         </DialogHeader>
@@ -73,7 +82,7 @@ function ScheduleForm(props: SchedulesDialogProps & { onDone: () => void }) {
             end_time: toHourMinute(props.schedule.end_time),
             quota: props.schedule.quota,
           }
-        : { doctor_id: "", poli_id: "", days: [], start_time: "08:00", end_time: "12:00", quota: "20" },
+        : { doctor_id: "", poli_id: "", days: props.day ? [String(props.day)] : [], start_time: "08:00", end_time: "12:00", quota: "20" },
   });
   const { errors } = form.formState;
 
