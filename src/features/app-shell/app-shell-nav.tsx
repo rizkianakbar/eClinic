@@ -28,6 +28,8 @@ export function AppShellTabs(props: AppShellTabsProps) {
   const sentinel = useRef<HTMLDivElement>(null);
   const nav = useRef<HTMLElement>(null);
   const indicator = useRef<HTMLSpanElement>(null);
+  const logo = useRef<HTMLAnchorElement>(null);
+  const spacer = useRef<HTMLSpanElement>(null);
   // The clicked tab turns active at once: the underline moves on click, not when the server answers.
   const [pending, setPending] = useState<string | null>(null);
   const [seenPath, setSeenPath] = useState(pathname);
@@ -89,7 +91,42 @@ export function AppShellTabs(props: AppShellTabsProps) {
     };
   }, [activeHref]);
 
-  // The tab row is sticky; show the mini logo once the header above has scrolled away.
+  // The logo docks as the header scrolls away: progress 0 (top of page) → 1 (row stuck), written straight to the
+  // two elements that use it, once per frame. Scroll-linked, not timed, so it follows the page exactly.
+  useEffect(() => {
+    const mark = sentinel.current;
+
+    if (!mark) return;
+
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+
+      // The row sticks once the header (and the 1px sentinel) has scrolled past.
+      const distance = mark.offsetTop + mark.offsetHeight;
+      const dock = String(Math.min(1, Math.max(0, window.scrollY / distance)));
+
+      logo.current?.style.setProperty('--dock', dock);
+      spacer.current?.style.setProperty('--dock', dock);
+    };
+
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+    };
+  }, []);
+
+  // The tab row is sticky; it gets its shadow once the header above has scrolled away.
   useEffect(() => {
     const element = sentinel.current;
 
@@ -126,19 +163,21 @@ export function AppShellTabs(props: AppShellTabsProps) {
           'sticky top-0 z-40 border-b bg-card/90 backdrop-blur-md transition-shadow duration-200',
           stuck && 'shadow-[0_6px_16px_-12px_rgb(15_31_27/0.35)]',
         )}>
+        {/* The logo: in the header's spot at the top of the page, docked in this row once it sticks. It travels with
+            the scroll (--dock 0 → 1), so it is one object moving down, not a second logo appearing. */}
+        <Link
+          ref={logo}
+          href="/dashboard"
+          aria-label="Beranda"
+          className="absolute top-[calc(-3rem-1px)] left-4 z-10 flex sm:left-6 lg:left-8"
+          style={{ translate: '0 calc(var(--dock, 0) * (3.625rem + 1px))' }}>
+          <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.15),0_1px_2px_rgb(10_60_45/0.3)]">
+            <HeartPulseIcon className="size-4.5" aria-hidden />
+          </span>
+        </Link>
         <div className="flex items-center px-2 sm:px-4 lg:px-6">
-          <Link
-            href="/dashboard"
-            aria-hidden={!stuck}
-            tabIndex={stuck ? 0 : -1}
-            className={cn(
-              'flex shrink-0 items-center overflow-hidden transition-[width,opacity,margin] duration-200 ease-out',
-              stuck ? 'mr-3 ml-2 w-8 opacity-100' : 'w-0 opacity-0',
-            )}>
-            <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <HeartPulseIcon className="size-4" aria-hidden />
-            </span>
-          </Link>
+          {/* Room for the logo once it has come down into this row; widens with the scroll. */}
+          <span ref={spacer} aria-hidden className="shrink-0" style={{ width: 'calc(var(--dock, 0) * 3.25rem)' }} />
           <nav
             ref={nav}
             aria-label="Menu utama"

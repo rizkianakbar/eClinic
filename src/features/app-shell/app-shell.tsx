@@ -1,5 +1,3 @@
-import { HeartPulseIcon } from 'lucide-react';
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ROLE_LABELS } from '@/features/auth/auth.constants';
 import { AuthIdleLogout } from '@/features/auth/auth-idle-logout';
@@ -36,11 +34,8 @@ export function AppShell(props: AppShellProps) {
     <AppShellLiveProvider role={session.role} userId={session.userId} visitDate={todayInJakarta()}>
       <div className="flex min-h-dvh flex-col">
         <header className="flex h-16 items-center gap-3 bg-card px-4 pt-[env(safe-area-inset-top)] sm:px-6 lg:px-8">
-          <Link href="/dashboard" className="flex shrink-0 items-center" aria-label="Beranda">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.15),0_1px_2px_rgb(10_60_45/0.3)]">
-              <HeartPulseIcon className="size-4.5" aria-hidden />
-            </span>
-          </Link>
+          {/* The logo's starting spot: the logo itself lives in the tab row (AppShellTabs) and docks there on scroll. */}
+          <span className="size-8 shrink-0" aria-hidden />
           <Slash />
           <span className="max-w-44 truncate text-sm font-semibold" title={session.clinicName}>
             {session.clinicName}
