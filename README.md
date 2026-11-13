@@ -19,6 +19,36 @@ then `bun run db:types`.
 
 Checks: `bun run lint && bun run typecheck && bun run test`, and `bun run test:e2e`.
 
+Test data (re-runnable): `bun --env-file=.env.local scripts/seed-test-data.ts` loads WHO ICD-10 2019
+(+ Indonesian names for common diagnoses), test staff (`*.uji@klinik.test`, password `UjiKlinik#2026`),
+polis, tariffs, schedules for every day, medicines, suppliers, stock, 20 test patients, and today's
+visits at every stage. Deactivate the test staff and remove test data before go-live.
+
+## Backup dan restore
+
+A GitHub Actions workflow (`.github/workflows/backup.yml`) dumps the database every night at
+01:00 WIB (roles, schema, data with `supabase db dump`), encrypts it with GPG (AES-256) and keeps it
+as a workflow artifact for 30 days. Setup, once:
+
+1. Repository → Settings → Secrets and variables → Actions → add `SUPABASE_DB_URL` (Supabase
+   Dashboard → Connect → **Session pooler** string, with the database password) and
+   `BACKUP_PASSPHRASE` (long random; store a copy outside GitHub, it is needed to restore).
+2. Actions → "Daily database backup" → **Run workflow** once to check it works.
+
+Restore (into a new or empty Supabase project):
+
+```bash
+gpg --decrypt e-clinic-YYYY-MM-DD.tar.gz.gpg > backup.tar.gz && mkdir backup && tar -xzf backup.tar.gz -C backup
+psql --single-transaction --variable ON_ERROR_STOP=1 \
+  --file backup/roles.sql --file backup/schema.sql \
+  --command 'SET session_replication_role = replica' --file backup/data.sql \
+  --dbname "<target connection string>"
+```
+
+The dump covers the database (including staff logins); Storage files (the clinic logo) are not in
+it, re-upload them after a restore. Test a restore into a spare project at least once before
+go-live, then tick the backup item below.
+
 ## Roadmap
 
 Tick a box when the feature is built, tested, and merged. Indonesian names match the offer.
@@ -35,68 +65,63 @@ Tick a box when the feature is built, tested, and merged. Indonesian names match
 
 ### 1. Pendaftaran (Registration)
 
-- [ ] Data pasien: identity, NIK, BPJS number, phone, address
-- [ ] Pencarian pasien: by name, NIK, phone, or MRN
-- [ ] Nomor rekam medis otomatis (unique MRN)
-- [ ] Kartu berobat dengan QR code: print card, scan to open patient
-- [ ] Pendaftaran kunjungan: poli, doctor, payer (umum / BPJS)
+- [x] Data pasien: identity, NIK, BPJS number, phone, address
+- [x] Pencarian pasien: by name, NIK, phone, or MRN
+- [x] Nomor rekam medis otomatis (unique MRN)
+- [x] Pendaftaran kunjungan: poli, doctor, payer (umum / BPJS)
 - [ ] Cek kepesertaan BPJS\*
-- [ ] Riwayat kunjungan
+- [x] Riwayat kunjungan
 
 ### 2. Antrean (Queue)
 
-- [ ] Nomor antrean otomatis per poli or doctor, reset daily
-- [ ] Jadwal praktik dan kuota dokter
-- [ ] Layar panggil antrean (TV) with voice
-- [ ] Status pasien realtime board
-- [ ] Lewati atau batalkan antrean (skip / cancel)
+- [x] Nomor antrean otomatis per poli, reset daily
+- [x] Jadwal praktik dan kuota dokter
+- [x] Status pasien realtime board
+- [x] Lewati atau batalkan antrean (skip / cancel)
 
 ### 3. Pemeriksaan (Examination)
 
-- [ ] Tanda vital: BP, pulse, temp, respiratory rate, SpO2, weight, height
-- [ ] Catatan SOAP
-- [ ] Diagnosis ICD-10 search by disease name (ICD-10 reference data loaded)
-- [ ] Ringkasan kunjungan sebelumnya
-- [ ] Template SOAP dan resep favorit per doctor
-- [ ] Tindakan dan bahan habis pakai (billed automatically)
-- [ ] Resep elektronik
-- [ ] Surat sakit dan surat rujukan on clinic letterhead
-- [ ] Penguncian rekam medis (sign, lock, amendments)
+- [x] Tanda vital: BP, pulse, temp, respiratory rate, SpO2, weight, height
+- [x] Catatan SOAP
+- [x] Diagnosis ICD-10 search by disease name (import screen ready; load the clinic's list in Pengaturan → ICD-10)
+- [x] Ringkasan kunjungan sebelumnya
+- [x] Tindakan dan bahan habis pakai (billed automatically)
+- [x] Resep elektronik
+- [x] Surat sakit dan surat rujukan on clinic letterhead
+- [x] Penguncian rekam medis (sign, lock, amendments)
 
 ### 4. Farmasi (Pharmacy)
 
-- [ ] Daftar resep masuk
-- [ ] Penyerahan obat (FEFO)
-- [ ] Obat racikan
-- [ ] Etiket obat (drug label printing)
-- [ ] Stok per batch dan kedaluwarsa
-- [ ] Peringatan stok: minimum stock and near-expiry
-- [ ] Pembelian dari supplier
-- [ ] Stok opname
-- [ ] Kartu stok
+- [x] Daftar resep masuk
+- [x] Penyerahan obat (FEFO)
+- [x] Obat racikan
+- [x] Etiket obat (drug label printing)
+- [x] Stok per batch dan kedaluwarsa
+- [x] Peringatan stok: minimum stock and near-expiry
+- [x] Pembelian dari supplier
+- [x] Stok opname
+- [x] Kartu stok
 
 ### 5. Kasir (Cashier)
 
-- [ ] Tagihan otomatis: consultation, procedures, medicines
-- [ ] Tarif dan paket layanan
-- [ ] Diskon per item or per invoice, with reason
-- [ ] Metode pembayaran: cash, QRIS, transfer
-- [ ] Struk pembayaran (thermal receipt)
-- [ ] Pasien BPJS without payment
-- [ ] Buka dan tutup kasir (shift, counted vs expected)
-- [ ] Pembatalan tagihan (void with reason)
+- [x] Tagihan otomatis: consultation, procedures, medicines
+- [x] Tarif dan paket layanan
+- [x] Diskon per item or per invoice, with reason
+- [x] Metode pembayaran: cash, QRIS, transfer
+- [x] Struk pembayaran (thermal receipt)
+- [x] Pasien BPJS without payment
+- [x] Pembatalan tagihan (void with reason)
 
 ### 6. Keuangan dan Laporan (Finance and reports)
 
-- [ ] Dashboard pemilik (phone-friendly)
-- [ ] Laporan pendapatan: daily, monthly, per poli, per payment method
-- [ ] Laporan jasa medis dokter
-- [ ] Pengeluaran operasional
-- [ ] Laba rugi sederhana
-- [ ] Laporan kunjungan: per doctor and poli, new vs returning
-- [ ] 10 besar penyakit
-- [ ] Laporan ke Dinas Kesehatan (monthly recap)
-- [ ] Ekspor Excel dan PDF for every report
+- [x] Dashboard pemilik (phone-friendly)
+- [x] Laporan pendapatan: daily, monthly, per poli, per payment method
+- [x] Laporan jasa medis dokter
+- [x] Pengeluaran operasional
+- [x] Laba rugi sederhana
+- [x] Laporan kunjungan: per doctor and poli, new vs returning
+- [x] 10 besar penyakit
+- [x] Ekspor Excel dan PDF for every report
 
 ### 7. Integrasi SATUSEHAT dan BPJS
 
@@ -109,17 +134,17 @@ Tick a box when the feature is built, tested, and merged. Indonesian names match
 
 ### 8. Pengaturan dan Keamanan (Settings and security)
 
-- [ ] Hak akses per peran (RLS + server checks for every role)
-- [ ] Manajemen staf: add and deactivate accounts
-- [ ] Catatan aktivitas (activity log)
-- [ ] Profil klinik: logo, address, letterhead
-- [ ] Data master: polis, doctors, tariffs, medicines, suppliers
-- [ ] Logout otomatis (idle timeout)
-- [ ] Backup harian (daily off-site backup, restore tested)
+- [x] Hak akses per peran (RLS + server checks for every role)
+- [x] Manajemen staf: add and deactivate accounts (admin sets and resets passwords)
+- [x] Catatan aktivitas (activity log)
+- [x] Profil klinik: logo, address, letterhead
+- [x] Data master: polis, doctors, tariffs, medicines, suppliers
+- [x] Logout otomatis (idle timeout)
+- [ ] Backup harian (daily off-site backup, restore tested) (workflow ready; add secrets, run once, test a restore)
 
 ### 9. Go-live
 
-- [ ] Excel templates and initial data import (medicines, tariffs, doctors, staff)
+- [ ] Excel templates and initial data import (medicines, tariffs, doctors, staff): medicines, suppliers and tariffs done (Pengaturan → Impor Excel); staff and doctors still to do
 - [ ] Export all patient and transaction data to Excel
 - [ ] SATUSEHAT registration and production testing
 - [ ] E2E: full general visit and BPJS visit

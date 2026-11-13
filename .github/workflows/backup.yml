@@ -1,0 +1,61 @@
+# Daily off-site backup of the Supabase database (roles, schema, data), encrypted
+# before it leaves the runner. Restore steps: README.md → "Backup dan restore".
+#
+# Repository secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL     Session pooler connection string (Dashboard → Connect → Session pooler),
+#                       e.g. postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres
+#   BACKUP_PASSPHRASE   Long random passphrase; keep a copy outside GitHub (needed to restore).
+name: Daily database backup
+
+on:
+  schedule:
+    - cron: "0 18 * * *" # 01:00 WIB
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: database-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.1.0
+
+      - name: Dump roles, schema and data
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          mkdir backup
+          # CLI 3.x: --remote=<url> (2.x called it --db-url). Flags per Supabase's backup guide.
+          supabase db dump --remote="$SUPABASE_DB_URL" -f backup/roles.sql --role-only
+          supabase db dump --remote="$SUPABASE_DB_URL" -f backup/schema.sql
+          supabase db dump --remote="$SUPABASE_DB_URL" -f backup/data.sql --use-copy --data-only \
+            -x "storage.buckets_vectors" -x "storage.vector_indexes"
+          test -s backup/schema.sql && test -s backup/data.sql
+
+      - name: Encrypt (patient data must not be stored in plain text)
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          name="e-clinic-$(TZ=Asia/Jakarta date +%Y-%m-%d)"
+          tar -czf "$name.tar.gz" -C backup .
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" \
+              --symmetric --cipher-algo AES256 -o "$name.tar.gz.gpg" "$name.tar.gz"
+          rm -rf backup "$name.tar.gz"
+          echo "BACKUP_FILE=$name.tar.gz.gpg" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BACKUP_FILE }}
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 30
+          if-no-files-found: error
