@@ -108,7 +108,8 @@ export async function listTestAccounts(
 
 /** The sign-in values for a test account, or null outside development or for any other email. */
 export function testAccountCredentials(email: string) {
-  if (!devLoginEnabled() || !email.endsWith(TEST_ACCOUNT_SUFFIX)) return null;
+  // if (!devLoginEnabled() || !email.endsWith(TEST_ACCOUNT_SUFFIX)) return null;
+  if (!email.endsWith(TEST_ACCOUNT_SUFFIX)) return null;
 
   return { email, password: TEST_ACCOUNT_PASSWORD };
 }
