@@ -16,7 +16,6 @@ const STATION_DOTS = ['#d4952b', '#3a7bd5', '#7a5bd1', '#22936f', '#8fa29d'];
 export default async function LoginPage(props: PageProps<'/login'>) {
   const { reason } = await props.searchParams;
 
-  // const testAccounts = devLoginEnabled() ? await listTestAccounts(createAdminClient()) : [];
   const testAccounts = await listTestAccounts(createAdminClient());
 
   const t = await getTranslations();

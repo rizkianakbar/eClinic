@@ -58,15 +58,17 @@ export async function getOwnProfile(supabase: SupabaseClient, userId: string) {
   return data;
 }
 
-// Development-only quick login ------------------------------------------------------
+// Quick login for test accounts (development, or a demo deployment) ---------------
 
 /** Test staff created by scripts/seed-test-data.ts. Never real accounts. */
 export const TEST_ACCOUNT_SUFFIX = ".uji@klinik.test";
 const TEST_ACCOUNT_PASSWORD = "UjiKlinik#2026";
 
-/** Only `next dev` gets one-click test logins; production builds never do. */
+/** One-click test logins: always in `next dev`; in a production build only when `DEMO_LOGIN=true`. */
 export function devLoginEnabled() {
-  return process.env.NODE_ENV === "development";
+  return (
+    process.env.NODE_ENV === "development" || process.env.DEMO_LOGIN === "true"
+  );
 }
 
 const ROLE_ORDER: Role[] = [
@@ -83,7 +85,7 @@ const ROLE_ORDER: Role[] = [
 export async function listTestAccounts(
   admin: ReturnType<typeof createAdminClient>,
 ) {
-  // if (!devLoginEnabled()) return [];
+  if (!devLoginEnabled()) return [];
 
   const { data, error } = await admin
     .from("profiles")
@@ -106,10 +108,9 @@ export async function listTestAccounts(
     );
 }
 
-/** The sign-in values for a test account, or null outside development or for any other email. */
+/** The sign-in values for a test account, or null when quick login is off or for any other email. */
 export function testAccountCredentials(email: string) {
-  // if (!devLoginEnabled() || !email.endsWith(TEST_ACCOUNT_SUFFIX)) return null;
-  if (!email.endsWith(TEST_ACCOUNT_SUFFIX)) return null;
+  if (!devLoginEnabled() || !email.endsWith(TEST_ACCOUNT_SUFFIX)) return null;
 
   return { email, password: TEST_ACCOUNT_PASSWORD };
 }
