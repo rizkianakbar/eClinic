@@ -14,12 +14,19 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('app');
+  const t = await getTranslations();
+  const description = `${t('app.description')}. ${t('auth.login.modules')}.`;
 
+  // On Vercel, metadataBase defaults to the deployment URL, so the og:image URL is absolute without config.
   return {
     title: { default: 'e-clinic', template: '%s · e-clinic' },
-    description: t('description'),
+    description,
     applicationName: 'e-clinic',
+    // Staff pages carry patient data; only /login opts back in to indexing.
+    robots: { index: false, follow: false },
+    openGraph: { type: 'website', siteName: 'e-clinic', title: 'e-clinic', description, locale: 'id_ID' },
+    twitter: { card: 'summary_large_image', title: 'e-clinic', description },
+    formatDetection: { telephone: false },
   };
 }
 

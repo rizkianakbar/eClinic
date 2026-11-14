@@ -8,7 +8,7 @@ import { JOURNEY } from '@/features/visits/visits.lib';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getTranslations('auth.login'))('title') };
+  return { title: (await getTranslations('auth.login'))('title'), robots: { index: true, follow: false } };
 }
 
 const STATION_DOTS = ['#d4952b', '#3a7bd5', '#7a5bd1', '#22936f', '#8fa29d'];

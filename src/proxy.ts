@@ -59,7 +59,7 @@ function redirectKeepingCookies(request: NextRequest, response: NextResponse, pa
 
 export const config = {
   matcher: [
-    // Everything except static assets and /api (Route Handlers authenticate themselves).
-    '/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    // Everything except static assets, crawler/link-preview files and /api (Route Handlers authenticate themselves).
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|opengraph-image|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };
