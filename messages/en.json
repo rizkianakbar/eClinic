@@ -234,7 +234,7 @@
     },
     "demo": {
       "eyebrow": "Demo clinic",
-      "title": "Try e-clinic from any desk",
+      "title": "Try eClinic from any desk",
       "lead": "Pick a role to enter a sample clinic running today. No sign-up; change anything you like.",
       "recommended": "For owners",
       "withEmail": "Sign in with email",
@@ -2285,13 +2285,13 @@
   },
   "site": {
     "meta": {
-      "title": "e-clinic · Clinic management for primary care",
+      "title": "eClinic · Clinic management for primary care",
       "description": "Registration, queue, electronic medical records, pharmacy, cashier and reports for primary care clinics, from one clinic to many branches. In the browser, nothing to install.",
       "signupTitle": "Register your clinic",
-      "signupDescription": "Create your owner account and clinic on e-clinic in two minutes: your own web address, a first branch, and a checklist that guides the rest.",
+      "signupDescription": "Create your owner account and clinic on eClinic in two minutes: your own web address, a first branch, and a checklist that guides the rest.",
       "loginTitle": "Sign in to your clinic",
-      "loginDescription": "Sign in as an owner or staff member; e-clinic opens your clinic's address.",
-      "ogAlt": "e-clinic: one flow for every patient, from registration to going home."
+      "loginDescription": "Sign in as an owner or staff member; eClinic opens your clinic's address.",
+      "ogAlt": "eClinic: one flow for every patient, from registration to going home."
     },
     "nav": {
       "journey": "Patient visit",
@@ -2301,7 +2301,7 @@
       "login": "Sign in",
       "signup": "Register your clinic",
       "demo": "Demo clinic",
-      "home": "e-clinic home",
+      "home": "eClinic home",
       "main": "Main navigation",
       "footer": "Footer navigation",
       "branches": "Branches"
@@ -2313,7 +2313,7 @@
       "primary": "Register your clinic",
       "secondary": "See the demo clinic",
       "demoNote": "The demo clinic holds sample data. Sign in as front desk, doctor, pharmacist, cashier or owner without registering.",
-      "visualAlt": "The e-clinic queue screen and the owner's home on a phone.",
+      "visualAlt": "The eClinic queue screen and the owner's home on a phone.",
       "boardIntro": "Try it yourself: register as a patient and follow your own visit from desk to desk."
     },
     "board": {
@@ -2426,7 +2426,7 @@
         },
         "offline": {
           "q": "What if the internet goes down?",
-          "a": "e-clinic needs an internet connection. Data lives on the server, so nothing is lost if a computer turns off, and work continues as soon as the connection is back."
+          "a": "eClinic needs an internet connection. Data lives on the server, so nothing is lost if a computer turns off, and work continues as soon as the connection is back."
         },
         "setup": {
           "q": "What do we set up after registering?",
@@ -2448,7 +2448,7 @@
     },
     "footer": {
       "tagline": "Clinic management for primary care.",
-      "rights": "© {year} e-clinic",
+      "rights": "© {year} eClinic",
       "made": "Made in Indonesia"
     },
     "notFound": {

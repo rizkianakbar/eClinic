@@ -42,7 +42,7 @@ export default async function LoginPage(props: PageProps<'/login'>) {
           <span className="flex size-9 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">
             <HeartPulseIcon className="size-5" aria-hidden />
           </span>
-          <span className="font-semibold">e-clinic</span>
+          <span className="font-semibold">eClinic</span>
         </a>
 
         <div className="flex max-w-md flex-col gap-10">
@@ -76,7 +76,7 @@ export default async function LoginPage(props: PageProps<'/login'>) {
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <HeartPulseIcon className="size-5" aria-hidden />
             </span>
-            <span className="font-semibold">e-clinic</span>
+            <span className="font-semibold">eClinic</span>
           </div>
           <div className="flex flex-col gap-1.5">
             <p className="text-sm font-medium text-primary">{demo ? t('auth.demo.eyebrow') : clinic.name}</p>

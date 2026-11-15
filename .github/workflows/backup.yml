@@ -46,7 +46,7 @@ jobs:
           BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
           set -euo pipefail
-          name="e-clinic-$(TZ=Asia/Jakarta date +%Y-%m-%d)"
+          name="eClinic-$(TZ=Asia/Jakarta date +%Y-%m-%d)"
           tar -czf "$name.tar.gz" -C backup .
           gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" \
               --symmetric --cipher-algo AES256 -o "$name.tar.gz.gpg" "$name.tar.gz"

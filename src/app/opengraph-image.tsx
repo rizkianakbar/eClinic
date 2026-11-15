@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { JOURNEY } from '@/features/visits/visits.constants';
 
 // Link previews (WhatsApp, Slack, X) of any page. Same look as the login hero; Bahasa, like printouts.
-export const alt = 'e-clinic';
+export const alt = 'eClinic';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -26,7 +26,7 @@ export default async function OpengraphImage() {
         backgroundImage: 'radial-gradient(120% 80% at 0% 0%, #1d5c4c 0%, #0f2f28 55%, #0b221d 100%)',
       }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-        <svg width="64" height="64" viewBox="0 0 32 32" role="img" aria-label="e-clinic">
+        <svg width="64" height="64" viewBox="0 0 32 32" role="img" aria-label="eClinic">
           <rect width="32" height="32" rx="8" fill="#17735c" />
           <path
             d="M8.5 13.2c0-2.6 2-4.5 4.4-4.5 1.4 0 2.5.6 3.1 1.6.6-1 1.7-1.6 3.1-1.6 2.4 0 4.4 1.9 4.4 4.5 0 4.3-5.2 7.9-7.5 9.6-2.3-1.7-7.5-5.3-7.5-9.6Z"
@@ -44,7 +44,7 @@ export default async function OpengraphImage() {
             strokeLinejoin="round"
           />
         </svg>
-        <span style={{ fontSize: 40 }}>e-clinic</span>
+        <span style={{ fontSize: 40 }}>eClinic</span>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 56 }}>

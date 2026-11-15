@@ -21,7 +21,7 @@ export function SiteLogo(props: SiteLogoProps) {
       <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.15)]">
         <HeartPulseIcon className="size-4.5" aria-hidden />
       </span>
-      e-clinic
+      eClinic
     </Link>
   );
 }

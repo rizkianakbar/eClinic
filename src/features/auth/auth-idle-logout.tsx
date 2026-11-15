@@ -7,7 +7,7 @@ type AuthIdleLogoutProps = {
   minutes: number;
 };
 
-const STORAGE_KEY = 'e-clinic:last-activity';
+const STORAGE_KEY = 'eClinic:last-activity';
 const EVENTS = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
 
 function readLastActivity() {

@@ -234,7 +234,7 @@
     },
     "demo": {
       "eyebrow": "Klinik demo",
-      "title": "Coba e-clinic dari meja mana pun",
+      "title": "Coba eClinic dari meja mana pun",
       "lead": "Pilih peran untuk masuk ke klinik contoh yang sedang berjalan hari ini. Tanpa daftar, datanya boleh diubah bebas.",
       "recommended": "Untuk pemilik",
       "withEmail": "Masuk dengan email",
@@ -2285,13 +2285,13 @@
   },
   "site": {
     "meta": {
-      "title": "e-clinic · Sistem manajemen klinik pratama",
+      "title": "eClinic · Sistem manajemen klinik pratama",
       "description": "Pendaftaran, antrean, rekam medis elektronik, farmasi, kasir, dan laporan untuk klinik pratama, dari satu klinik sampai banyak cabang. Di browser, tanpa instalasi.",
       "signupTitle": "Daftarkan klinik Anda",
-      "signupDescription": "Buat akun pemilik dan klinik Anda di e-clinic dalam dua menit. Alamat web sendiri, cabang pertama, dan daftar persiapan yang memandu sisanya.",
+      "signupDescription": "Buat akun pemilik dan klinik Anda di eClinic dalam dua menit. Alamat web sendiri, cabang pertama, dan daftar persiapan yang memandu sisanya.",
       "loginTitle": "Masuk ke klinik Anda",
-      "loginDescription": "Masuk sebagai pemilik atau staf; e-clinic membuka alamat klinik Anda.",
-      "ogAlt": "e-clinic: satu alur untuk setiap pasien, dari pendaftaran sampai pulang."
+      "loginDescription": "Masuk sebagai pemilik atau staf; eClinic membuka alamat klinik Anda.",
+      "ogAlt": "eClinic: satu alur untuk setiap pasien, dari pendaftaran sampai pulang."
     },
     "nav": {
       "journey": "Alur kunjungan",
@@ -2301,7 +2301,7 @@
       "login": "Masuk",
       "signup": "Daftarkan klinik",
       "demo": "Klinik demo",
-      "home": "Beranda e-clinic",
+      "home": "Beranda eClinic",
       "main": "Navigasi utama",
       "footer": "Navigasi bawah",
       "branches": "Cabang"
@@ -2313,7 +2313,7 @@
       "primary": "Daftarkan klinik",
       "secondary": "Lihat klinik demo",
       "demoNote": "Klinik demo berisi data contoh. Masuk sebagai resepsionis, dokter, apoteker, kasir, atau pemilik tanpa mendaftar.",
-      "visualAlt": "Layar antrean e-clinic dan beranda pemilik di ponsel.",
+      "visualAlt": "Layar antrean eClinic dan beranda pemilik di ponsel.",
       "boardIntro": "Coba sendiri: daftarkan diri Anda sebagai pasien dan ikuti kunjungan Anda dari meja ke meja."
     },
     "board": {
@@ -2426,7 +2426,7 @@
         },
         "offline": {
           "q": "Bagaimana jika internet putus?",
-          "a": "e-clinic membutuhkan koneksi internet. Data tersimpan di server, jadi tidak ada yang hilang saat komputer mati, dan pekerjaan berlanjut begitu koneksi kembali."
+          "a": "eClinic membutuhkan koneksi internet. Data tersimpan di server, jadi tidak ada yang hilang saat komputer mati, dan pekerjaan berlanjut begitu koneksi kembali."
         },
         "setup": {
           "q": "Apa yang perlu disiapkan setelah mendaftar?",
@@ -2448,7 +2448,7 @@
     },
     "footer": {
       "tagline": "Sistem manajemen klinik pratama.",
-      "rights": "© {year} e-clinic",
+      "rights": "© {year} eClinic",
       "made": "Dibuat di Indonesia"
     },
     "notFound": {

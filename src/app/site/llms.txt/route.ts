@@ -9,7 +9,7 @@ export const dynamic = 'force-static';
 export async function GET() {
   const t = await getTranslations({ locale: 'id', namespace: 'site' });
   const body = [
-    '# e-clinic',
+    '# eClinic',
     '',
     `> ${t('meta.description')}`,
     '',

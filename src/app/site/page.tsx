@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: isLocale(locale) ? locale : 'id',
       imageAlt: t('ogAlt'),
     }),
-    // The home title stands alone (no "· e-clinic" suffix twice).
+    // The home title stands alone (no "· eClinic" suffix twice).
     title: { absolute: t('title') },
   };
 }
@@ -36,7 +36,7 @@ export default async function SiteHomePage() {
       {
         '@type': 'Organization',
         '@id': id('organization'),
-        name: 'e-clinic',
+        name: 'eClinic',
         url: home,
         logo: { '@type': 'ImageObject', url: new URL('/icon.svg', home).toString() },
       },
@@ -44,14 +44,14 @@ export default async function SiteHomePage() {
         '@type': 'WebSite',
         '@id': id('website'),
         url: home,
-        name: 'e-clinic',
+        name: 'eClinic',
         inLanguage: ['id-ID', 'en'],
         publisher: { '@id': id('organization') },
       },
       {
         '@type': 'SoftwareApplication',
         '@id': id('software'),
-        name: 'e-clinic',
+        name: 'eClinic',
         url: home,
         applicationCategory: 'BusinessApplication',
         operatingSystem: 'Web browser',

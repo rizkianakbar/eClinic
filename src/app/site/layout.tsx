@@ -5,10 +5,10 @@ import { SITE_ORIGIN } from '@/features/site/site-seo';
 // each page sets its own canonical, robots and social cards (pageSeo); everything resolves against the site origin.
 export const metadata: Metadata = {
   metadataBase: SITE_ORIGIN,
-  title: { default: 'e-clinic', template: '%s · e-clinic' },
-  applicationName: 'e-clinic',
-  creator: 'e-clinic',
-  publisher: 'e-clinic',
+  title: { default: 'eClinic', template: '%s · eClinic' },
+  applicationName: 'eClinic',
+  creator: 'eClinic',
+  publisher: 'eClinic',
   category: 'healthcare software',
 };
 

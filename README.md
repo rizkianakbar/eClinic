@@ -1,4 +1,4 @@
-# e-clinic
+# eClinic
 
 A clinic management system for Indonesian primary-care clinics (*klinik pratama*), offered as SaaS:
 a clinic signs up on the landing page, picks its address (`<clinic>.clinic.rzknkbr.xyz`), and lands in its own

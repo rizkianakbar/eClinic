@@ -21,13 +21,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
   // On Vercel, metadataBase defaults to the deployment URL, so the og:image URL is absolute without config.
   return {
-    title: { default: 'e-clinic', template: '%s · e-clinic' },
+    title: { default: 'eClinic', template: '%s · eClinic' },
     description,
-    applicationName: 'e-clinic',
+    applicationName: 'eClinic',
     // Staff pages carry patient data; only /login opts back in to indexing.
     robots: { index: false, follow: false },
-    openGraph: { type: 'website', siteName: 'e-clinic', title: 'e-clinic', description, locale: 'id_ID' },
-    twitter: { card: 'summary_large_image', title: 'e-clinic', description },
+    openGraph: { type: 'website', siteName: 'eClinic', title: 'eClinic', description, locale: 'id_ID' },
+    twitter: { card: 'summary_large_image', title: 'eClinic', description },
     formatDetection: { telephone: false },
   };
 }
@@ -54,7 +54,7 @@ async function clientMessages() {
 }
 
 // Applies the saved text size before first paint (no flash of the wrong size).
-const TEXT_SIZE_SCRIPT = `try{var s=localStorage.getItem("e-clinic:text-size");if(s==="large"||s==="xlarge")document.documentElement.dataset.textSize=s}catch(e){}`;
+const TEXT_SIZE_SCRIPT = `try{var s=localStorage.getItem("eClinic:text-size");if(s==="large"||s==="xlarge")document.documentElement.dataset.textSize=s}catch(e){}`;
 
 export default async function RootLayout(props: LayoutProps<'/'>) {
   const [locale, messages] = await Promise.all([getLocale(), clientMessages()]);

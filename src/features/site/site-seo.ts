@@ -40,7 +40,7 @@ export function pageSeo(page: PageSeo): Metadata {
     openGraph: {
       type: 'website',
       url,
-      siteName: 'e-clinic',
+      siteName: 'eClinic',
       title: page.title,
       description: page.description,
       locale: OG_LOCALE[page.locale],

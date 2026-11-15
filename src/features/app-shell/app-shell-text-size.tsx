@@ -5,7 +5,7 @@ import { useSyncExternalStore } from 'react';
 import { segmentedGroup, segmentedRadioItem } from '@/components/ui/segmented';
 import { parseTextSize, TEXT_SIZE_STORAGE_KEY, TEXT_SIZES, type TextSize } from './app-shell.lib';
 
-const CHANGE_EVENT = 'e-clinic:text-size-change';
+const CHANGE_EVENT = 'eClinic:text-size-change';
 
 // The <html data-text-size> attribute (set before paint) is the source of truth.
 const readTextSize = (): TextSize => parseTextSize(document.documentElement.dataset.textSize);
