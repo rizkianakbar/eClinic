@@ -2286,7 +2286,12 @@
   "site": {
     "meta": {
       "title": "e-clinic · Sistem manajemen klinik pratama",
-      "description": "Pendaftaran, antrean, rekam medis elektronik, farmasi, kasir, dan laporan untuk klinik pratama, dalam satu sistem di browser. Coba klinik demo atau daftarkan klinik Anda."
+      "description": "Pendaftaran, antrean, rekam medis elektronik, farmasi, kasir, dan laporan untuk klinik pratama, dari satu klinik sampai banyak cabang. Di browser, tanpa instalasi.",
+      "signupTitle": "Daftarkan klinik Anda",
+      "signupDescription": "Buat akun pemilik dan klinik Anda di e-clinic dalam dua menit. Alamat web sendiri, cabang pertama, dan daftar persiapan yang memandu sisanya.",
+      "loginTitle": "Masuk ke klinik Anda",
+      "loginDescription": "Masuk sebagai pemilik atau staf; e-clinic membuka alamat klinik Anda.",
+      "ogAlt": "e-clinic: satu alur untuk setiap pasien, dari pendaftaran sampai pulang."
     },
     "nav": {
       "journey": "Alur kunjungan",
@@ -2516,9 +2521,9 @@
       "companyName": "Nama instansi",
       "companyNameHint": "Nama usaha yang menaungi semua cabang. Tampil di atas nama cabang.",
       "branchName": "Nama cabang pertama",
-      "branchNameHint": "Lokasi klinik pertama Anda, mis. Cabang Depok. Cabang lain bisa dibuka nanti, dan nama ini bisa diubah di Profil cabang.",
-      "branchNamePlaceholder": "Cabang Depok",
-      "branchNameDefault": "Cabang Utama",
+      "branchNameHint": "Lokasi klinik pertama Anda, mis. Klinik Sehat Cabang Soreang. Cabang lain bisa dibuka nanti, dan nama ini bisa diubah di Profil cabang.",
+      "branchNamePlaceholder": "Klinik Sehat Cabang Soreang",
+      "branchNameDefault": "Klinik Sehat Cabang Soreang",
       "companyStepHint": "Nama usaha, alamat web, dan cabang pertamanya.",
       "youStepHint": "Anda masuk sebagai pemilik dan bisa menambah staf nanti.",
       "strength": {

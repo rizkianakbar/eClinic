@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { getTranslations } from 'next-intl/server';
-import { JOURNEY } from '@/features/visits/visits.lib';
+import { JOURNEY } from '@/features/visits/visits.constants';
 
 // Link previews (WhatsApp, Slack, X) of any page. Same look as the login hero; Bahasa, like printouts.
 export const alt = 'e-clinic';

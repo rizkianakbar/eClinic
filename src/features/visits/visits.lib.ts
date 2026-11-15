@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Database } from '@/lib/supabase/database.types';
+import { JOURNEY, type JourneyStatus } from './visits.constants';
 
 type JourneyVisitStatus = Database['public']['Enums']['visit_status'];
 
@@ -60,18 +61,6 @@ export function firstOpenSession(sessions: readonly PracticeSession[], now?: str
 export function sessionEnded(session: Pick<PracticeSession, 'endTime'>, now: string) {
   return session.endTime.slice(0, 5) <= now;
 }
-
-/** The five stations of a visit, in order (registered counts as waiting). */
-/** The five stations of a visit, in order. Names: messages `journey.<status>.label | short | hint`. */
-export const JOURNEY = [
-  { status: 'waiting' },
-  { status: 'in_exam' },
-  { status: 'to_pharmacy' },
-  { status: 'to_cashier' },
-  { status: 'done' },
-] as const satisfies readonly { status: JourneyVisitStatus }[];
-
-export type JourneyStatus = (typeof JOURNEY)[number]['status'];
 
 /** Count of today's visits per station; cancelled visits are left out. */
 export function journeyCounts(visits: readonly { status: JourneyVisitStatus }[]) {

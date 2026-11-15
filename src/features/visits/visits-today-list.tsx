@@ -8,7 +8,8 @@ import { SegmentedControl } from '@/components/ui/segmented-control';
 import { formatTime } from '@/lib/dates';
 import type { Database } from '@/lib/supabase/database.types';
 import { cn } from '@/lib/utils';
-import { JOURNEY, journeyIndex } from './visits.lib';
+import { JOURNEY } from './visits.constants';
+import { journeyIndex } from './visits.lib';
 import { STATION_COLORS } from './visits-journey-line';
 import { VisitsStatusBadge } from './visits-status-badge';
 

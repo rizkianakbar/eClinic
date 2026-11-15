@@ -1,4 +1,4 @@
-import type { JourneyStatus } from '@/features/visits/visits.lib';
+import type { JourneyStatus } from '@/features/visits/visits.constants';
 
 type BranchToday = {
   waiting: number;

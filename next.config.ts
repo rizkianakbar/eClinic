@@ -21,6 +21,28 @@ const nextConfig: NextConfig = {
     // and live screens (queue, cashier, pharmacy) refresh themselves on Realtime events.
     staleTimes: { dynamic: 30, static: 30 },
   },
+  poweredByHeader: false,
+  // Every response: no framing (clickjacking on shared clinic PCs), no MIME sniffing, no full URLs leaked to other
+  // sites, HTTPS pinned, and no powerful browser features the app never uses.
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'none'; base-uri 'self'; form-action 'self'" },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()',
+          },
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+        ],
+      },
+    ];
+  },
   // Clinic logo: signed URLs from the private Storage bucket.
   images: {
     remotePatterns: supabaseHost

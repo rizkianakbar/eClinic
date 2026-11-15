@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { buttonVariants } from '@/components/ui/button';
-import { JOURNEY, type JourneyStatus } from '@/features/visits/visits.lib';
+import { JOURNEY, type JourneyStatus } from '@/features/visits/visits.constants';
 import { STATION_COLORS } from '@/features/visits/visits-journey-line';
 import { ROOT_DOMAIN } from '@/lib/tenant';
 import { cn } from '@/lib/utils';

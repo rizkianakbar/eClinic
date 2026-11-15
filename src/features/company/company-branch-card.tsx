@@ -3,7 +3,7 @@
 import { ArrowRightIcon, LoaderCircleIcon, MapPinIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useSwitchBranch } from '@/features/branches/branches.hooks';
-import { JOURNEY, type JourneyStatus } from '@/features/visits/visits.lib';
+import { JOURNEY, type JourneyStatus } from '@/features/visits/visits.constants';
 import { STATION_COLORS } from '@/features/visits/visits-journey-line';
 import { formatRupiah } from '@/lib/money';
 import { cn } from '@/lib/utils';

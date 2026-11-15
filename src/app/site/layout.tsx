@@ -1,18 +1,16 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { SITE_ORIGIN } from '@/features/site/site-seo';
 
-// The marketing site (root domain only: the proxy rewrites it here). Unlike the clinic app, it is meant to be found.
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('site.meta');
-
-  return {
-    title: { default: t('title'), template: '%s · e-clinic' },
-    description: t('description'),
-    robots: { index: true, follow: true },
-    openGraph: { title: t('title'), description: t('description') },
-    twitter: { title: t('title'), description: t('description') },
-  };
-}
+// The marketing site (root domain only: the proxy rewrites it here). Unlike the clinic app, it is meant to be found:
+// each page sets its own canonical, robots and social cards (pageSeo); everything resolves against the site origin.
+export const metadata: Metadata = {
+  metadataBase: SITE_ORIGIN,
+  title: { default: 'e-clinic', template: '%s · e-clinic' },
+  applicationName: 'e-clinic',
+  creator: 'e-clinic',
+  publisher: 'e-clinic',
+  category: 'healthcare software',
+};
 
 export default function SiteLayout(props: LayoutProps<'/site'>) {
   return <div className="flex min-h-dvh flex-col bg-background">{props.children}</div>;

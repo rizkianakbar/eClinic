@@ -1,7 +1,7 @@
 import { CheckIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-import { JOURNEY, type JourneyStatus } from './visits.lib';
+import { JOURNEY, type JourneyStatus } from './visits.constants';
 
 /** Each station's colour on the line, the same colours as the status badges. */
 export const STATION_COLORS: Record<JourneyStatus, { line: string; text: string; soft: string; ring: string }> = {

@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-import { JOURNEY, type JourneyStatus } from './visits.lib';
+import { JOURNEY, type JourneyStatus } from './visits.constants';
 import { STATION_COLORS } from './visits-journey-line';
 
 type VisitsStationBarsProps = {

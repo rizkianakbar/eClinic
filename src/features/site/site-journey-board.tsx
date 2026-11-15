@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { buttonVariants } from '@/components/ui/button';
-import { JOURNEY } from '@/features/visits/visits.lib';
+import { JOURNEY } from '@/features/visits/visits.constants';
 import { STATION_COLORS } from '@/features/visits/visits-journey-line';
 import { cn } from '@/lib/utils';
 import { addVisitor, BOARD_DONE, BOARD_START, BOARD_TICK_MS, nextBoard } from './site.lib';
@@ -126,7 +126,8 @@ export function SiteJourneyBoard() {
                       patient.you
                         ? 'bg-primary text-primary-foreground shadow-[0_6px_16px_-8px_rgb(23_115_92/0.7)] ring-2 ring-primary/25'
                         : color.soft,
-                      index === BOARD_DONE && !patient.you && 'opacity-70',
+                      // Gone home: quieter, but never faded below readable contrast.
+                      index === BOARD_DONE && !patient.you && 'bg-muted',
                     )}>
                     <span className={cn('tabular font-semibold', patient.you ? 'text-primary-foreground' : color.text)}>
                       A-{String(patient.no).padStart(3, '0')}

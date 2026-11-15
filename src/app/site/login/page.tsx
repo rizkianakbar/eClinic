@@ -1,12 +1,24 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { SiteLogo } from '@/features/site/site-chrome';
 import { SiteLocaleSwitch } from '@/features/site/site-locale-switch';
+import { pageSeo } from '@/features/site/site-seo';
 import { TenantsSiteLoginForm } from '@/features/tenants/tenants-site-login-form';
-import { pageTitle } from '@/i18n/metadata';
+import { isLocale } from '@/i18n/locales';
 import { ROOT_DOMAIN } from '@/lib/tenant';
 
-export const generateMetadata = pageTitle('tenants.login.title');
+export async function generateMetadata(): Promise<Metadata> {
+  const [t, locale] = await Promise.all([getTranslations('site.meta'), getLocale()]);
+
+  return pageSeo({
+    title: t('loginTitle'),
+    description: t('loginDescription'),
+    path: '/login',
+    locale: isLocale(locale) ? locale : 'id',
+    imageAlt: t('ogAlt'),
+  });
+}
 
 /**
  * Sign-in on the marketing site (owners and staff who don't know their clinic's address): the landing's light

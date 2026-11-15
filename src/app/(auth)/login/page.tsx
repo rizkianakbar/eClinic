@@ -6,14 +6,15 @@ import { listTestAccounts } from '@/features/auth/auth.service';
 import { AuthDemoPicker } from '@/features/auth/auth-demo-picker';
 import { LoginForm } from '@/features/auth/auth-login-form';
 import { getOrganizationBySlug } from '@/features/tenants/tenants.service';
-import { JOURNEY } from '@/features/visits/visits.lib';
+import { JOURNEY } from '@/features/visits/visits.constants';
 import { getHostTenant } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { DEMO_SLUG, siteUrl } from '@/lib/tenant';
 import { cn } from '@/lib/utils';
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getTranslations('auth.login'))('title'), robots: { index: true, follow: false } };
+  // A clinic's own address stays out of search: indexing every tenant's login would publish the customer list.
+  return { title: (await getTranslations('auth.login'))('title'), robots: { index: false, follow: false } };
 }
 
 const STATION_DOTS = ['#d4952b', '#3a7bd5', '#7a5bd1', '#22936f', '#8fa29d'];

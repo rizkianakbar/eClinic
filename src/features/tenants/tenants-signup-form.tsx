@@ -8,7 +8,7 @@ import { type Control, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
-import { JOURNEY } from '@/features/visits/visits.lib';
+import { JOURNEY } from '@/features/visits/visits.constants';
 import { STATION_COLORS } from '@/features/visits/visits-journey-line';
 import { ROOT_DOMAIN, suggestSlug } from '@/lib/tenant';
 import { cn } from '@/lib/utils';

@@ -1,4 +1,4 @@
-import { JOURNEY } from '@/features/visits/visits.lib';
+import { JOURNEY } from '@/features/visits/visits.constants';
 
 // Hero queue board (SiteJourneyBoard): a pure simulation, so it is testable and renders the same on the server.
 

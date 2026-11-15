@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { ageInYears } from '@/features/patients/patients.lib';
-import type { JourneyStatus } from '@/features/visits/visits.lib';
+import type { JourneyStatus } from '@/features/visits/visits.constants';
 import { STATION_COLORS } from '@/features/visits/visits-journey-line';
 import { formatTime } from '@/lib/dates';
 import { cn } from '@/lib/utils';

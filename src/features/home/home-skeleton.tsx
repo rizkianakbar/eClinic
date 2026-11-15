@@ -2,7 +2,7 @@ import { useTranslations } from 'next-intl';
 import { Panel } from '@/components/ui/panel';
 import { placeholders, Skeleton, SkeletonButton, SkeletonLine } from '@/components/ui/skeleton';
 import { QueueDeskSkeleton } from '@/features/queue/queue-skeleton';
-import { JOURNEY } from '@/features/visits/visits.lib';
+import { JOURNEY } from '@/features/visits/visits.constants';
 import { STATION_COLORS } from '@/features/visits/visits-journey-line';
 import type { Role } from '@/lib/auth';
 import { cn } from '@/lib/utils';

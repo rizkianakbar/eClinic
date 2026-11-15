@@ -2286,7 +2286,12 @@
   "site": {
     "meta": {
       "title": "e-clinic · Clinic management for primary care",
-      "description": "Registration, queue, electronic medical records, pharmacy, cashier and reports for primary care clinics, in one system in the browser. Try the demo clinic or register yours."
+      "description": "Registration, queue, electronic medical records, pharmacy, cashier and reports for primary care clinics, from one clinic to many branches. In the browser, nothing to install.",
+      "signupTitle": "Register your clinic",
+      "signupDescription": "Create your owner account and clinic on e-clinic in two minutes: your own web address, a first branch, and a checklist that guides the rest.",
+      "loginTitle": "Sign in to your clinic",
+      "loginDescription": "Sign in as an owner or staff member; e-clinic opens your clinic's address.",
+      "ogAlt": "e-clinic: one flow for every patient, from registration to going home."
     },
     "nav": {
       "journey": "Patient visit",
@@ -2516,9 +2521,9 @@
       "companyName": "Organization name",
       "companyNameHint": "The business that runs every branch. Shown above the branch name.",
       "branchName": "First branch name",
-      "branchNameHint": "Where your first clinic is, e.g. Cabang Depok. You can open more branches later, and rename this one in the branch profile.",
-      "branchNamePlaceholder": "Cabang Depok",
-      "branchNameDefault": "Cabang Utama",
+      "branchNameHint": "Where your first clinic is, e.g. Klinik Sehat Cabang Soreang. You can open more branches later, and rename this one in the branch profile.",
+      "branchNamePlaceholder": "Klinik Sehat Cabang Soreang",
+      "branchNameDefault": "Klinik Sehat Cabang Soreang",
       "companyStepHint": "Business name, web address and its first branch.",
       "youStepHint": "You sign in as the owner and can add staff later.",
       "strength": {

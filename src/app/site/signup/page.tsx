@@ -1,11 +1,23 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { SiteLogo } from '@/features/site/site-chrome';
 import { SiteLocaleSwitch } from '@/features/site/site-locale-switch';
+import { pageSeo } from '@/features/site/site-seo';
 import { TenantsSignupForm } from '@/features/tenants/tenants-signup-form';
-import { pageTitle } from '@/i18n/metadata';
+import { isLocale } from '@/i18n/locales';
 
-export const generateMetadata = pageTitle('tenants.signup.title');
+export async function generateMetadata(): Promise<Metadata> {
+  const [t, locale] = await Promise.all([getTranslations('site.meta'), getLocale()]);
+
+  return pageSeo({
+    title: t('signupTitle'),
+    description: t('signupDescription'),
+    path: '/signup',
+    locale: isLocale(locale) ? locale : 'id',
+    imageAlt: t('ogAlt'),
+  });
+}
 
 export default async function SignupPage() {
   const t = await getTranslations('tenants.signup');

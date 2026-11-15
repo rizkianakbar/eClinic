@@ -13,7 +13,7 @@ import { SegmentedControl } from '@/components/ui/segmented-control';
 import type { VitalsReading } from '@/features/exam/exam.lib';
 import { ExamVitalsDialog } from '@/features/exam/exam-vitals-dialog';
 import { ageInYears } from '@/features/patients/patients.lib';
-import type { JourneyStatus } from '@/features/visits/visits.lib';
+import type { JourneyStatus } from '@/features/visits/visits.constants';
 import { STATION_COLORS } from '@/features/visits/visits-journey-line';
 import { formatTime } from '@/lib/dates';
 import { cn } from '@/lib/utils';
