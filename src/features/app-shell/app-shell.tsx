@@ -8,10 +8,12 @@ import type { Session } from '@/lib/auth';
 import { todayInJakarta } from '@/lib/dates';
 import { navItemsFor } from './app-shell.lib';
 import { AppShellBell } from './app-shell-bell';
+
 import { AppShellLiveProvider } from './app-shell-live';
 import { AppShellTabs } from './app-shell-nav';
 import { AppShellNavProgress } from './app-shell-nav-progress';
 import { AppShellPrefetch } from './app-shell-prefetch';
+import { AppShellScope, Slash } from './app-shell-scope';
 import { AppShellSearch } from './app-shell-search';
 import { AppShellUserMenu } from './app-shell-user-menu';
 
@@ -39,9 +41,13 @@ export function AppShell(props: AppShellProps) {
           {/* The logo's starting spot: the logo itself lives in the tab row (AppShellTabs) and docks there on scroll. */}
           <span className="size-8 shrink-0" aria-hidden />
           <Slash />
-          <span className="max-w-44 truncate text-sm font-semibold" title={session.clinicName}>
-            {session.clinicName}
-          </span>
+          <AppShellScope
+            organizationName={session.organizationName}
+            current={session.branches.find((branch) => branch.id === session.clinicId) ?? null}
+            branches={session.branches}
+            isOwner={session.role === 'owner'}
+            multiBranch={session.multiBranch}
+          />
           <span className="hidden rounded-full border px-2 py-0.5 text-xs font-medium text-muted-foreground sm:block">
             {t(`roles.${session.role}`)}
           </span>
@@ -60,6 +66,7 @@ export function AppShell(props: AppShellProps) {
               roleLabel={t(`roles.${session.role}`)}
               clinicName={session.clinicName}
               canManageClinic={session.role === 'owner' || session.role === 'admin'}
+              isOwner={session.role === 'owner'}
               idleLogoutMinutes={session.idleLogoutMinutes}
               hasSearch={has(PATIENT_VIEWER_ROLES, session.role)}
             />
@@ -76,20 +83,5 @@ export function AppShell(props: AppShellProps) {
         <AppShellNavProgress />
       </div>
     </AppShellLiveProvider>
-  );
-}
-
-/** The thin diagonal separator from Vercel's breadcrumb header. */
-function Slash() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="size-5 shrink-0 text-input"
-      aria-hidden
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.5}>
-      <path d="M16.88 3.549L7.12 20.451" />
-    </svg>
   );
 }

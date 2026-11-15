@@ -90,6 +90,11 @@ export function AppShellLiveProvider(props: AppShellLiveProviderProps) {
   );
 }
 
+/** The live queue when inside a branch; null in the company scope (no branch, no queue). */
+export function useAppShellLiveOptional() {
+  return use(LiveContext);
+}
+
 export function useAppShellLive() {
   const live = use(LiveContext);
 

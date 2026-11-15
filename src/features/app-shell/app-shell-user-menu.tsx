@@ -5,6 +5,7 @@ import {
   HistoryIcon,
   KeyboardIcon,
   KeyRoundIcon,
+  LayoutGridIcon,
   LogOutIcon,
   TimerIcon,
   UserRoundIcon,
@@ -29,6 +30,8 @@ type AppShellUserMenuProps = {
   initials: string;
   roleLabel: string;
   clinicName: string;
+  /** The owner also reaches the company pages (overview, branches, staff). */
+  isOwner: boolean;
   /** Owner and admin also get shortcuts into clinic settings. */
   canManageClinic: boolean;
   idleLogoutMinutes: number;
@@ -74,6 +77,18 @@ export function AppShellUserMenu(props: AppShellUserMenuProps) {
           </span>
         </div>
         <DropdownMenuSeparator />
+
+        {props.isOwner && (
+          <>
+            <DropdownMenuGroup>
+              <DropdownMenuLinkItem render={<Link href="/company" />}>
+                <LayoutGridIcon />
+                {t('company')}
+              </DropdownMenuLinkItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+          </>
+        )}
 
         <DropdownMenuGroup>
           <DropdownMenuLinkItem render={<Link href="/account" />}>

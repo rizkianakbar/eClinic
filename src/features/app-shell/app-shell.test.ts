@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { isActivePath, myStationVisits, type NavItem, navItemsFor, newArrivals, parseTextSize } from './app-shell.lib';
+import {
+  activeNavHref,
+  COMPANY_NAV_ITEMS,
+  isActivePath,
+  myStationVisits,
+  type NavItem,
+  navItemsFor,
+  newArrivals,
+  parseTextSize,
+} from './app-shell.lib';
 
 const items: NavItem[] = [
   { href: '/dashboard', label: 'dashboard', icon: 'home', group: 'service', roles: 'all' },
@@ -54,5 +63,17 @@ describe('newArrivals', () => {
   it('is silent on first load, then reports only new ids', () => {
     expect(newArrivals(null, [{ id: '1' }])).toEqual([]);
     expect(newArrivals(new Set(['1']), [{ id: '1' }, { id: '2' }]).map((v) => v.id)).toEqual(['2']);
+  });
+});
+
+describe('activeNavHref', () => {
+  it('picks the most specific tab', () => {
+    expect(activeNavHref('/company', COMPANY_NAV_ITEMS)).toBe('/company');
+    expect(activeNavHref('/company/branches', COMPANY_NAV_ITEMS)).toBe('/company/branches');
+    expect(activeNavHref('/company/settings', COMPANY_NAV_ITEMS)).toBe('/company/settings');
+  });
+
+  it('is undefined off the tabs', () => {
+    expect(activeNavHref('/branch', COMPANY_NAV_ITEMS)).toBeUndefined();
   });
 });

@@ -29,7 +29,11 @@ export type NavItem = {
     | 'inventory'
     | 'reports'
     | 'expenses'
-    | 'settings';
+    | 'settings'
+    | 'companyOverview'
+    | 'companyBranches'
+    | 'companyStaff'
+    | 'companySettings';
   icon: NavIcon;
   group: 'service' | 'management';
   roles: readonly Role[] | 'all';
@@ -61,6 +65,17 @@ export const STATION_HOME: Partial<Record<Role, string>> = {
   pharmacist: '/pharmacy',
   cashier: '/cashier',
 };
+
+/**
+ * The company scope (owner only, outside any branch; Vercel's team pages above its projects). Billing and a custom
+ * domain will join Pengaturan here.
+ */
+export const COMPANY_NAV_ITEMS: readonly NavItem[] = [
+  { href: '/company', label: 'companyOverview', icon: 'home', group: 'management', roles: ['owner'] },
+  { href: '/company/branches', label: 'companyBranches', icon: 'register', group: 'management', roles: ['owner'] },
+  { href: '/company/staff', label: 'companyStaff', icon: 'patients', group: 'management', roles: ['owner'] },
+  { href: '/company/settings', label: 'companySettings', icon: 'settings', group: 'management', roles: ['owner'] },
+];
 
 export function navItemsFor(role: Role, items: readonly NavItem[] = NAV_ITEMS) {
   return items.filter((item) => item.roles === 'all' || item.roles.includes(role));
@@ -111,6 +126,12 @@ export function newArrivals<T extends { id: string }>(previous: ReadonlySet<stri
 
 export function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/** The tab for this page: the most specific match wins (/company/branches is Cabang, not Ikhtisar at /company). */
+export function activeNavHref(pathname: string, items: readonly Pick<NavItem, 'href'>[]) {
+  return items.filter((item) => isActivePath(pathname, item.href)).sort((a, b) => b.href.length - a.href.length)[0]
+    ?.href;
 }
 
 /** Per-computer text sizes (labels: shell.textSize.<value>). */

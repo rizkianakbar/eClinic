@@ -7,11 +7,13 @@ import { useTranslations } from 'next-intl';
 import { type MouseEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { markScrollEdges, revealInRow, SCROLL_EDGE_FADE } from '@/lib/scroll-edges';
 import { cn } from '@/lib/utils';
-import { isActivePath, type NavItem, ROLE_STATION } from './app-shell.lib';
-import { useAppShellLive } from './app-shell-live';
+import { activeNavHref, type NavItem, ROLE_STATION } from './app-shell.lib';
+import { useAppShellLiveOptional } from './app-shell-live';
 
 type AppShellTabsProps = {
   items: readonly NavItem[];
+  /** Where the docked logo leads: the branch's Beranda, or the company overview. */
+  homeHref?: string;
 };
 
 type Highlight = { left: number; width: number } | null;
@@ -24,7 +26,8 @@ type Highlight = { left: number; width: number } | null;
 export function AppShellTabs(props: AppShellTabsProps) {
   const t = useTranslations();
   const pathname = usePathname();
-  const live = useAppShellLive();
+  // Live counts exist inside a branch only.
+  const live = useAppShellLiveOptional();
   const [highlight, setHighlight] = useState<Highlight>(null);
   const [stuck, setStuck] = useState(false);
   const sentinel = useRef<HTMLDivElement>(null);
@@ -40,7 +43,7 @@ export function AppShellTabs(props: AppShellTabsProps) {
     setPending(null);
   }
 
-  const activeHref = pending ?? props.items.find((item) => isActivePath(pathname, item.href))?.href;
+  const activeHref = pending ?? activeNavHref(pathname, props.items);
 
   // One underline that slides to the active tab when the page changes (and follows resizes).
   // Written straight to the DOM: no re-render per frame. The first placement does not animate.
@@ -105,9 +108,10 @@ export function AppShellTabs(props: AppShellTabsProps) {
     return () => observer.disconnect();
   }, []);
 
-  const ownStation = ROLE_STATION[live.role];
+  const ownStation = live ? ROLE_STATION[live.role] : undefined;
 
   const countFor = (href: string) => {
+    if (!live) return 0;
     if (href === '/queue') return ownStation?.status === 'waiting' ? live.mine.length : live.counts.waiting;
     if (href === '/pharmacy') return live.counts.to_pharmacy;
     if (href === '/cashier') return live.counts.to_cashier;
@@ -134,7 +138,7 @@ export function AppShellTabs(props: AppShellTabsProps) {
         {/* The logo: in the header's spot at the top of the page, docked in this row once it sticks. It travels with
             the scroll, so it is one object moving down, not a second logo appearing. */}
         <Link
-          href="/dashboard"
+          href={props.homeHref ?? '/dashboard'}
           aria-label={t('nav.dashboard')}
           className="shell-dock-logo absolute top-[calc(-3rem-1px)] left-4 z-10 flex sm:left-6 lg:left-8">
           <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.15),0_1px_2px_rgb(10_60_45/0.3)]">
