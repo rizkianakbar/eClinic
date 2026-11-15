@@ -8,6 +8,7 @@ import {
   groupAuditLogs,
   logoFileError,
   masterDataErrorMessage,
+  NEW_CONSULTATION,
   normalizeIcd10Code,
   parseIcd10Rows,
   poliSchema,
@@ -76,6 +77,7 @@ describe('poliSchema', () => {
       name: 'Poli Umum',
       bpjs_poli_code: null,
       consultation_service_id: null,
+      consultation_price: null,
     });
 
     expect(poliSchema.safeParse({ name: '', bpjs_poli_code: '' }).error?.issues[0]?.message).toBe(
@@ -206,5 +208,37 @@ describe('groupAuditLogs', () => {
     ]);
 
     expect(groups.map((group) => group.length)).toEqual([3, 1, 1]);
+  });
+});
+
+describe('poliSchema: consultation fee', () => {
+  it('creates a new tariff from a typed rupiah price', () => {
+    expect(
+      poliSchema.parse({
+        name: ' Poli Umum ',
+        consultation_service_id: NEW_CONSULTATION,
+        consultation_price: 'Rp 50.000',
+      }),
+    ).toMatchObject({ name: 'Poli Umum', consultation_service_id: NEW_CONSULTATION, consultation_price: 50_000 });
+  });
+
+  it('needs the price when creating a tariff', () => {
+    const result = poliSchema.safeParse({
+      name: 'Poli Umum',
+      consultation_service_id: NEW_CONSULTATION,
+      consultation_price: '',
+    });
+
+    expect(result.error?.issues[0]).toMatchObject({
+      path: ['consultation_price'],
+      message: 'settings.errors.consultationPrice',
+    });
+  });
+
+  it('accepts an existing tariff or none, and ignores the price then', () => {
+    expect(poliSchema.parse({ name: 'Poli Gigi', consultation_service_id: '' }).consultation_service_id).toBeNull();
+    expect(
+      poliSchema.safeParse({ name: 'Poli Gigi', consultation_service_id: 'not-a-uuid' }).error?.issues[0]?.message,
+    ).toBe('settings.errors.pickConsultation');
   });
 });

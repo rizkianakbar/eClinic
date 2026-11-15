@@ -12,6 +12,8 @@ import { SettingsStaffPasswordDialog } from './settings-staff-password-dialog';
 type SettingsStaffProps = {
   session: Session;
   staff: Awaited<ReturnType<typeof listStaff>>;
+  /** `?new=1` or `?new=<role>` (from the setup checklist): open the create form, role preset. */
+  create?: { open: boolean; role?: Role };
 };
 
 /** Each role keeps one colour wherever staff are listed. */
@@ -39,7 +41,12 @@ export function SettingsStaff(props: SettingsStaffProps) {
             {t('settings.staff.summary', { active, total: props.staff.length })}
           </p>
         </div>
-        <SettingsStaffDialog mode="create" actorRole={session.role} />
+        <SettingsStaffDialog
+          mode="create"
+          actorRole={session.role}
+          defaultOpen={props.create?.open}
+          defaultRole={props.create?.role}
+        />
       </div>
 
       <Table>

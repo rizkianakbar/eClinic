@@ -23,6 +23,7 @@ import {
   importIcd10,
   removeClinicLogo,
   resetStaffPassword,
+  setPoli,
   setStaffActive,
   updateClinicProfile,
   updatePoli,
@@ -90,21 +91,21 @@ export async function createPoliAction(input: PoliInput): Promise<ActionResult> 
 }
 
 export async function updatePoliAction(poliId: string, input: PoliInput): Promise<ActionResult> {
-  await requireRole(...MANAGERS);
+  const session = await requireRole(...MANAGERS);
   if (!id.safeParse(poliId).success) return NOT_FOUND;
 
   const parsed = poliSchema.safeParse(input);
 
   if (!parsed.success) return invalid(parsed.error);
 
-  return updatePoli(await createClient(), poliId, parsed.data);
+  return updatePoli(await createClient(), session.clinicId, poliId, parsed.data);
 }
 
 export async function setPoliActiveAction(poliId: string, isActive: boolean): Promise<ActionResult> {
   await requireRole(...MANAGERS);
   if (!id.safeParse(poliId).success) return NOT_FOUND;
 
-  return updatePoli(await createClient(), poliId, { is_active: isActive === true });
+  return setPoli(await createClient(), poliId, { is_active: isActive === true });
 }
 
 export async function updateClinicProfileAction(input: ClinicProfileInput): Promise<ActionResult> {

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ROLE_LABELS } from '@/features/auth/auth.constants';
 import { keyed } from '@/i18n/keyed';
 import type { Role } from '@/lib/auth';
+import { parseRupiah } from '@/lib/money';
 import { AUDIT_VALUE_CODES } from './settings.constants';
 
 const ROLES = Object.keys(ROLE_LABELS) as [Role, ...Role[]];
@@ -69,16 +70,43 @@ export function staffAuthErrorMessage(error: { code?: string }) {
 
 // Polis ----------------------------------------------------------------------
 
-export const poliSchema = z.object({
-  name: z.string().trim().min(1, 'settings.errors.poliNameRequired').max(100, 'settings.errors.poliNameTooLong'),
-  bpjs_poli_code: optionalText(10, 'settings.errors.bpjsCodeTooLong'),
-  // Consultation tariff billed automatically for visits to this poli.
-  consultation_service_id: z
-    .string()
-    .nullish()
-    .transform((value) => value || null)
-    .refine((value) => value === null || z.uuid().safeParse(value).success, 'settings.errors.pickConsultation'),
-});
+/** The poli form's "+ Tarif baru" choice: create the consultation tariff together with the poli. */
+export const NEW_CONSULTATION = 'new';
+
+export const poliSchema = z
+  .object({
+    name: z.string().trim().min(1, 'settings.errors.poliNameRequired').max(100, 'settings.errors.poliNameTooLong'),
+    bpjs_poli_code: optionalText(10, 'settings.errors.bpjsCodeTooLong'),
+    // Consultation tariff billed automatically for visits to this poli: an existing one, a new one, or none.
+    consultation_service_id: z
+      .string()
+      .nullish()
+      .transform((value) => value || null)
+      .refine(
+        (value) => value === null || value === NEW_CONSULTATION || z.uuid().safeParse(value).success,
+        'settings.errors.pickConsultation',
+      ),
+    /** The new tariff's price (only with NEW_CONSULTATION). */
+    consultation_price: z
+      .union([z.string(), z.number()])
+      .nullish()
+      .transform((value) =>
+        value === null || value === undefined || value === ''
+          ? null
+          : typeof value === 'number'
+            ? value
+            : parseRupiah(value),
+      ),
+  })
+  .superRefine((values, context) => {
+    if (values.consultation_service_id !== NEW_CONSULTATION) return;
+
+    const price = values.consultation_price;
+
+    if (price === null || price < 0 || price > 1_000_000_000) {
+      context.addIssue({ code: 'custom', path: ['consultation_price'], message: 'settings.errors.consultationPrice' });
+    }
+  });
 
 export type PoliInput = z.input<typeof poliSchema>;
 export type PoliValues = z.output<typeof poliSchema>;

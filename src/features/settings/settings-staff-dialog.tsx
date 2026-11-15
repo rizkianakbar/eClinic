@@ -39,7 +39,12 @@ type Staff = {
 };
 
 type SettingsStaffDialogProps = { actorRole: Role } & (
-  | { mode: 'create' }
+  | {
+      mode: 'create';
+      /** Opened from a link (the setup checklist): start open, with the role already chosen. */
+      defaultOpen?: boolean;
+      defaultRole?: Role;
+    }
   | {
       mode: 'edit';
       staff: Staff;
@@ -50,7 +55,7 @@ type SettingsStaffDialogProps = { actorRole: Role } & (
 
 export function SettingsStaffDialog(props: SettingsStaffDialogProps) {
   const t = useTranslations('settings.staffForm');
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(props.mode === 'create' && Boolean(props.defaultOpen));
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -94,7 +99,14 @@ function StaffForm(props: StaffFormProps) {
     defaultValues:
       props.mode === 'edit'
         ? { ...props.staff, nik: props.staff.nik ?? '', sip_number: props.staff.sip_number ?? '' }
-        : { full_name: '', email: '', password: '', role: '' as Role, nik: '', sip_number: '' },
+        : {
+            full_name: '',
+            email: '',
+            password: '',
+            role: (props.mode === 'create' && props.defaultRole) || ('' as Role),
+            nik: '',
+            sip_number: '',
+          },
   });
 
   const { errors } = form.formState;

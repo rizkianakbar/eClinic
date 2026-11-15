@@ -10,6 +10,7 @@ import { AUDIT_PAGE_SIZE } from './settings.constants';
 import {
   type ClinicProfileValues,
   masterDataErrorMessage,
+  NEW_CONSULTATION,
   type PoliValues,
   parseIcd10Rows,
   type StaffCreateValues,
@@ -168,12 +169,47 @@ export async function listPolis(supabase: SupabaseClient, options: { activeOnly?
   return data;
 }
 
+/**
+ * The consultation tariff a poli form asks for: an existing tariff, none, or a new one created right here
+ * ("Konsultasi <poli>"), so a new owner sets up a poli and its fee in one step.
+ */
+async function resolveConsultation(
+  supabase: SupabaseClient,
+  clinicId: string,
+  values: PoliValues,
+): Promise<ActionResult<string | null>> {
+  if (values.consultation_service_id !== NEW_CONSULTATION) return { ok: true, data: values.consultation_service_id };
+
+  const { data, error } = await supabase
+    .from('services')
+    .insert({
+      clinic_id: clinicId,
+      name: `Konsultasi ${values.name}`,
+      type: 'consultation',
+      price: values.consultation_price ?? 0,
+    })
+    .select('id')
+    .single();
+
+  if (error) return { ok: false, error: masterDataErrorMessage(error, 'errors.duplicate.service') };
+
+  return { ok: true, data: data.id };
+}
+
+function poliRow(values: PoliValues, consultationServiceId: string | null) {
+  return { name: values.name, bpjs_poli_code: values.bpjs_poli_code, consultation_service_id: consultationServiceId };
+}
+
 export async function createPoli(
   supabase: SupabaseClient,
   clinicId: string,
   values: PoliValues,
 ): Promise<ActionResult> {
-  const { error } = await supabase.from('polis').insert({ ...values, clinic_id: clinicId });
+  const consultation = await resolveConsultation(supabase, clinicId, values);
+
+  if (!consultation.ok) return consultation;
+
+  const { error } = await supabase.from('polis').insert({ ...poliRow(values, consultation.data), clinic_id: clinicId });
 
   if (error) return { ok: false, error: masterDataErrorMessage(error, DUPLICATE_POLI) };
 
@@ -182,8 +218,27 @@ export async function createPoli(
 
 export async function updatePoli(
   supabase: SupabaseClient,
+  clinicId: string,
   poliId: string,
-  values: Partial<PoliValues> & { is_active?: boolean },
+  values: PoliValues,
+): Promise<ActionResult> {
+  const consultation = await resolveConsultation(supabase, clinicId, values);
+
+  if (!consultation.ok) return consultation;
+
+  return setPoli(supabase, poliId, poliRow(values, consultation.data));
+}
+
+/** A partial poli change (also the active toggle). */
+export async function setPoli(
+  supabase: SupabaseClient,
+  poliId: string,
+  values: {
+    name?: string;
+    bpjs_poli_code?: string | null;
+    consultation_service_id?: string | null;
+    is_active?: boolean;
+  },
 ): Promise<ActionResult> {
   const { data, error } = await supabase.from('polis').update(values).eq('id', poliId).select('id').maybeSingle();
 
