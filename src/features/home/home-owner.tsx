@@ -4,10 +4,9 @@ import { useTranslations } from 'next-intl';
 import { Elapsed } from '@/components/ui/elapsed';
 import { Panel, PanelEmpty } from '@/components/ui/panel';
 import type { getOwnerDashboard } from '@/features/reports/reports.service';
-import { JOURNEY, stationSince } from '@/features/visits/visits.lib';
-import { STATION_COLORS } from '@/features/visits/visits-journey-line';
+import { JOURNEY, type JourneyStatus, stationSince } from '@/features/visits/visits.lib';
+import { VisitsStationBars } from '@/features/visits/visits-station-bars';
 import { formatRupiah } from '@/lib/money';
-import { cn } from '@/lib/utils';
 import { percentChange } from './home.lib';
 import type { listCashierDesk, listLowStock } from './home.service';
 import { HomeDeskRow } from './home-desk-row';
@@ -35,11 +34,9 @@ export function HomeOwner(props: HomeOwnerProps) {
 
   const counts = Object.fromEntries(
     JOURNEY.map((station) => [station.status, dashboard.byStatus.get(station.status) ?? 0]),
-  );
+  ) as Record<JourneyStatus, number>;
 
   counts.waiting += dashboard.byStatus.get('registered') ?? 0;
-
-  const busiest = Math.max(1, ...Object.values(counts));
 
   return (
     <div className="flex flex-col gap-6">
@@ -79,30 +76,7 @@ export function HomeOwner(props: HomeOwnerProps) {
           link={{ href: '/queue', label: t('home.owner.queue') }}
           className="h-full">
           <div className="flex h-full flex-col">
-            <ul className="flex flex-1 flex-col justify-around gap-3 p-5">
-              {JOURNEY.map((station) => {
-                const color = STATION_COLORS[station.status];
-                const count = counts[station.status];
-
-                return (
-                  <li key={station.status} className="flex flex-col gap-1.5 text-sm">
-                    <span className="flex items-center justify-between gap-3">
-                      <span className="flex items-center gap-2">
-                        <span className={cn('size-2 rounded-full', color.line)} aria-hidden />
-                        {t(`journey.${station.status}.label`)}
-                      </span>
-                      <span className="tabular font-semibold">{count}</span>
-                    </span>
-                    <span className="h-1.5 overflow-hidden rounded-full bg-muted">
-                      <span
-                        className={cn('block h-full rounded-full', color.line)}
-                        style={{ width: `${(count / busiest) * 100}%` }}
-                      />
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+            <VisitsStationBars counts={counts} className="flex-1 p-5" />
             <p className="flex items-center justify-between gap-3 border-t bg-muted/30 px-5 py-3 text-[0.8125rem] text-muted-foreground">
               <span>
                 {t.rich('home.owner.wentHome', {

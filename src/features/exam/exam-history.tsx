@@ -2,10 +2,11 @@ import { HistoryIcon } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatDate } from '@/lib/dates';
 import { icd10Name } from './exam.lib';
-import type { listPreviousVisits } from './exam.service';
+import type { PreviousVisit } from './exam.service';
 
 type ExamHistoryProps = {
-  visits: Awaited<ReturnType<typeof listPreviousVisits>>;
+  /** Visits at every branch of the organization. */
+  visits: PreviousVisit[];
 };
 
 /** Previous visits as a timeline: diagnoses, medicines, and the signed assessment/plan. */
@@ -42,6 +43,8 @@ export function ExamHistory(props: ExamHistoryProps) {
             <p className="font-semibold">{formatDate(visit.visit_date, locale)}</p>
             <p className="mb-2 text-[0.8125rem] text-muted-foreground">
               {visit.poli?.name} · {visit.doctor?.full_name}
+              {/* Seen at another branch: say where, so the doctor knows whose record this came from. */}
+              {!visit.here && <span className="font-medium text-foreground"> · {visit.clinic.name}</span>}
             </p>
             <div className="flex flex-col gap-1.5 rounded-lg bg-muted/50 p-3">
               {diagnoses.map((diagnosis) => (

@@ -1,16 +1,38 @@
 import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 import { PRINT_HEADER } from '@/i18n/locales';
+import { tenantFromHost, urlOnRequestHost } from '@/lib/tenant';
 
-const PUBLIC_PATHS = ['/login', '/display'];
+/** The marketing site's pages live under this folder; only the root domain reaches them (by rewrite). */
+const SITE_PREFIX = '/site';
 
-/** Refreshes the Supabase session cookie on every request and redirects optimistically by sign-in state. */
+const PUBLIC_PATHS = ['/login', '/auth'];
+
+/**
+ * Routes by host, then by sign-in state. Root domain → the marketing site (rewritten into /site, no session).
+ * A clinic's subdomain → the clinic app: refreshes the Supabase session cookie and redirects optimistically;
+ * pages still check the session belongs to this clinic (lib/auth).
+ */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const tenant = tenantFromHost(request.headers.get('x-forwarded-host') ?? request.headers.get('host'));
+  const isSitePath = pathname === SITE_PREFIX || pathname.startsWith(`${SITE_PREFIX}/`);
 
-  // Printouts render in Bahasa whatever the screen language; only the proxy may say a request is one.
+  // Only the proxy may say a request is a printout (always in Bahasa).
+  request.headers.delete(PRINT_HEADER);
+
+  if (tenant.kind === 'site') {
+    const url = request.nextUrl.clone();
+
+    url.pathname = isSitePath ? pathname : `${SITE_PREFIX}${pathname === '/' ? '' : pathname}`;
+
+    return NextResponse.rewrite(url, { request });
+  }
+
+  // The marketing pages are not part of a clinic's address space.
+  if (isSitePath) return NextResponse.rewrite(new URL('/not-found', request.url));
+
   if (pathname.startsWith('/print/')) request.headers.set(PRINT_HEADER, '1');
-  else request.headers.delete(PRINT_HEADER);
 
   let response = NextResponse.next({ request });
 
@@ -50,7 +72,7 @@ export async function proxy(request: NextRequest) {
 }
 
 function redirectKeepingCookies(request: NextRequest, response: NextResponse, pathname: string) {
-  const redirect = NextResponse.redirect(new URL(pathname, request.url));
+  const redirect = NextResponse.redirect(urlOnRequestHost(request, pathname));
 
   for (const cookie of response.cookies.getAll()) redirect.cookies.set(cookie);
 

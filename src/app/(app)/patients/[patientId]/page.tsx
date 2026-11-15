@@ -12,7 +12,7 @@ import { PATIENT_EDITOR_ROLES, PATIENT_VIEWER_ROLES } from '@/features/patients/
 import { ageInYears, formatIdNumber, formatPhone, initials } from '@/features/patients/patients.lib';
 import { getPatient } from '@/features/patients/patients.service';
 import { PatientsSheet } from '@/features/patients/patients-sheet';
-import { listPatientPrimaryDiagnoses, listPatientVisits, listTodaySessions } from '@/features/visits/visits.service';
+import { listPatientVisits, listTodaySessions } from '@/features/visits/visits.service';
 import { VisitsHistory } from '@/features/visits/visits-history';
 import { VisitsJourneyPosition } from '@/features/visits/visits-journey-line';
 import { VisitsRegisterSheet } from '@/features/visits/visits-register-sheet';
@@ -47,20 +47,18 @@ export default async function PatientPage(props: PageProps<'/patients/[patientId
     timeZone: 'UTC',
   });
 
-  const [patient, sessions, visits, diagnoses] = await Promise.all([
+  // Visits at every branch; the primary diagnosis comes only for roles that may read it (the function decides).
+  const [patient, sessions, visits] = await Promise.all([
     getPatient(supabase, patientId),
     canEdit ? listTodaySessions(supabase) : Promise.resolve([]),
     listPatientVisits(supabase, patientId),
-    // Front desk and cashier may not read diagnoses (RLS would return none anyway).
-    clinical
-      ? listPatientPrimaryDiagnoses(supabase, patientId)
-      : Promise.resolve(new Map<string, { code: string; name: string }>()),
   ]);
 
   if (!patient) notFound();
 
   const counted = visits.filter((visit) => visit.status !== 'cancelled');
-  const todayVisit = counted.find((visit) => visit.visit_date === today);
+  // Today's visit at this branch (a visit today at another branch is that branch's queue).
+  const todayVisit = counted.find((visit) => visit.visit_date === today && visit.here);
   const first = counted.at(-1);
 
   const bpjsVisits = counted.filter((visit) => visit.payer_type === 'bpjs').length;
@@ -233,7 +231,7 @@ export default async function PatientPage(props: PageProps<'/patients/[patientId
                 {visits.length}
               </span>
             </h2>
-            <VisitsHistory visits={visits} diagnoses={diagnoses} hrefFor={visitHref} />
+            <VisitsHistory visits={visits} hrefFor={visitHref} showBranch={session.multiBranch} />
             {!clinical && visits.length > 0 && (
               <p className="text-xs text-muted-foreground">{t('patients.detail.clinicalNote')}</p>
             )}

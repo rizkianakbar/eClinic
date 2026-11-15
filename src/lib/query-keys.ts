@@ -1,5 +1,8 @@
 /** Every TanStack Query key in the app comes from here. */
 export const queryKeys = {
+  tenants: {
+    slug: (slug: string) => ['tenants', 'slug', slug] as const,
+  },
   patients: {
     all: ['patients'] as const,
     search: (query: string) => ['patients', 'search', query] as const,

@@ -1,5 +1,12 @@
+import { ChartNoAxesColumnIcon } from 'lucide-react';
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { type ReactNode, Suspense } from 'react';
+import { buttonVariants } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
+import { branchSetupSteps, companySetupSteps } from '@/features/onboarding/onboarding.lib';
+import { getBranchFacts, getCompanyFacts } from '@/features/onboarding/onboarding.service';
+import { OnboardingChecklist } from '@/features/onboarding/onboarding-checklist';
 import { QueueDesk } from '@/features/queue/queue-desk';
 import { getOwnerDashboard } from '@/features/reports/reports.service';
 import { listAuditLogs } from '@/features/settings/settings.service';
@@ -37,6 +44,12 @@ export function Home(props: HomeProps) {
           </Suspense>
         )}
       </HomeHeader>
+      {/* A new clinic's setup list; established clinics render nothing here, so no placeholder either. */}
+      {managing && (
+        <Suspense fallback={null}>
+          <Setup supabase={props.supabase} session={props.session} />
+        </Suspense>
+      )}
       <Suspense fallback={<HomeDeskSkeleton role={props.session.role} />}>
         <RoleDesk {...props} />
       </Suspense>
@@ -75,6 +88,22 @@ export function HomeHeader(props: HomeHeaderProps) {
       </div>
       {props.children}
     </header>
+  );
+}
+
+async function Setup(props: { supabase: SupabaseClient; session: Session }) {
+  const [company, branch] = await Promise.all([
+    getCompanyFacts(props.supabase),
+    getBranchFacts(props.supabase, props.session.clinicId),
+  ]);
+
+  return (
+    <OnboardingChecklist
+      companyName={props.session.organizationName}
+      branchName={props.session.clinicName}
+      company={companySetupSteps(company)}
+      branch={branchSetupSteps(branch)}
+    />
   );
 }
 
@@ -136,6 +165,11 @@ async function RoleDesk(props: HomeProps) {
         getOwnerTrend(supabase, today, days),
       ]);
 
+      // No visit in two weeks and none today (a new clinic): an empty state that says what fills it, not flat charts.
+      if (trend.visits.length === 0 && dashboard.patients === 0 && trend.revenue.length === 0) {
+        return <HomeOwnerFirstDay />;
+      }
+
       return (
         <HomeOwner
           dashboard={dashboard}
@@ -148,4 +182,22 @@ async function RoleDesk(props: HomeProps) {
       );
     }
   }
+}
+
+/** The owner's Beranda before the first patient: what will appear here, and the one action that starts it. */
+function HomeOwnerFirstDay() {
+  const t = useTranslations('home.firstDay');
+
+  return (
+    <EmptyState
+      icon={ChartNoAxesColumnIcon}
+      title={t('title')}
+      description={t('body')}
+      action={
+        <Link href="/registration" className={buttonVariants({ variant: 'outline' })}>
+          {t('cta')}
+        </Link>
+      }
+    />
+  );
 }

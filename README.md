@@ -1,13 +1,14 @@
 # e-clinic
 
-A clinic management system for Indonesian primary-care clinics (*klinik pratama*), built for a real
-client clinic. It runs the whole patient visit in one browser app: registration, queue, electronic
+A clinic management system for Indonesian primary-care clinics (*klinik pratama*), offered as SaaS:
+a clinic signs up on the landing page, picks its address (`<clinic>.clinic.rzknkbr.xyz`), and lands in its own
+workspace with a setup checklist. Built first for a real client clinic, it runs the whole patient visit in one browser app: registration, queue, electronic
 medical records, pharmacy, cashier, and the owner's finance reports. It is designed to send data to
 the national health platforms (SATUSEHAT and BPJS PCare).
 
 The interface is available in Bahasa Indonesia and English, and each staff member picks one.
 
-<!-- Live demo: add the URL here. The login page offers one-click test accounts for every role. -->
+Landing: `clinic.rzknkbr.xyz`. Live demo: `demo.clinic.rzknkbr.xyz`. Its login page offers one-click test accounts for every role.
 
 ## What it does
 
@@ -100,7 +101,7 @@ src/app/            routes only (thin page, layout and route files)
 src/features/       one folder per domain: patients, visits, queue, exam, prescriptions,
                     pharmacy, inventory, billing, expenses, reports, settings, ...
 src/components/ui/  shared UI (shadcn/ui and design-system pieces)
-src/lib/            Supabase clients, auth helpers, money and date utilities, query keys
+src/lib/            Supabase clients, auth helpers, tenancy (host → clinic), money and date utilities, query keys
 supabase/migrations SQL migrations: schema, RLS policies and Postgres functions
 messages/           id.json and en.json translations (key parity checked by a test)
 tests/e2e/          Playwright specs
@@ -118,6 +119,10 @@ cp .env.example .env.local                # Supabase URL, publishable key, secre
 bun --env-file=.env.local scripts/seed-test-data.ts   # optional: test staff, master data, sample visits
 bun run dev
 ```
+
+Open `http://localhost:3000` for the marketing site (signup, login) and `http://demo.localhost:3000` for the
+demo clinic; a clinic you register lands on `http://<slug>.localhost:3000`. Browsers resolve `*.localhost`
+without any hosts-file setup.
 
 The seed script creates one test account for each role (`*.uji@klinik.test`). In development, the
 login page shows one-click buttons for these accounts. To show them in a production demo, set
@@ -139,3 +144,6 @@ A nightly GitHub Actions workflow (`.github/workflows/backup.yml`) backs up the 
 | Excel import (medicines, suppliers, tariffs) | Done; staff and doctors still to do |
 | SATUSEHAT and BPJS PCare integration | Next: the outbox and FHIR mappers are designed but not built yet |
 | Production hardening (Sentry, uptime monitoring, tested restore) | Not started |
+| SaaS: landing page, self-service signup, subdomain per clinic, demo clinic, setup checklist | Done |
+| Multi-branch: company with branches, shared patients and catalogue, company pages, branch switcher, archive | Done |
+| SaaS: subscription billing, custom domains | Next |

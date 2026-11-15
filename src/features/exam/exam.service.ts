@@ -75,22 +75,44 @@ export async function listDiagnoses(supabase: SupabaseClient, visitId: string) {
   return data;
 }
 
-/** Last visits of the patient with diagnoses and the signed assessment/plan. */
+/** A previous visit at any branch, for the exam's summary (patient_previous_visits). */
+export type PreviousVisit = {
+  id: string;
+  visit_date: string;
+  clinic: { id: string; name: string };
+  here: boolean;
+  poli: { name: string } | null;
+  doctor: { full_name: string } | null;
+  diagnoses: { icd10_code: string; is_primary: boolean; icd10: { name: string; name_id: string | null } | null }[];
+  /** Signed notes only. */
+  notes: {
+    id: string;
+    assessment: string | null;
+    plan: string | null;
+    amends_id: string | null;
+    signed_at: string | null;
+  }[];
+  /** One prescription per visit. */
+  prescriptions: { items: { qty: number; medicine: { name: string; unit: string } | null }[] } | null;
+};
+
+type PreviousVisitRow = Omit<PreviousVisit, 'prescriptions'> & { prescriptions: PreviousVisit['prescriptions'][] };
+
+/**
+ * The patient's last five visits at any branch with diagnoses, the signed assessment/plan and medicines.
+ * Clinical roles only (the function refuses others).
+ */
 export async function listPreviousVisits(supabase: SupabaseClient, patientId: string, excludeVisitId: string) {
-  const { data, error } = await supabase
-    .from('visits')
-    .select(
-      'id, visit_date, poli:polis(name), doctor:profiles!visits_doctor_id_fkey(full_name), diagnoses:visit_diagnoses(icd10_code, is_primary, icd10:icd10_codes(name, name_id)), notes:soap_notes(id, assessment, plan, amends_id, signed_at), prescriptions(items:prescription_items(qty, medicine:medicines(name, unit)))',
-    )
-    .eq('patient_id', patientId)
-    .neq('id', excludeVisitId)
-    .neq('status', 'cancelled')
-    .order('visit_date', { ascending: false })
-    .limit(5);
+  const { data, error } = await supabase.rpc('patient_previous_visits', {
+    p_patient_id: patientId,
+    p_exclude_visit_id: excludeVisitId,
+  });
 
   if (error) throw new Error(`listPreviousVisits failed: ${error.code}`);
 
-  return data;
+  return ((data ?? []) as unknown as PreviousVisitRow[]).map(
+    (visit): PreviousVisit => ({ ...visit, prescriptions: visit.prescriptions[0] ?? null }),
+  );
 }
 
 // Writes (rules enforced by the exam triggers) -------------------------------------
