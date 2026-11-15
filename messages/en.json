@@ -2298,12 +2298,13 @@
       "demo": "Demo clinic",
       "home": "e-clinic home",
       "main": "Main navigation",
-      "footer": "Footer navigation"
+      "footer": "Footer navigation",
+      "branches": "Branches"
     },
     "language": "Language",
     "hero": {
       "title": "One flow for every patient, from registration to going home.",
-      "lead": "Clinic management for primary care: registration, queue, electronic medical records, pharmacy, cashier and owner reports. Shared by the whole staff, right in the browser.",
+      "lead": "Clinic management for primary care, from one clinic to many branches: registration, queue, electronic medical records, pharmacy, cashier and owner reports. Shared by the whole staff, right in the browser.",
       "primary": "Register your clinic",
       "secondary": "See the demo clinic",
       "demoNote": "The demo clinic holds sample data. Sign in as front desk, doctor, pharmacist, cashier or owner without registering."
@@ -2413,6 +2414,10 @@
         "domain": {
           "q": "Can we use our own domain?",
           "a": "Every clinic gets its own address, like sehat.{domain}. Your own domain is being prepared."
+        },
+        "branches": {
+          "q": "Can we use it for several branches?",
+          "a": "Yes. The owner opens a new branch from the company overview; clinics, tariffs, medicines and patient records are there at once, while its queue, stock and cashier are its own. A branch no longer in use can be archived without losing its data."
         }
       }
     },
@@ -2429,6 +2434,27 @@
       "title": "Page not found",
       "description": "Check the address, or go back home.",
       "home": "Go home"
+    },
+    "branches": {
+      "title": "One company, many branches",
+      "lead": "Patients, staff and the price list are managed once for the company. Each branch runs its own queue, so a patient in Depok is never called in Bogor.",
+      "company": "Overview of every branch",
+      "ownQueue": "Its own queue, stock and cashier",
+      "next": "The next branch, any time",
+      "sharedTitle": "Shared by every branch",
+      "ownTitle": "Each branch its own",
+      "shared": {
+        "patients": "Patients and their visit history: one medical record number at any branch.",
+        "staff": "Staff, assigned to one or several branches. Those at several choose their branch when they sign in.",
+        "catalog": "Clinics, tariffs, medicines and suppliers: set once, available at a new branch at once.",
+        "overview": "The owner's overview: revenue and patients of every branch on one screen."
+      },
+      "own": {
+        "queue": "Queue and queue numbers, starting at 1 every day.",
+        "stock": "Medicine stock, purchases and stock takes.",
+        "cashier": "Cashier, invoices and the branch's financial reports.",
+        "schedule": "Doctor schedules, the branch's profile and letterhead."
+      }
     }
   },
   "tenants": {
@@ -2437,7 +2463,7 @@
       "lead": "Your owner account and clinic are ready in one step. After that, a checklist guides the rest.",
       "haveAccount": "Already have an account?",
       "login": "Sign in",
-      "you": "You",
+      "you": "Owner account",
       "fullName": "Full name",
       "fullNameHint": "Your name as the owner, e.g. dr. Andi Wijaya",
       "clinicNamePlaceholder": "Sentosa Medika Group",
@@ -2446,7 +2472,6 @@
       "email": "Email",
       "emailHint": "To sign in as the owner.",
       "password": "Password",
-      "passwordHint": "At least 8 characters.",
       "showPassword": "Show password",
       "hidePassword": "Hide password",
       "submit": "Create clinic",
@@ -2457,13 +2482,19 @@
       "taken": "Taken by another clinic",
       "preview": {
         "label": "Preview of your clinic",
-        "owner": "Owner",
         "greeting": "Hello, {name}",
         "you": "you",
-        "checklist": "Setup checklist",
-        "caption": "Once registered, you land right here as the owner.",
         "company": "Organization name",
-        "branch": "Cabang Utama"
+        "branch": "Cabang Utama",
+        "headline": "Your clinic, online today.",
+        "sub": "Sign up in two minutes. A checklist then guides the rest: clinics, doctors, schedules, medicines.",
+        "yours": "your branch",
+        "nextBranch": "next branch, any time",
+        "facts": {
+          "browser": "Nothing to install: runs in the browser on the clinic's computers and the owner's phone.",
+          "data": "Your clinic owns its data and can export it to Excel at any time.",
+          "branches": "Patients, staff and the price list are shared by every branch."
+        }
       },
       "company": "Organization",
       "companyName": "Organization name",
@@ -2471,18 +2502,28 @@
       "branchName": "First branch name",
       "branchNameHint": "Where your first clinic is, e.g. Cabang Depok. You can open more branches later, and rename this one in the branch profile.",
       "branchNamePlaceholder": "Cabang Depok",
-      "branchNameDefault": "Cabang Utama"
+      "branchNameDefault": "Cabang Utama",
+      "companyStepHint": "Business name, web address and its first branch.",
+      "youStepHint": "You sign in as the owner and can add staff later.",
+      "strength": {
+        "empty": "At least 8 characters",
+        "weak": "Too short",
+        "fair": "Fair",
+        "strong": "Strong"
+      },
+      "addressPlaceholder": "your-clinic"
     },
     "login": {
       "title": "Sign in to your clinic",
-      "lead": "Sign in with your staff account; we will open your clinic's address.",
+      "lead": "For owners and staff. Sign in once here and we open your clinic.",
       "email": "Email",
       "password": "Password",
       "submit": "Sign in",
       "checking": "Checking…",
       "noAccount": "Not registered yet?",
       "signup": "Register your clinic",
-      "forgot": "Forgot your password? Ask the clinic admin to reset it in Settings → Staff."
+      "forgot": "Forgot your password? Ask the clinic admin to reset it in Settings → Staff.",
+      "directHint": "Know your clinic's address? Open it directly, e.g. sehat.{domain}."
     },
     "errors": {
       "emailRequired": "Email is required.",

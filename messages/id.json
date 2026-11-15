@@ -2298,12 +2298,13 @@
       "demo": "Klinik demo",
       "home": "Beranda e-clinic",
       "main": "Navigasi utama",
-      "footer": "Navigasi bawah"
+      "footer": "Navigasi bawah",
+      "branches": "Cabang"
     },
     "language": "Bahasa",
     "hero": {
       "title": "Satu alur untuk setiap pasien, dari pendaftaran sampai pulang.",
-      "lead": "Sistem manajemen untuk klinik pratama: pendaftaran, antrean, rekam medis elektronik, farmasi, kasir, dan laporan pemilik. Dipakai bersama oleh seluruh staf, langsung di browser.",
+      "lead": "Sistem manajemen untuk klinik pratama, dari satu klinik sampai banyak cabang: pendaftaran, antrean, rekam medis elektronik, farmasi, kasir, dan laporan pemilik. Dipakai bersama oleh seluruh staf, langsung di browser.",
       "primary": "Daftarkan klinik",
       "secondary": "Lihat klinik demo",
       "demoNote": "Klinik demo berisi data contoh. Masuk sebagai resepsionis, dokter, apoteker, kasir, atau pemilik tanpa mendaftar."
@@ -2413,6 +2414,10 @@
         "domain": {
           "q": "Bisakah memakai domain sendiri?",
           "a": "Setiap klinik mendapat alamat sendiri, misalnya sehat.{domain}. Domain milik klinik sendiri sedang disiapkan."
+        },
+        "branches": {
+          "q": "Bisakah dipakai untuk beberapa cabang?",
+          "a": "Bisa. Pemilik membuka cabang baru dari Ikhtisar perusahaan; poli, tarif, obat, dan data pasien langsung tersedia di sana, sementara antrean, stok, dan kasirnya terpisah. Cabang yang tidak dipakai lagi bisa diarsipkan tanpa kehilangan datanya."
         }
       }
     },
@@ -2429,6 +2434,27 @@
       "title": "Halaman tidak ditemukan",
       "description": "Periksa alamatnya, atau kembali ke beranda.",
       "home": "Ke beranda"
+    },
+    "branches": {
+      "title": "Satu perusahaan, banyak cabang",
+      "lead": "Pasien, staf, dan daftar harga dikelola sekali di tingkat perusahaan. Setiap cabang menjalankan antreannya sendiri, jadi pasien di Depok tidak pernah terpanggil di Bogor.",
+      "company": "Ikhtisar semua cabang",
+      "ownQueue": "Antrean, stok, dan kasir sendiri",
+      "next": "Cabang berikutnya, kapan saja",
+      "sharedTitle": "Dipakai bersama semua cabang",
+      "ownTitle": "Milik tiap cabang",
+      "shared": {
+        "patients": "Pasien dan riwayat kunjungannya: satu nomor rekam medis di cabang mana pun.",
+        "staff": "Staf, ditugaskan ke satu atau beberapa cabang. Yang bertugas di beberapa cabang memilih cabangnya saat masuk.",
+        "catalog": "Poli, tarif, obat, dan supplier: diatur sekali, langsung berlaku di cabang baru.",
+        "overview": "Ikhtisar pemilik: pendapatan dan pasien semua cabang dalam satu layar."
+      },
+      "own": {
+        "queue": "Antrean dan nomor antrean, mulai dari 1 setiap hari.",
+        "stock": "Stok obat, pembelian, dan stock opname.",
+        "cashier": "Kasir, tagihan, dan laporan keuangan cabang.",
+        "schedule": "Jadwal dokter, profil, dan kop surat cabang."
+      }
     }
   },
   "tenants": {
@@ -2437,7 +2463,7 @@
       "lead": "Akun pemilik dan klinik Anda siap dalam satu langkah. Setelah itu, daftar persiapan memandu sisanya.",
       "haveAccount": "Sudah punya akun?",
       "login": "Masuk",
-      "you": "Anda",
+      "you": "Akun pemilik",
       "fullName": "Nama lengkap",
       "fullNameHint": "Nama Anda sebagai pemilik, mis. dr. Andi Wijaya",
       "clinicNamePlaceholder": "Sentosa Medika Group",
@@ -2446,7 +2472,6 @@
       "email": "Email",
       "emailHint": "Untuk masuk sebagai pemilik.",
       "password": "Kata sandi",
-      "passwordHint": "Minimal 8 karakter.",
       "showPassword": "Tampilkan kata sandi",
       "hidePassword": "Sembunyikan kata sandi",
       "submit": "Buat klinik",
@@ -2457,13 +2482,19 @@
       "taken": "Sudah dipakai klinik lain",
       "preview": {
         "label": "Pratinjau klinik Anda",
-        "owner": "Pemilik",
         "greeting": "Halo, {name}",
         "you": "Anda",
-        "checklist": "Daftar persiapan",
-        "caption": "Begitu terdaftar, Anda langsung masuk ke sini sebagai pemilik.",
         "company": "Nama instansi",
-        "branch": "Cabang Utama"
+        "branch": "Cabang Utama",
+        "headline": "Klinik Anda online hari ini.",
+        "sub": "Daftar dalam dua menit. Setelah itu daftar persiapan memandu sisanya: poli, dokter, jadwal, obat.",
+        "yours": "cabang Anda",
+        "nextBranch": "cabang berikutnya, kapan saja",
+        "facts": {
+          "browser": "Tanpa instalasi: berjalan di browser komputer klinik dan ponsel pemilik.",
+          "data": "Data milik klinik Anda, bisa diekspor ke Excel kapan saja.",
+          "branches": "Pasien, staf, dan daftar harga dipakai bersama semua cabang."
+        }
       },
       "company": "Instansi",
       "companyName": "Nama instansi",
@@ -2471,18 +2502,28 @@
       "branchName": "Nama cabang pertama",
       "branchNameHint": "Lokasi klinik pertama Anda, mis. Cabang Depok. Cabang lain bisa dibuka nanti, dan nama ini bisa diubah di Profil cabang.",
       "branchNamePlaceholder": "Cabang Depok",
-      "branchNameDefault": "Cabang Utama"
+      "branchNameDefault": "Cabang Utama",
+      "companyStepHint": "Nama usaha, alamat web, dan cabang pertamanya.",
+      "youStepHint": "Anda masuk sebagai pemilik dan bisa menambah staf nanti.",
+      "strength": {
+        "empty": "Minimal 8 karakter",
+        "weak": "Terlalu pendek",
+        "fair": "Cukup",
+        "strong": "Kuat"
+      },
+      "addressPlaceholder": "nama-klinik"
     },
     "login": {
       "title": "Masuk ke klinik Anda",
-      "lead": "Masuk dengan akun staf Anda; kami bukakan alamat klinik Anda.",
+      "lead": "Untuk pemilik dan staf. Masuk sekali di sini, kami bukakan klinik Anda.",
       "email": "Email",
       "password": "Kata sandi",
       "submit": "Masuk",
       "checking": "Memeriksa…",
       "noAccount": "Belum terdaftar?",
       "signup": "Daftarkan klinik",
-      "forgot": "Lupa kata sandi? Minta admin klinik mengatur ulang di Pengaturan → Staf."
+      "forgot": "Lupa kata sandi? Minta admin klinik mengatur ulang di Pengaturan → Staf.",
+      "directHint": "Tahu alamat klinik Anda? Buka langsung, misalnya sehat.{domain}."
     },
     "errors": {
       "emailRequired": "Email wajib diisi.",

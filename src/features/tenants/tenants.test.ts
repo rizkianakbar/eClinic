@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { looksAutomated, SIGNUP_MIN_FILL_MS, signupSchema } from './tenants.lib';
+import { looksAutomated, passwordStrength, SIGNUP_MIN_FILL_MS, signupSchema } from './tenants.lib';
 
 const VALID = {
   full_name: 'dr. Andi Wijaya',
@@ -45,5 +45,15 @@ describe('looksAutomated', () => {
     expect(looksAutomated({ website: 'http://spam.test', startedAt: now - 60_000 }, now)).toBe(true);
     expect(looksAutomated({ website: '', startedAt: now - 500 }, now)).toBe(true);
     expect(looksAutomated({}, now)).toBe(true);
+  });
+});
+
+describe('passwordStrength', () => {
+  it('grows with length and variety', () => {
+    expect(passwordStrength('')).toBe(0);
+    expect(passwordStrength('abc12')).toBe(1);
+    expect(passwordStrength('abcdefgh')).toBe(2);
+    expect(passwordStrength('sentosa2026')).toBe(3);
+    expect(passwordStrength('a long passphrase')).toBe(3);
   });
 });

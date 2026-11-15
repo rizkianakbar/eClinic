@@ -81,3 +81,16 @@ export function signupAuthErrorMessage(error: { code?: string }) {
 
   return 'tenants.errors.signupFailed';
 }
+
+/**
+ * A gentle strength hint for the owner's password (the server's rule stays "at least 8"): 0 empty, 1 too short,
+ * 2 long enough, 3 long enough with letters and digits, or 12+ characters.
+ */
+export function passwordStrength(password: string): 0 | 1 | 2 | 3 {
+  if (!password) return 0;
+  if (password.length < 8) return 1;
+
+  const mixed = /[a-zA-Z]/.test(password) && /\d/.test(password);
+
+  return mixed || password.length >= 12 ? 3 : 2;
+}
