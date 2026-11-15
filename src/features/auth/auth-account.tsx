@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { SkeletonLine } from '@/components/ui/skeleton';
 import { AppShellTextSizePreview } from '@/features/app-shell/app-shell-text-size-preview';
 import { initials } from '@/features/patients/patients.lib';
-import type { Session } from '@/lib/auth';
+import type { Account } from '@/lib/auth';
 import { formatDate } from '@/lib/dates';
 import type { getOwnProfile } from './auth.service';
 import { AuthChangePasswordForm } from './auth-change-password-form';
@@ -21,15 +21,28 @@ const SHORTCUTS = [
 ] as const;
 
 type AuthAccountProps = {
-  session: Session;
+  account: Account;
+  /** The branch I am working at now, if any (the owner on the company pages has none). */
+  currentId: string | null;
+  /** The branch's auto sign-out (or the company default outside a branch). */
+  idleLogoutMinutes: number;
   /** undefined while it loads (the loading screen draws the same page around it). */
   profile: Awaited<ReturnType<typeof getOwnProfile>> | undefined;
 };
 
-/** Akun saya: who I am here, my password, this computer's text size, shortcuts, and signing out. */
+/**
+ * Akun saya: who I am at the company (instansi) and where I work, my password, this computer's text size,
+ * shortcuts, and signing out. It belongs to the person, so it reads the same inside a branch or on the company pages.
+ */
 export function AuthAccount(props: AuthAccountProps) {
-  const { session } = props;
+  const { account: session } = props;
   const t = useTranslations();
+  const current = session.branches.find((branch) => branch.id === props.currentId);
+  // Owners work at every branch: say so rather than list them.
+  const branches =
+    session.role === 'owner'
+      ? t('account.profile.allBranches', { count: session.branches.length })
+      : session.branches.map((branch) => branch.name).join(', ') || null;
   const locale = useLocale();
   const clinical = session.role === 'doctor' || session.role === 'nurse' || session.role === 'pharmacist';
 
@@ -42,7 +55,7 @@ export function AuthAccount(props: AuthAccountProps) {
         <div className="min-w-0">
           <h1 className="text-[1.5rem] leading-tight font-semibold tracking-tight">{session.fullName}</h1>
           <p className="text-sm text-muted-foreground">
-            {t('account.roleAt', { role: t(`roles.${session.role}`), clinic: session.clinicName })}
+            {t('account.roleAt', { role: t(`roles.${session.role}`), clinic: session.organizationName })}
             {props.profile?.created_at && t('account.since', { date: formatDate(props.profile.created_at, locale) })}
           </p>
         </div>
@@ -56,7 +69,11 @@ export function AuthAccount(props: AuthAccountProps) {
             value={props.profile === undefined ? undefined : (props.profile?.email ?? '–')}
           />
           <Fact label={t('account.profile.role')} value={t(`roles.${session.role}`)} />
-          <Fact label={t('account.profile.clinic')} value={session.clinicName} />
+          <Fact label={t('account.profile.organization')} value={session.organizationName} />
+          {session.multiBranch && <Fact label={t('account.profile.branches')} value={branches ?? '–'} />}
+          {session.multiBranch && (
+            <Fact label={t('account.profile.currentBranch')} value={current?.name ?? t('account.profile.noBranch')} />
+          )}
           {clinical && (
             <Fact
               label={t('account.profile.nik')}
@@ -107,7 +124,7 @@ export function AuthAccount(props: AuthAccountProps) {
 
       <Section
         title={t('account.session.title')}
-        description={t('account.session.description', { minutes: session.idleLogoutMinutes })}>
+        description={t('account.session.description', { minutes: props.idleLogoutMinutes })}>
         <SignOutButton />
       </Section>
     </div>

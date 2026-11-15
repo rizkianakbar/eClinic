@@ -9,8 +9,8 @@ export function useSignIn() {
 
   return useMutation({
     mutationFn: async (values: SignInValues) => unwrap(await signIn(values)),
-    onSuccess: () => {
-      router.replace('/dashboard');
+    onSuccess: ({ next }) => {
+      router.replace(next);
       router.refresh();
     },
   });
@@ -22,8 +22,8 @@ export function useTestAccountSignIn() {
 
   return useMutation({
     mutationFn: async (email: string) => unwrap(await signInAsTestAccount(email)),
-    onSuccess: () => {
-      router.replace('/dashboard');
+    onSuccess: ({ next }) => {
+      router.replace(next);
       router.refresh();
     },
   });

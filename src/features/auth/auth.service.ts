@@ -2,6 +2,7 @@ import 'server-only';
 import type { Role } from '@/lib/auth';
 import type { createAdminClient } from '@/lib/supabase/admin';
 import type { SupabaseClient } from '@/lib/supabase/server';
+import { DEMO_SLUG } from '@/lib/tenant';
 import { type ChangePasswordValues, changePasswordErrorMessage } from './auth.lib';
 
 type Result = { ok: true; data: undefined } | { ok: false; error: string };
@@ -52,26 +53,34 @@ export async function getOwnProfile(supabase: SupabaseClient, userId: string) {
   return data;
 }
 
-// Quick login for test accounts (development, or a demo deployment) ---------------
+// Quick login for test accounts: the demo clinic only (demo.<root domain>) ---------------
 
-/** Test staff created by scripts/seed-test-data.ts. Never real accounts. */
+/** Test staff of the demo clinic, created by scripts/seed-test-data.ts. Never real accounts. */
 export const TEST_ACCOUNT_SUFFIX = '.uji@klinik.test';
 const TEST_ACCOUNT_PASSWORD = 'UjiKlinik#2026';
 
-/** One-click test logins: always in `next dev`; in a production build only when `DEMO_LOGIN=true`. */
-export function devLoginEnabled() {
-  return process.env.NODE_ENV === 'development' || process.env.DEMO_LOGIN === 'true';
+/**
+ * One-click test logins, only on the demo clinic's address: always in `next dev`; in a production build only
+ * when `DEMO_LOGIN=true`.
+ */
+export function devLoginEnabled(slug: string) {
+  return slug === DEMO_SLUG && (process.env.NODE_ENV === 'development' || process.env.DEMO_LOGIN === 'true');
 }
 
 const ROLE_ORDER: Role[] = ['owner', 'admin', 'front_desk', 'nurse', 'doctor', 'pharmacist', 'cashier'];
 
 /** Active test staff for the login page's quick buttons (no passwords leave the server). */
-export async function listTestAccounts(admin: ReturnType<typeof createAdminClient>) {
-  if (!devLoginEnabled()) return [];
+export async function listTestAccounts(
+  admin: ReturnType<typeof createAdminClient>,
+  organizationId: string,
+  slug: string,
+) {
+  if (!devLoginEnabled(slug)) return [];
 
   const { data, error } = await admin
     .from('profiles')
     .select('email, full_name, role')
+    .eq('organization_id', organizationId)
     .eq('is_active', true)
     .like('email', `%${TEST_ACCOUNT_SUFFIX}`);
 
@@ -83,8 +92,8 @@ export async function listTestAccounts(admin: ReturnType<typeof createAdminClien
 }
 
 /** The sign-in values for a test account, or null when quick login is off or for any other email. */
-export function testAccountCredentials(email: string) {
-  if (!devLoginEnabled() || !email.endsWith(TEST_ACCOUNT_SUFFIX)) return null;
+export function testAccountCredentials(email: string, slug: string) {
+  if (!devLoginEnabled(slug) || !email.endsWith(TEST_ACCOUNT_SUFFIX)) return null;
 
   return { email, password: TEST_ACCOUNT_PASSWORD };
 }
