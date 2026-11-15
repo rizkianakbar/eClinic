@@ -190,7 +190,7 @@ const STAFF = {
 
 type StaffKey = keyof typeof STAFF;
 
-async function seedStaff(clinicId: string) {
+async function seedStaff(clinicId: string, organizationId: string) {
   const existing = new Map<string, string>();
   for (let page = 1; page < 20; page += 1) {
     const { data } = await admin.auth.admin.listUsers({ page, perPage: 200 });
@@ -219,6 +219,8 @@ async function seedStaff(clinicId: string) {
         {
           id,
           clinic_id: clinicId,
+          // Explicit: the column default reads the signed-in user, and this script runs as the service role.
+          organization_id: organizationId,
           email: staff.email,
           role: staff.role,
           full_name: staff.full_name,
@@ -591,16 +593,9 @@ async function seedVisits(
   patients: string[],
   master: Awaited<ReturnType<typeof seedMasterData>>,
 ) {
+  // Resumable: each visit is found or created, and each step runs only from the status it expects, so a run that
+  // stopped halfway is finished by the next one instead of duplicating visits.
   const today = jakartaToday();
-  const { count } = await c.frontDesk
-    .from('visits')
-    .select('id', { count: 'exact', head: true })
-    .eq('visit_date', today)
-    .in('patient_id', patients);
-  if (count) {
-    console.log(`Kunjungan: ${count} kunjungan uji hari ini sudah ada, dilewati`);
-    return;
-  }
 
   const day = (() => {
     const d = new Date(`${today}T00:00:00Z`).getUTCDay();
@@ -619,8 +614,18 @@ async function seedVisits(
   const gp = sessionOf(ids.doctorGp);
   const dental = sessionOf(ids.doctorDental);
 
-  const register = async (patient: number, schedule: string, payer: 'umum' | 'bpjs') =>
-    must(
+  const register = async (patient: number, schedule: string, payer: 'umum' | 'bpjs') => {
+    const { data: existing } = await c.frontDesk
+      .from('visits')
+      .select('id')
+      .eq('patient_id', patients[patient])
+      .eq('visit_date', today)
+      .neq('status', 'cancelled')
+      .maybeSingle();
+
+    if (existing) return existing.id;
+
+    return must(
       await c.frontDesk.rpc('create_visit', {
         p_patient_id: patients[patient],
         p_schedule_id: schedule,
@@ -628,6 +633,13 @@ async function seedVisits(
       }),
       'create_visit',
     ).id;
+  };
+
+  const visitState = async (visitId: string) =>
+    must(
+      await c.frontDesk.from('visits').select('status, vitals_recorded_at').eq('id', visitId).single(),
+      'visit state',
+    );
 
   const examine = async (
     doctor: Client,
@@ -640,6 +652,14 @@ async function seedVisits(
       sign?: boolean;
     },
   ) => {
+    const state = await visitState(visitId);
+    if (state.status !== 'waiting' && state.status !== 'registered') return;
+    // Nobody is called before vitals (clinic rule); with no nurse free, the doctor records them.
+    if (!state.vitals_recorded_at)
+      must(
+        await doctor.from('vitals').insert({ visit_id: visitId, systolic: 120, diastolic: 80, pulse: 80 }),
+        'vitals',
+      );
     must(await doctor.from('visits').update({ called_at: new Date().toISOString() }).eq('id', visitId), 'call');
     must(await doctor.from('visits').update({ status: 'in_exam' }).eq('id', visitId), 'start exam');
     must(await doctor.from('soap_notes').insert({ visit_id: visitId, ...options.soap }), 'soap');
@@ -686,14 +706,22 @@ async function seedVisits(
     if (options.sign !== false) must(await doctor.rpc('sign_visit', { p_visit_id: visitId }), 'sign');
   };
 
-  const vitals = async (visitId: string, values: Partial<Database['public']['Tables']['vitals']['Insert']>) =>
+  const vitals = async (visitId: string, values: Partial<Database['public']['Tables']['vitals']['Insert']>) => {
+    if ((await visitState(visitId)).vitals_recorded_at) return;
     must(await c.nurse.from('vitals').insert({ visit_id: visitId, ...values }), 'vitals');
+  };
+
+  const dispense = async (visitId: string) => {
+    if ((await visitState(visitId)).status !== 'to_pharmacy') return;
+    must(await c.pharmacist.rpc('dispense_prescription', { p_visit_id: visitId, p_not_given: [] }), 'dispense');
+  };
 
   const pay = async (
     visitId: string,
     method: 'cash' | 'qris' | 'transfer' | null,
     discount?: { amount: number; reason: string },
   ) => {
+    if ((await visitState(visitId)).status !== 'to_cashier') return;
     const invoiceId = must(await c.cashier.rpc('create_invoice', { p_visit_id: visitId }), 'invoice');
     if (discount)
       must(
@@ -716,6 +744,43 @@ async function seedVisits(
       'pay',
     );
   };
+
+  // Yesterday's leftovers: a demo shows a calm, current day, not visits that never finished. Close earlier days'
+  // open visits the way staff would: cancel who never got seen, dispense, take payment, sign with "no medicine".
+  const { data: stale } = await c.frontDesk
+    .from('visits')
+    .select('id, status')
+    .in('patient_id', patients)
+    .lt('visit_date', today)
+    .not('status', 'in', '(done,cancelled)');
+  for (const visit of stale ?? []) {
+    try {
+      if (visit.status === 'waiting' || visit.status === 'registered') {
+        must(
+          await c.frontDesk
+            .from('visits')
+            .update({ status: 'cancelled', cancel_reason: 'Data demo: kunjungan hari sebelumnya ditutup' })
+            .eq('id', visit.id),
+          'close waiting',
+        );
+      } else if (visit.status === 'in_exam') {
+        const doctor = (await c.frontDesk.from('visits').select('doctor_id').eq('id', visit.id).single()).data
+          ?.doctor_id;
+        const client =
+          doctor === ids.doctorDental ? c.doctorDental : doctor === ids.doctorKia ? c.doctorKia : c.doctorGp;
+        must(
+          await client.from('visits').update({ no_medicine_reason: 'Data demo: ditutup otomatis' }).eq('id', visit.id),
+          'no medicine',
+        );
+        must(await client.rpc('sign_visit', { p_visit_id: visit.id }), 'sign');
+      }
+      await dispense(visit.id);
+      await pay(visit.id, 'cash');
+    } catch (error) {
+      console.log(`  kunjungan lama ${visit.id} dilewati: ${error instanceof Error ? error.message : error}`);
+    }
+  }
+  if (stale?.length) console.log(`Kunjungan lama: ${stale.length} ditutup`);
 
   // Completed visits (feed the cashier, reports and dashboard).
   const v1 = await register(0, gp, 'bpjs');
@@ -743,7 +808,7 @@ async function seedVisits(
       { medicine: 'Ambroxol 30 mg', qty: 10, signa: '3 x 1 sesudah makan' },
     ],
   });
-  must(await c.pharmacist.rpc('dispense_prescription', { p_visit_id: v1, p_not_given: [] }), 'dispense v1');
+  await dispense(v1);
   await pay(v1, null);
 
   const v2 = await register(2, gp, 'umum');
@@ -759,7 +824,7 @@ async function seedVisits(
     rx: [{ medicine: 'Amlodipine 5 mg', qty: 30, signa: '1 x 1 pagi' }],
     procedure: { service: 'Cek Gula Darah', performer: ids.nurse },
   });
-  must(await c.pharmacist.rpc('dispense_prescription', { p_visit_id: v2, p_not_given: [] }), 'dispense v2');
+  await dispense(v2);
   await pay(v2, 'cash');
 
   const v3 = await register(3, gp, 'umum');
@@ -786,7 +851,7 @@ async function seedVisits(
       ],
     },
   });
-  must(await c.pharmacist.rpc('dispense_prescription', { p_visit_id: v3, p_not_given: [] }), 'dispense v3');
+  await dispense(v3);
   await pay(v3, 'qris', { amount: 5000, reason: 'Pembulatan (uji)' });
 
   const v4 = await register(5, dental, 'umum');
@@ -801,7 +866,7 @@ async function seedVisits(
     rx: [{ medicine: 'Ibuprofen 400 mg', qty: 10, signa: '3 x 1 sesudah makan' }],
     procedure: { service: 'Tambal Gigi', performer: ids.doctorDental },
   });
-  must(await c.pharmacist.rpc('dispense_prescription', { p_visit_id: v4, p_not_given: [] }), 'dispense v4');
+  await dispense(v4);
   await pay(v4, 'transfer');
 
   // One at each station, for hands-on testing.
@@ -816,10 +881,7 @@ async function seedVisits(
     dx: ['K30'],
     rx: [{ medicine: 'Antasida DOEN', qty: 15, signa: '3 x 1 sebelum makan' }],
   });
-  must(
-    await c.pharmacist.rpc('dispense_prescription', { p_visit_id: atCashier, p_not_given: [] }),
-    'dispense at-cashier',
-  );
+  await dispense(atCashier);
 
   const atPharmacy = await register(4, gp, 'umum');
   await vitals(atPharmacy, { systolic: 130, diastolic: 85, temperature: 37.0, weight: 75 });
@@ -873,13 +935,17 @@ async function seedExpenses(owner: Client) {
 // Run ------------------------------------------------------------------------------------
 
 async function main() {
-  const { data: clinics, error } = await admin.from('clinics').select('id, name').order('created_at').limit(1);
+  const { data: clinics, error } = await admin
+    .from('clinics')
+    .select('id, name, organization_id')
+    .order('created_at')
+    .limit(1);
   const clinic = clinics?.[0];
   if (error || !clinic) throw new Error(`clinic: ${error?.message ?? 'tidak ada klinik'}`);
   console.log(`Klinik: ${clinic.name}`);
 
   await seedIcd10();
-  const ids = await seedStaff(clinic.id);
+  const ids = await seedStaff(clinic.id, clinic.organization_id);
   const clients = Object.fromEntries(
     await Promise.all((Object.keys(STAFF) as StaffKey[]).map(async (key) => [key, await signIn(key)] as const)),
   ) as Record<StaffKey, Client>;
