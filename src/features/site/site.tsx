@@ -14,6 +14,7 @@ import ownerShot from '../../../public/landing/owner-phone.png';
 import queueShot from '../../../public/landing/queue.png';
 import { ACCESS, ACCESS_ROLES } from './site.lib';
 import { DEMO_URL } from './site-chrome';
+import { SiteHeroVisual } from './site-hero-visual';
 import { SiteJourneyBoard } from './site-journey-board';
 
 /**
@@ -25,6 +26,7 @@ export function SiteLanding() {
     <>
       <Hero />
       <Journey />
+      <Branches />
       <Access />
       <Data />
       <Faq />
@@ -70,21 +72,33 @@ function Hero() {
   const t = useTranslations('site.hero');
 
   return (
-    <section className="px-4 pt-14 pb-20 sm:px-6 sm:pt-20 sm:pb-28">
-      <div className="mx-auto flex max-w-6xl flex-col gap-14">
-        <div className="flex flex-col gap-7">
-          <h1 className="max-w-4xl text-[2.5rem] leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-[3.5rem] lg:text-[4.25rem]">
-            {t('title')}
-          </h1>
-          <p className="max-w-2xl text-[1.0625rem] leading-relaxed text-pretty text-muted-foreground sm:text-lg">
-            {t('lead')}
-          </p>
-          <div className="flex flex-col gap-4">
-            <Ctas />
-            <p className="max-w-md text-sm leading-relaxed text-muted-foreground">{t('demoNote')}</p>
+    // overflow-x-clip: the product shot bleeds past the right edge without ever widening the page.
+    <section className="relative isolate overflow-x-clip px-4 pt-14 pb-20 sm:px-6 sm:pt-16 sm:pb-28">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 -top-40 -z-10 h-[46rem] bg-[radial-gradient(40%_45%_at_72%_40%,rgb(23_115_92/0.14),transparent_70%)]"
+      />
+      <div className="mx-auto flex max-w-6xl flex-col gap-16 lg:gap-20">
+        <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-10">
+          <div className="flex flex-col gap-7">
+            <h1 className="text-[2.5rem] leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-[3.25rem] lg:text-[3.5rem]">
+              {t('title')}
+            </h1>
+            <p className="max-w-xl text-[1.0625rem] leading-relaxed text-pretty text-muted-foreground sm:text-lg">
+              {t('lead')}
+            </p>
+            <div className="flex flex-col gap-4">
+              <Ctas />
+              <p className="max-w-md text-sm leading-relaxed text-muted-foreground">{t('demoNote')}</p>
+            </div>
           </div>
+          <SiteHeroVisual />
         </div>
-        <SiteJourneyBoard />
+
+        <div className="flex flex-col gap-4">
+          <p className="text-sm font-medium text-muted-foreground">{t('boardIntro')}</p>
+          <SiteJourneyBoard />
+        </div>
       </div>
     </section>
   );
@@ -175,6 +189,98 @@ function Station(props: StationProps) {
   );
 }
 
+// One company, many branches ------------------------------------------------------------------
+
+/** Sample branches for the diagram (fictional), each with its own queue right now. */
+const SAMPLE_BRANCHES = [
+  { name: 'Cabang Depok', counts: { waiting: 4, in_exam: 1, to_pharmacy: 2, to_cashier: 1, done: 18 } },
+  { name: 'Cabang Bogor', counts: { waiting: 2, in_exam: 1, to_pharmacy: 0, to_cashier: 1, done: 9 } },
+] as const;
+
+const SHARED = ['patients', 'staff', 'catalog', 'overview'] as const;
+const OWN = ['queue', 'stock', 'cashier', 'schedule'] as const;
+
+function Branches() {
+  const t = useTranslations();
+
+  return (
+    <section id="cabang" className="scroll-mt-20 border-t px-4 py-20 sm:px-6 sm:py-28">
+      <div className="mx-auto flex max-w-6xl flex-col gap-14">
+        <SectionHeading title={t('site.branches.title')} lead={t('site.branches.lead')} />
+
+        {/* The company above its branches, as the owner sees it in the app. */}
+        <div aria-hidden className="flex flex-col items-center">
+          <div className="flex items-center gap-3 rounded-xl bg-foreground px-5 py-3.5 text-background shadow-[0_16px_32px_-20px_rgb(15_47_40/0.6)]">
+            <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-[0.6875rem] font-semibold text-primary-foreground">
+              SM
+            </span>
+            <span className="flex flex-col">
+              <span className="text-sm font-semibold">Sentosa Medika Group</span>
+              <span className="text-xs text-background/60">{t('site.branches.company')}</span>
+            </span>
+          </div>
+          <span className="h-8 w-px bg-input" />
+          <div className="relative grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
+            <span className="absolute inset-x-[16.6%] top-0 hidden border-t border-input sm:block" />
+            {SAMPLE_BRANCHES.map((branch) => (
+              <div key={branch.name} className="flex flex-col items-center">
+                <span className="hidden h-6 w-px bg-input sm:block" />
+                <div className="flex w-full flex-col gap-3 rounded-xl border bg-card p-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)]">
+                  <span className="flex items-center gap-2 text-sm font-semibold">
+                    <span className="flex size-5 items-center justify-center rounded-md bg-muted text-[0.5625rem] font-semibold text-foreground/70">
+                      {branch.name.split(' ')[1]?.[0]}
+                    </span>
+                    {branch.name}
+                  </span>
+                  <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    {JOURNEY.map((station) => (
+                      <span key={station.status} className="flex items-center gap-1.5">
+                        <span className={cn('size-1.5 rounded-full', STATION_COLORS[station.status].line)} />
+                        <span className="tabular font-semibold text-foreground">{branch.counts[station.status]}</span>
+                      </span>
+                    ))}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{t('site.branches.ownQueue')}</span>
+                </div>
+              </div>
+            ))}
+            <div className="flex flex-col items-center">
+              <span className="hidden h-6 w-px bg-input sm:block" />
+              <div className="flex h-full min-h-28 w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-input p-4 text-center text-sm text-muted-foreground">
+                <span className="text-lg leading-none">+</span>
+                {t('site.branches.next')}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
+          <BranchList
+            title={t('site.branches.sharedTitle')}
+            items={SHARED.map((key) => t(`site.branches.shared.${key}`))}
+          />
+          <BranchList title={t('site.branches.ownTitle')} items={OWN.map((key) => t(`site.branches.own.${key}`))} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BranchList(props: { title: string; items: string[] }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <h3 className="font-semibold">{props.title}</h3>
+      <ul className="flex flex-col divide-y border-y">
+        {props.items.map((item) => (
+          <li key={item} className="py-3 leading-relaxed text-muted-foreground">
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 // Who sees what ------------------------------------------------------------------------------------
 
 function Access() {
@@ -257,7 +363,7 @@ function Data() {
 
 // FAQ --------------------------------------------------------------------------------------------
 
-const FAQ = ['setup', 'migrate', 'offline', 'domain'] as const;
+const FAQ = ['setup', 'branches', 'migrate', 'offline', 'domain'] as const;
 
 function Faq() {
   const t = useTranslations('site.faq');

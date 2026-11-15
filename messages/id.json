@@ -2307,12 +2307,28 @@
       "lead": "Sistem manajemen untuk klinik pratama, dari satu klinik sampai banyak cabang: pendaftaran, antrean, rekam medis elektronik, farmasi, kasir, dan laporan pemilik. Dipakai bersama oleh seluruh staf, langsung di browser.",
       "primary": "Daftarkan klinik",
       "secondary": "Lihat klinik demo",
-      "demoNote": "Klinik demo berisi data contoh. Masuk sebagai resepsionis, dokter, apoteker, kasir, atau pemilik tanpa mendaftar."
+      "demoNote": "Klinik demo berisi data contoh. Masuk sebagai resepsionis, dokter, apoteker, kasir, atau pemilik tanpa mendaftar.",
+      "visualAlt": "Layar antrean e-clinic dan beranda pemilik di ponsel.",
+      "boardIntro": "Coba sendiri: daftarkan diri Anda sebagai pasien dan ikuti kunjungan Anda dari meja ke meja."
     },
     "board": {
       "title": "Antrean hari ini",
       "poli": "Poli Umum",
-      "label": "Contoh papan antrean: pasien berpindah dari ruang tunggu ke ruang periksa, farmasi, kasir, lalu pulang."
+      "label": "Contoh papan antrean: pasien berpindah dari ruang tunggu ke ruang periksa, farmasi, kasir, lalu pulang.",
+      "you": {
+        "name": "Anda",
+        "try": "Coba: daftarkan pasien",
+        "again": "Daftar lagi",
+        "next": "Meja berikutnya",
+        "cta": "Daftarkan klinik Anda",
+        "steps": {
+          "waiting": "Resepsionis mendaftarkan Anda; nomor antrean terbit dan perawat mencatat tanda vital.",
+          "in_exam": "Dokter memanggil Anda, menulis SOAP dan diagnosis, lalu mengirim resep tanpa kertas.",
+          "to_pharmacy": "Resep sudah menunggu di farmasi; obat disiapkan dari batch yang paling dekat kedaluwarsa.",
+          "to_cashier": "Tagihan sudah lengkap saat Anda tiba: konsultasi dan obat, tinggal bayar.",
+          "done": "Selesai. Lima meja, tanpa kertas, dan pemilik melihatnya langsung di ponsel."
+        }
+      }
     },
     "journey": {
       "title": "Satu kunjungan, lima meja",

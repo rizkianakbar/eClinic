@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BOARD_DONE, BOARD_START, nextBoard } from './site.lib';
+import { addVisitor, BOARD_DONE, BOARD_START, nextBoard } from './site.lib';
 
 describe('nextBoard (hero queue board)', () => {
   it('keeps the board believable over a long morning', () => {
@@ -32,5 +32,28 @@ describe('nextBoard (hero queue board)', () => {
 
     // Patients keep flowing: the board never stalls.
     expect(served).toBeGreaterThan(50);
+  });
+});
+
+describe('the visitor on the board', () => {
+  it('joins the waiting room and walks every station, one every other tick', () => {
+    let patients = addVisitor(BOARD_START, 'Anda');
+    const path: number[] = [];
+
+    for (let tick = 0; tick < 12; tick += 1) {
+      patients = nextBoard(patients, tick).patients;
+      path.push(patients.find((patient) => patient.you)?.station ?? -1);
+    }
+
+    expect(path.slice(0, 8)).toEqual([1, 1, 2, 2, 3, 3, 4, 4]);
+    // Arrived home, and still on the board.
+    expect(path.at(-1)).toBe(BOARD_DONE);
+  });
+
+  it('registering again replaces the earlier visit', () => {
+    const twice = addVisitor(addVisitor(BOARD_START, 'Anda'), 'Anda');
+
+    expect(twice.filter((patient) => patient.you)).toHaveLength(1);
+    expect(twice.find((patient) => patient.you)?.station).toBe(0);
   });
 });

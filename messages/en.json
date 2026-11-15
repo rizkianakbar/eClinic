@@ -2307,12 +2307,28 @@
       "lead": "Clinic management for primary care, from one clinic to many branches: registration, queue, electronic medical records, pharmacy, cashier and owner reports. Shared by the whole staff, right in the browser.",
       "primary": "Register your clinic",
       "secondary": "See the demo clinic",
-      "demoNote": "The demo clinic holds sample data. Sign in as front desk, doctor, pharmacist, cashier or owner without registering."
+      "demoNote": "The demo clinic holds sample data. Sign in as front desk, doctor, pharmacist, cashier or owner without registering.",
+      "visualAlt": "The e-clinic queue screen and the owner's home on a phone.",
+      "boardIntro": "Try it yourself: register as a patient and follow your own visit from desk to desk."
     },
     "board": {
       "title": "Today's queue",
       "poli": "General clinic",
-      "label": "Sample queue board: patients move from the waiting room to the exam room, pharmacy, cashier, then home."
+      "label": "Sample queue board: patients move from the waiting room to the exam room, pharmacy, cashier, then home.",
+      "you": {
+        "name": "You",
+        "try": "Try it: register a patient",
+        "again": "Register again",
+        "next": "Next desk",
+        "cta": "Register your clinic",
+        "steps": {
+          "waiting": "The front desk registers you; a queue number is issued and the nurse records your vitals.",
+          "in_exam": "The doctor calls you, writes SOAP and the diagnosis, then sends the prescription, paperless.",
+          "to_pharmacy": "The prescription is already waiting at the pharmacy; medicines come from the batch closest to expiry.",
+          "to_cashier": "The invoice is complete when you arrive: consultation and medicines, ready to pay.",
+          "done": "Done. Five desks, no paper, and the owner sees it live on their phone."
+        }
+      }
     },
     "journey": {
       "title": "One visit, five desks",

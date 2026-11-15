@@ -28,6 +28,7 @@ export function SiteLogo(props: SiteLogoProps) {
 
 const SECTIONS = [
   { id: 'alur', key: 'journey' },
+  { id: 'cabang', key: 'branches' },
   { id: 'akses', key: 'access' },
   { id: 'data', key: 'data' },
   { id: 'faq', key: 'faq' },
