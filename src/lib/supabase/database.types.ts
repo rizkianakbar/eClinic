@@ -45,9 +45,10 @@ export type Database = {
           actor_id: string | null
           after: Json | null
           before: Json | null
-          clinic_id: string
+          clinic_id: string | null
           created_at: string
           id: string
+          organization_id: string
           record_id: string
           table_name: string
         }
@@ -56,9 +57,10 @@ export type Database = {
           actor_id?: string | null
           after?: Json | null
           before?: Json | null
-          clinic_id: string
+          clinic_id?: string | null
           created_at?: string
           id?: string
+          organization_id: string
           record_id: string
           table_name: string
         }
@@ -67,9 +69,10 @@ export type Database = {
           actor_id?: string | null
           after?: Json | null
           before?: Json | null
-          clinic_id?: string
+          clinic_id?: string | null
           created_at?: string
           id?: string
+          organization_id?: string
           record_id?: string
           table_name?: string
         }
@@ -79,6 +82,52 @@ export type Database = {
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinic_staff: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          id: string
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          id?: string
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          id?: string
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_staff_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_staff_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -92,9 +141,11 @@ export type Database = {
           email: string | null
           id: string
           idle_logout_minutes: number
+          is_active: boolean
           license_no: string | null
           logo_path: string | null
           name: string
+          organization_id: string
           phone: string | null
           satusehat_org_id: string | null
           updated_at: string
@@ -107,9 +158,11 @@ export type Database = {
           email?: string | null
           id?: string
           idle_logout_minutes?: number
+          is_active?: boolean
           license_no?: string | null
           logo_path?: string | null
           name: string
+          organization_id: string
           phone?: string | null
           satusehat_org_id?: string | null
           updated_at?: string
@@ -122,14 +175,24 @@ export type Database = {
           email?: string | null
           id?: string
           idle_logout_minutes?: number
+          is_active?: boolean
           license_no?: string | null
           logo_path?: string | null
           name?: string
+          organization_id?: string
           phone?: string | null
           satusehat_org_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clinics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       consumable_usages: {
         Row: {
@@ -930,37 +993,40 @@ export type Database = {
       }
       medicines: {
         Row: {
-          clinic_id: string
+          clinic_id: string | null
           created_at: string
           id: string
           is_active: boolean
           kfa_code: string | null
           min_stock: number
           name: string
+          organization_id: string
           price: number
           unit: string
           updated_at: string
         }
         Insert: {
-          clinic_id?: string
+          clinic_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
           kfa_code?: string | null
           min_stock?: number
           name: string
+          organization_id?: string
           price: number
           unit: string
           updated_at?: string
         }
         Update: {
-          clinic_id?: string
+          clinic_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
           kfa_code?: string | null
           min_stock?: number
           name?: string
+          organization_id?: string
           price?: number
           unit?: string
           updated_at?: string
@@ -973,7 +1039,38 @@ export type Database = {
             referencedRelation: "clinics"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "medicines_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       patients: {
         Row: {
@@ -987,6 +1084,7 @@ export type Database = {
           is_active: boolean
           mrn: string
           nik: string | null
+          organization_id: string
           phone: string | null
           satusehat_id: string | null
           sex: string
@@ -996,13 +1094,14 @@ export type Database = {
           address?: string | null
           birth_date: string
           bpjs_number?: string | null
-          clinic_id: string
+          clinic_id?: string
           created_at?: string
           full_name: string
           id?: string
           is_active?: boolean
           mrn?: string
           nik?: string | null
+          organization_id?: string
           phone?: string | null
           satusehat_id?: string | null
           sex: string
@@ -1019,6 +1118,7 @@ export type Database = {
           is_active?: boolean
           mrn?: string
           nik?: string | null
+          organization_id?: string
           phone?: string | null
           satusehat_id?: string | null
           sex?: string
@@ -1030,6 +1130,13 @@ export type Database = {
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patients_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1101,32 +1208,35 @@ export type Database = {
       polis: {
         Row: {
           bpjs_poli_code: string | null
-          clinic_id: string
+          clinic_id: string | null
           consultation_service_id: string | null
           created_at: string
           id: string
           is_active: boolean
           name: string
+          organization_id: string
           updated_at: string
         }
         Insert: {
           bpjs_poli_code?: string | null
-          clinic_id: string
+          clinic_id?: string | null
           consultation_service_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
           name: string
+          organization_id?: string
           updated_at?: string
         }
         Update: {
           bpjs_poli_code?: string | null
-          clinic_id?: string
+          clinic_id?: string | null
           consultation_service_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
           name?: string
+          organization_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -1142,6 +1252,13 @@ export type Database = {
             columns: ["consultation_service_id"]
             isOneToOne: false
             referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "polis_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1376,6 +1493,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_clinic_id: string | null
           clinic_id: string
           created_at: string
           email: string | null
@@ -1384,12 +1502,14 @@ export type Database = {
           is_active: boolean
           locale: string
           nik: string | null
+          organization_id: string
           role: Database["public"]["Enums"]["user_role"]
           satusehat_practitioner_id: string | null
           sip_number: string | null
           updated_at: string
         }
         Insert: {
+          active_clinic_id?: string | null
           clinic_id: string
           created_at?: string
           email?: string | null
@@ -1398,12 +1518,14 @@ export type Database = {
           is_active?: boolean
           locale?: string
           nik?: string | null
+          organization_id?: string
           role: Database["public"]["Enums"]["user_role"]
           satusehat_practitioner_id?: string | null
           sip_number?: string | null
           updated_at?: string
         }
         Update: {
+          active_clinic_id?: string | null
           clinic_id?: string
           created_at?: string
           email?: string | null
@@ -1412,6 +1534,7 @@ export type Database = {
           is_active?: boolean
           locale?: string
           nik?: string | null
+          organization_id?: string
           role?: Database["public"]["Enums"]["user_role"]
           satusehat_practitioner_id?: string | null
           sip_number?: string | null
@@ -1419,10 +1542,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "profiles_active_clinic_id_fkey"
+            columns: ["active_clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "profiles_clinic_id_fkey"
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1571,27 +1708,30 @@ export type Database = {
       }
       service_package_items: {
         Row: {
-          clinic_id: string
+          clinic_id: string | null
           created_at: string
           id: string
+          organization_id: string
           package_id: string
           qty: number
           service_id: string
           updated_at: string
         }
         Insert: {
-          clinic_id?: string
+          clinic_id?: string | null
           created_at?: string
           id?: string
+          organization_id?: string
           package_id: string
           qty?: number
           service_id: string
           updated_at?: string
         }
         Update: {
-          clinic_id?: string
+          clinic_id?: string | null
           created_at?: string
           id?: string
+          organization_id?: string
           package_id?: string
           qty?: number
           service_id?: string
@@ -1603,6 +1743,13 @@ export type Database = {
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_package_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -1623,37 +1770,40 @@ export type Database = {
       }
       services: {
         Row: {
-          clinic_id: string
+          clinic_id: string | null
           created_at: string
           doctor_fee_type: string
           doctor_fee_value: number
           id: string
           is_active: boolean
           name: string
+          organization_id: string
           price: number
           type: string
           updated_at: string
         }
         Insert: {
-          clinic_id?: string
+          clinic_id?: string | null
           created_at?: string
           doctor_fee_type?: string
           doctor_fee_value?: number
           id?: string
           is_active?: boolean
           name: string
+          organization_id?: string
           price: number
           type: string
           updated_at?: string
         }
         Update: {
-          clinic_id?: string
+          clinic_id?: string | null
           created_at?: string
           doctor_fee_type?: string
           doctor_fee_value?: number
           id?: string
           is_active?: boolean
           name?: string
+          organization_id?: string
           price?: number
           type?: string
           updated_at?: string
@@ -1664,6 +1814,13 @@ export type Database = {
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "services_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -2004,31 +2161,34 @@ export type Database = {
       suppliers: {
         Row: {
           address: string | null
-          clinic_id: string
+          clinic_id: string | null
           created_at: string
           id: string
           is_active: boolean
           name: string
+          organization_id: string
           phone: string | null
           updated_at: string
         }
         Insert: {
           address?: string | null
-          clinic_id?: string
+          clinic_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
           name: string
+          organization_id?: string
           phone?: string | null
           updated_at?: string
         }
         Update: {
           address?: string | null
-          clinic_id?: string
+          clinic_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
           name?: string
+          organization_id?: string
           phone?: string | null
           updated_at?: string
         }
@@ -2038,6 +2198,13 @@ export type Database = {
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suppliers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -2427,6 +2594,26 @@ export type Database = {
         Args: { p_invoice_id: string; p_qty: number; p_service_id: string }
         Returns: undefined
       }
+      assign_clinic_staff: {
+        Args: { p_clinic_id: string; p_profile_id: string }
+        Returns: undefined
+      }
+      create_clinic_branch: {
+        Args: { p_address: string; p_name: string; p_phone: string }
+        Returns: string
+      }
+      create_clinic_tenant: {
+        Args: {
+          p_branch_name?: string
+          p_clinic_name: string
+          p_email: string
+          p_full_name: string
+          p_locale?: string
+          p_slug: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       create_invoice: { Args: { p_visit_id: string }; Returns: string }
       create_visit: {
         Args: {
@@ -2465,10 +2652,67 @@ export type Database = {
         Args: { p_not_given: Json; p_visit_id: string }
         Returns: string
       }
+      list_organization_staff: {
+        Args: never
+        Returns: {
+          clinic_ids: string[]
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          role: Database["public"]["Enums"]["user_role"]
+        }[]
+      }
+      my_clinics: {
+        Args: never
+        Returns: {
+          address: string
+          id: string
+          name: string
+          organization_branches: number
+        }[]
+      }
+      organization_branches: {
+        Args: never
+        Returns: {
+          address: string
+          created_at: string
+          doctors: number
+          id: string
+          is_active: boolean
+          name: string
+          phone: string
+          schedules: number
+          staff: number
+          team: number
+        }[]
+      }
+      organization_overview: {
+        Args: { p_days: number; p_today: string }
+        Returns: {
+          address: string
+          bpjs: number
+          clinic_id: string
+          done: number
+          in_exam: number
+          name: string
+          paid_invoices: number
+          revenue: number
+          series: Json
+          to_cashier: number
+          to_pharmacy: number
+          waiting: number
+        }[]
+      }
       patient_demographics: {
         Args: { p_month_start: string; p_today: string; p_week_ago: string }
         Returns: Json
       }
+      patient_previous_visits: {
+        Args: { p_exclude_visit_id: string; p_patient_id: string }
+        Returns: Json
+      }
+      patient_visit_history: { Args: { p_patient_id: string }; Returns: Json }
       pay_invoice: {
         Args: {
           p_cash_received: number
@@ -2493,6 +2737,7 @@ export type Database = {
         Returns: string
       }
       remove_invoice_item: { Args: { p_item_id: string }; Returns: undefined }
+      rename_organization: { Args: { p_name: string }; Returns: undefined }
       report_doctor_fees: {
         Args: { p_from: string; p_to: string }
         Returns: {
@@ -2560,6 +2805,10 @@ export type Database = {
           visits: number
         }[]
       }
+      set_clinic_branch_active: {
+        Args: { p_active: boolean; p_clinic_id: string }
+        Returns: undefined
+      }
       set_invoice_discount: {
         Args: { p_discount: number; p_invoice_id: string; p_reason: string }
         Returns: undefined
@@ -2585,6 +2834,11 @@ export type Database = {
           medicines: number
           value: number
         }[]
+      }
+      switch_clinic: { Args: { p_clinic_id: string }; Returns: undefined }
+      unassign_clinic_staff: {
+        Args: { p_clinic_id: string; p_profile_id: string }
+        Returns: undefined
       }
       void_invoice: {
         Args: { p_invoice_id: string; p_reason: string }
