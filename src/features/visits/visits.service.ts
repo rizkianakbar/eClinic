@@ -4,6 +4,7 @@ import type { DateRange } from '@/features/reports/reports.lib';
 import { isoWeekday, todayInJakarta } from '@/lib/dates';
 import type { ActionResult } from '@/lib/query';
 import type { SupabaseClient } from '@/lib/supabase/server';
+import type { VisitStatus } from './visits.constants';
 import { type CreateVisitValues, type PracticeSession, VISIT_HISTORY_PAGE_SIZE, visitErrorMessage } from './visits.lib';
 
 /** Queue number, date, poli, doctor and quota are decided by the database (visits_before_insert). */
@@ -56,20 +57,35 @@ export async function listTodaySessions(supabase: SupabaseClient): Promise<Pract
     }));
 }
 
+/** A patient's visit at any branch of the organization (patient_visit_history). */
+export type PatientVisit = {
+  id: string;
+  visit_date: string;
+  queue_no: number;
+  status: VisitStatus;
+  payer_type: string;
+  created_at: string;
+  cancel_reason: string | null;
+  clinic: { id: string; name: string };
+  /** At the branch I am working at: only these open (the others' pages belong to their branch). */
+  here: boolean;
+  poli: { name: string } | null;
+  doctor: { full_name: string } | null;
+  /** The primary diagnosis; null for roles that may not read diagnoses (front desk, cashier). */
+  diagnosis: { code: string; name: string } | null;
+};
+
+/**
+ * Riwayat kunjungan of one patient across every branch, newest first, with the primary diagnosis where the role
+ * may read it. Through a checked function: the visit tables themselves stay per branch, so queues and worklists
+ * never show another branch's patients.
+ */
 export async function listPatientVisits(supabase: SupabaseClient, patientId: string) {
-  const { data, error } = await supabase
-    .from('visits')
-    .select(
-      'id, visit_date, queue_no, status, payer_type, created_at, cancel_reason, poli:polis(name), doctor:profiles!visits_doctor_id_fkey(full_name)',
-    )
-    .eq('patient_id', patientId)
-    .order('visit_date', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(50);
+  const { data, error } = await supabase.rpc('patient_visit_history', { p_patient_id: patientId });
 
   if (error) throw new Error(`listPatientVisits failed: ${error.code}`);
 
-  return data;
+  return (data ?? []) as unknown as PatientVisit[];
 }
 
 /** One visit with who, where and its timeline stamps (no clinical content). */
@@ -85,31 +101,6 @@ export async function getVisit(supabase: SupabaseClient, visitId: string) {
   if (error) throw new Error(`getVisit failed: ${error.code}`);
 
   return data;
-}
-
-/**
- * The primary diagnosis of each visit (clinical roles only: RLS hides diagnoses
- * from front desk and cashier, who get an empty map).
- */
-/**
- * A patient's primary diagnosis per visit, looked up by patient (inner join on visits), so it can load in
- * the same round trip as the visits themselves instead of after them.
- */
-export async function listPatientPrimaryDiagnoses(supabase: SupabaseClient, patientId: string) {
-  const { data, error } = await supabase
-    .from('visit_diagnoses')
-    .select('visit_id, icd10_code, icd10:icd10_codes(name, name_id), visit:visits!inner(patient_id)')
-    .eq('visit.patient_id', patientId)
-    .eq('is_primary', true);
-
-  if (error) throw new Error(`listPatientPrimaryDiagnoses failed: ${error.code}`);
-
-  return new Map(
-    data.map((row) => [
-      row.visit_id,
-      { code: row.icd10_code, name: row.icd10?.name_id ?? row.icd10?.name ?? row.icd10_code },
-    ]),
-  );
 }
 
 /**

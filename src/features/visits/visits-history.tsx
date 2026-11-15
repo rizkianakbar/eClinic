@@ -1,17 +1,18 @@
-import { CalendarIcon, ChevronRightIcon, StethoscopeIcon } from 'lucide-react';
+import { CalendarIcon, ChevronRightIcon, MapPinIcon, StethoscopeIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { INTL_LOCALE } from '@/i18n/locales';
 import { cn } from '@/lib/utils';
-import type { listPatientVisits } from './visits.service';
+import type { PatientVisit } from './visits.service';
 import { VisitsStatusBadge } from './visits-status-badge';
 
 type VisitsHistoryProps = {
-  visits: Awaited<ReturnType<typeof listPatientVisits>>;
-  /** Primary diagnosis per visit id; empty for roles that may not read diagnoses. */
-  diagnoses: Map<string, { code: string; name: string }>;
+  /** Every branch's visits; the primary diagnosis is null for roles that may not read it. */
+  visits: PatientVisit[];
   /** Clinical roles open the full record; others the visit summary. */
   hrefFor: (visitId: string) => string;
+  /** The organization has several branches: name the branch of each visit. */
+  showBranch: boolean;
 };
 
 /** Visits as a timeline, newest first: when, where, with whom, why, and how it ended. */
@@ -36,7 +37,9 @@ export function VisitsHistory(props: VisitsHistoryProps) {
     <ol className="flex flex-col">
       {props.visits.map((visit, index) => {
         const date = new Date(visit.visit_date);
-        const diagnosis = props.diagnoses.get(visit.id);
+        const diagnosis = visit.diagnosis;
+        // A visit at another branch is shown but does not open: its record belongs to that branch's screens.
+        const Card = visit.here ? Link : 'div';
         const last = index === props.visits.length - 1;
         const newYear = index === 0 || props.visits[index - 1].visit_date.slice(0, 4) !== visit.visit_date.slice(0, 4);
 
@@ -55,16 +58,27 @@ export function VisitsHistory(props: VisitsHistoryProps) {
                 <span className="tabular mt-1 text-[0.6875rem] text-muted-foreground">{year.format(date)}</span>
               )}
             </div>
-            <Link
+            <Card
               href={props.hrefFor(visit.id)}
               className={cn(
-                'group mb-3 flex items-start gap-3 rounded-xl border bg-card p-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)] transition-colors hover:border-input',
+                'group mb-3 flex items-start gap-3 rounded-xl border bg-card p-4 shadow-[0_1px_2px_rgb(20_32_29/0.04)]',
+                visit.here && 'transition-colors hover:border-input',
                 visit.status === 'cancelled' && 'opacity-70',
               )}>
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <span className="font-medium">{visit.poli?.name ?? '-'}</span>
                   <VisitsStatusBadge status={visit.status} />
+                  {props.showBranch && (
+                    <span
+                      className={cn(
+                        'flex items-center gap-1 text-[0.8125rem]',
+                        visit.here ? 'text-muted-foreground' : 'font-medium text-foreground',
+                      )}>
+                      <MapPinIcon className="size-3.5" aria-hidden />
+                      {visit.here ? t('hereBranch', { branch: visit.clinic.name }) : visit.clinic.name}
+                    </span>
+                  )}
                   {visit.payer_type === 'bpjs' && (
                     <span className="rounded bg-bpjs-soft px-1.5 text-[0.6875rem] leading-5 font-semibold text-bpjs">
                       BPJS
@@ -89,11 +103,13 @@ export function VisitsHistory(props: VisitsHistoryProps) {
                   </p>
                 )}
               </div>
-              <ChevronRightIcon
-                className="mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
-                aria-hidden
-              />
-            </Link>
+              {visit.here && (
+                <ChevronRightIcon
+                  className="mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                  aria-hidden
+                />
+              )}
+            </Card>
           </li>
         );
       })}
