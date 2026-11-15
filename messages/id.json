@@ -91,7 +91,11 @@
     "expenses": "Pengeluaran",
     "settings": "Pengaturan",
     "account": "Akun saya",
-    "main": "Menu utama"
+    "main": "Menu utama",
+    "companyOverview": "Ikhtisar",
+    "companyBranches": "Cabang",
+    "companyStaff": "Staf",
+    "companySettings": "Pengaturan"
   },
   "shell": {
     "station": {
@@ -128,7 +132,8 @@
       "activity": "Log aktivitas",
       "idle": "Keluar otomatis setelah {minutes} menit tidak dipakai. Keluar sendiri saat meninggalkan meja.",
       "signOut": "Keluar",
-      "signingOut": "Keluar…"
+      "signingOut": "Keluar…",
+      "company": "Ikhtisar perusahaan"
     },
     "textSize": {
       "label": "Ukuran teks",
@@ -137,6 +142,17 @@
       "xlarge": "Ekstra",
       "sampleName": "Contoh nama pasien",
       "sampleMeta": "Poli Umum · dr. Contoh · menunggu 5 mnt"
+    },
+    "scope": {
+      "switch": "Ganti cabang",
+      "choose": "Pilih cabang",
+      "branches": "Cabang",
+      "opening": "Membuka cabang…",
+      "current": "Sedang di sini",
+      "overview": "Ikhtisar perusahaan",
+      "newBranch": "Buka cabang baru",
+      "count": "{count} cabang",
+      "noAddress": "Alamat belum diisi"
     }
   },
   "journey": {
@@ -177,11 +193,12 @@
       "email": "Email",
       "password": "Kata sandi",
       "submit": "Masuk",
-      "checking": "Memeriksa…"
-    },
-    "test": {
-      "title": "Masuk cepat sebagai akun uji",
-      "hint": "Hanya muncul saat pengembangan (bun run dev)."
+      "checking": "Memeriksa…",
+      "linkExpired": "Tautan masuk sudah dipakai atau kedaluwarsa. Masuk dengan email dan kata sandi.",
+      "demoNote": "Ini klinik demo berisi data contoh.",
+      "demoCta": "Daftarkan klinik Anda sendiri",
+      "otherClinic": "Bukan klinik Anda?",
+      "otherClinicCta": "Cari klinik Anda"
     },
     "errors": {
       "emailRequired": "Email wajib diisi.",
@@ -198,7 +215,8 @@
       "sessionEnded": "Sesi berakhir. Masuk lagi lalu coba ganti kata sandi.",
       "wrongCredentials": "Email atau kata sandi salah. Periksa kembali lalu coba lagi.",
       "inactive": "Akun Anda tidak aktif. Hubungi admin klinik.",
-      "devOnly": "Login cepat hanya tersedia saat pengembangan."
+      "devOnly": "Login cepat hanya tersedia saat pengembangan.",
+      "otherClinic": "Akun ini terdaftar di klinik lain. Masuk di {address}."
     },
     "password": {
       "changed": "Kata sandi diganti. Gunakan kata sandi baru saat masuk berikutnya.",
@@ -213,6 +231,39 @@
       "label": "Bahasa tampilan",
       "title": "Bahasa",
       "description": "Bahasa tampilan untuk akun Anda, di komputer mana pun. Surat, kuitansi, etiket, dan ekspor tetap berbahasa Indonesia."
+    },
+    "demo": {
+      "eyebrow": "Klinik demo",
+      "title": "Coba e-clinic dari meja mana pun",
+      "lead": "Pilih peran untuk masuk ke klinik contoh yang sedang berjalan hari ini. Tanpa daftar, datanya boleh diubah bebas.",
+      "recommended": "Untuk pemilik",
+      "withEmail": "Masuk dengan email",
+      "roles": {
+        "owner": {
+          "title": "Pemilik klinik",
+          "body": "Pendapatan, pasien, dan antrean hari ini; laporan dan semua cabang."
+        },
+        "front_desk": {
+          "title": "Resepsionis",
+          "body": "Daftarkan pasien dan terbitkan nomor antrean."
+        },
+        "nurse": {
+          "title": "Perawat",
+          "body": "Catat tanda vital pasien yang menunggu."
+        },
+        "doctor": {
+          "title": "Dokter",
+          "body": "SOAP, diagnosis ICD-10, resep, dan surat."
+        },
+        "pharmacist": {
+          "title": "Apoteker",
+          "body": "Siapkan resep dengan FEFO dan cetak etiket."
+        },
+        "cashier": {
+          "title": "Kasir",
+          "body": "Tagihan yang sudah terisi, tunai, QRIS, transfer."
+        }
+      }
     }
   },
   "account": {
@@ -220,14 +271,18 @@
     "roleAt": "{role} di {clinic}",
     "profile": {
       "title": "Profil",
-      "description": "Data diri Anda di klinik. Untuk mengubahnya, hubungi admin klinik.",
+      "description": "Data diri Anda di instansi. Untuk mengubahnya, hubungi admin klinik.",
       "fullName": "Nama lengkap",
       "email": "Email (untuk masuk)",
       "role": "Peran",
-      "clinic": "Klinik",
       "nik": "NIK",
       "sip": "Nomor SIP",
-      "notSet": "Belum diisi"
+      "notSet": "Belum diisi",
+      "organization": "Instansi",
+      "branches": "Cabang",
+      "currentBranch": "Sedang bertugas di",
+      "noBranch": "Belum memilih cabang",
+      "allBranches": "Semua cabang ({count})"
     },
     "password": {
       "title": "Kata sandi",
@@ -485,7 +540,8 @@
       "empty": "Belum pernah berkunjung",
       "emptyHint": "Kunjungan yang didaftarkan akan tercatat di sini.",
       "queue": "antrean {number}",
-      "cancelled": "Batal: {reason}"
+      "cancelled": "Batal: {reason}",
+      "hereBranch": "{branch}"
     },
     "list": {
       "empty": "Tidak ada kunjungan",
@@ -748,6 +804,11 @@
       "bpjsDoneHint": "kunjungan",
       "waitingShort": "Menunggu",
       "waitingHint": "pasien"
+    },
+    "firstDay": {
+      "title": "Grafik hari Anda muncul di sini",
+      "body": "Begitu pasien pertama didaftarkan, Beranda menampilkan pendapatan, jumlah pasien, dan posisi setiap pasien secara langsung.",
+      "cta": "Daftarkan pasien pertama"
     }
   },
   "audit": {
@@ -1779,7 +1840,8 @@
       "pickIcd10": "Pilih file ICD-10.",
       "icd10Type": "File harus Excel (.xlsx) atau CSV.",
       "icd10Size": "Ukuran file maksimal 4 MB.",
-      "icd10Stopped": "Impor berhenti di baris ke-{row}. Baris sebelumnya sudah tersimpan; coba impor ulang."
+      "icd10Stopped": "Impor berhenti di baris ke-{row}. Baris sebelumnya sudah tersimpan; coba impor ulang.",
+      "consultationPrice": "Isi tarif konsultasi dalam rupiah, mis. 50.000."
     },
     "activity": {
       "title": "Log aktivitas",
@@ -1843,7 +1905,11 @@
       "bpjsHint": "opsional, untuk PCare",
       "consultation": "Tarif konsultasi",
       "consultationHint": "ditagih otomatis di kasir",
-      "none": "Tidak ada"
+      "none": "Tidak ada",
+      "newConsultation": "+ Tarif konsultasi baru",
+      "consultationPrice": "Tarif konsultasi",
+      "consultationPriceHint": "Dibuat sebagai tarif \"Konsultasi {name}\" dan ditagih otomatis untuk setiap kunjungan ke poli ini.",
+      "namePlaceholder": "poli ini"
     },
     "staff": {
       "title": "Staf",
@@ -1946,7 +2012,8 @@
       "clinic": "Memuat profil klinik",
       "polis": "Memuat poli",
       "services": "Memuat tarif layanan"
-    }
+    },
+    "catalogShared": "Poli, tarif, obat, dan supplier berlaku untuk semua cabang."
   },
   "schedules": {
     "days": {
@@ -2215,5 +2282,371 @@
     "importing": "Mengimpor…",
     "import": "Impor {count} baris",
     "finish": "Selesai"
+  },
+  "site": {
+    "meta": {
+      "title": "e-clinic · Sistem manajemen klinik pratama",
+      "description": "Pendaftaran, antrean, rekam medis elektronik, farmasi, kasir, dan laporan untuk klinik pratama, dalam satu sistem di browser. Coba klinik demo atau daftarkan klinik Anda."
+    },
+    "nav": {
+      "journey": "Alur kunjungan",
+      "access": "Hak akses",
+      "data": "Data",
+      "faq": "Tanya jawab",
+      "login": "Masuk",
+      "signup": "Daftarkan klinik",
+      "demo": "Klinik demo",
+      "home": "Beranda e-clinic",
+      "main": "Navigasi utama",
+      "footer": "Navigasi bawah"
+    },
+    "language": "Bahasa",
+    "hero": {
+      "title": "Satu alur untuk setiap pasien, dari pendaftaran sampai pulang.",
+      "lead": "Sistem manajemen untuk klinik pratama: pendaftaran, antrean, rekam medis elektronik, farmasi, kasir, dan laporan pemilik. Dipakai bersama oleh seluruh staf, langsung di browser.",
+      "primary": "Daftarkan klinik",
+      "secondary": "Lihat klinik demo",
+      "demoNote": "Klinik demo berisi data contoh. Masuk sebagai resepsionis, dokter, apoteker, kasir, atau pemilik tanpa mendaftar."
+    },
+    "board": {
+      "title": "Antrean hari ini",
+      "poli": "Poli Umum",
+      "label": "Contoh papan antrean: pasien berpindah dari ruang tunggu ke ruang periksa, farmasi, kasir, lalu pulang."
+    },
+    "journey": {
+      "title": "Satu kunjungan, lima meja",
+      "lead": "Setiap layar menampilkan pasien yang sama. Saat dokter menandatangani rekam medis, resep muncul di farmasi; saat obat diserahkan, tagihan muncul di kasir. Tidak ada kertas yang dioper.",
+      "who": "Dikerjakan oleh",
+      "stations": {
+        "waiting": {
+          "title": "Pasien terdaftar dan langsung masuk antrean",
+          "body": "Resepsionis mencari pasien dengan nama, NIK, nomor telepon, atau No. RM, memilih poli dan dokter, dan nomor antrean terbit. Kuota dokter hari itu dijaga. Pasien baru bisa dipanggil setelah tanda vitalnya dicatat.",
+          "who": "Resepsionis dan perawat",
+          "alt": "Layar antrean: pasien di ruang tunggu, ruang periksa, farmasi, dan kasir."
+        },
+        "in_exam": {
+          "title": "Dokter menulis rekam medis tanpa berpindah layar",
+          "body": "SOAP, diagnosis ICD-10 yang dicari dengan nama penyakit dalam bahasa Indonesia, tindakan, resep, serta surat sakit dan rujukan. Setelah ditandatangani, rekam medis terkunci dan koreksi dicatat sebagai amandemen.",
+          "who": "Dokter",
+          "alt": "Layar pemeriksaan: catatan SOAP, tanda vital, diagnosis, dan daftar kelengkapan."
+        },
+        "to_pharmacy": {
+          "title": "Resep sampai di farmasi lebih dulu dari pasiennya",
+          "body": "Obat diambil dari batch yang paling dekat kedaluwarsa, tercatat di kartu stok, dan etiketnya siap dicetak. Racikan puyer dan kapsul didukung. Bila stok kurang, obat ditandai tidak diberikan dan tidak ditagih.",
+          "who": "Apoteker dan asisten apoteker",
+          "alt": "Layar penyerahan obat: batch dan tanggal kedaluwarsa tiap obat, dengan pratinjau etiket."
+        },
+        "to_cashier": {
+          "title": "Tagihan sudah lengkap saat pasien tiba di kasir",
+          "body": "Konsultasi, tindakan, bahan habis pakai, dan obat masuk sendiri. Bayar tunai, QRIS, atau transfer; pasien BPJS tidak membayar. Diskon selalu disertai alasan, dan tagihan lunas hanya bisa dibatalkan, tidak diubah.",
+          "who": "Kasir",
+          "alt": "Layar kasir: pasien menunggu pembayaran, transaksi hari ini, dan metode pembayaran."
+        },
+        "done": {
+          "title": "Pemilik melihat harinya dari ponsel",
+          "body": "Pendapatan, jumlah pasien, dan siapa yang masih di klinik, diperbarui langsung. Laporan pendapatan, jasa medis, laba rugi, dan sepuluh penyakit terbanyak bisa diunduh ke Excel.",
+          "who": "Pemilik",
+          "alt": "Beranda pemilik di ponsel: pendapatan hari ini, jumlah pasien, dan tren 14 hari."
+        }
+      }
+    },
+    "access": {
+      "title": "Siapa melihat apa",
+      "lead": "Hak akses diperiksa di server dan di basis data, bukan hanya disembunyikan dari layar. Data setiap klinik terpisah di tingkat basis data.",
+      "caption": "Hak akses per peran",
+      "action": "Tindakan",
+      "allowed": "Boleh",
+      "denied": "Tidak",
+      "rows": {
+        "readRecords": "Membaca SOAP dan diagnosis",
+        "writeRecords": "Menulis dan menandatangani rekam medis",
+        "vitals": "Mencatat tanda vital",
+        "voidInvoice": "Membatalkan tagihan yang sudah lunas",
+        "finance": "Laporan keuangan dan pengeluaran",
+        "activity": "Log aktivitas"
+      }
+    },
+    "data": {
+      "title": "Data klinik Anda",
+      "items": {
+        "export": {
+          "term": "Milik klinik",
+          "body": "Seluruh data pasien dan transaksi bisa diekspor ke Excel kapan saja."
+        },
+        "backup": {
+          "term": "Cadangan setiap malam",
+          "body": "Basis data dicadangkan setiap malam, terenkripsi, ke lokasi terpisah."
+        },
+        "audit": {
+          "term": "Jejak perubahan",
+          "body": "Log aktivitas mencatat siapa mengubah data master, keuangan, dan operasional, dan kapan."
+        },
+        "idle": {
+          "term": "Aman di komputer bersama",
+          "body": "Sesi berakhir sendiri bila komputer tidak dipakai. Batas waktunya diatur oleh klinik."
+        },
+        "integrations": {
+          "term": "SATUSEHAT dan BPJS PCare",
+          "body": "Sedang dikerjakan. Kunjungan, diagnosis, dan obat akan terkirim di latar belakang, dengan layar status pengiriman."
+        },
+        "browser": {
+          "term": "Tanpa instalasi",
+          "body": "Berjalan di browser komputer klinik dan ponsel pemilik. Membutuhkan koneksi internet."
+        }
+      }
+    },
+    "faq": {
+      "title": "Tanya jawab",
+      "items": {
+        "migrate": {
+          "q": "Bisakah memindahkan data lama?",
+          "a": "Bisa. Obat, tarif, dan supplier diimpor dari templat Excel yang tersedia di aplikasi."
+        },
+        "offline": {
+          "q": "Bagaimana jika internet putus?",
+          "a": "e-clinic membutuhkan koneksi internet. Data tersimpan di server, jadi tidak ada yang hilang saat komputer mati, dan pekerjaan berlanjut begitu koneksi kembali."
+        },
+        "setup": {
+          "q": "Apa yang perlu disiapkan setelah mendaftar?",
+          "a": "Daftar persiapan di beranda memandu enam langkah: profil klinik, poli dan tarif konsultasi, dokter, jadwal praktik, daftar obat, dan staf lain."
+        },
+        "domain": {
+          "q": "Bisakah memakai domain sendiri?",
+          "a": "Setiap klinik mendapat alamat sendiri, misalnya sehat.{domain}. Domain milik klinik sendiri sedang disiapkan."
+        }
+      }
+    },
+    "closing": {
+      "title": "Lihat dulu klinik demo, atau langsung daftarkan klinik Anda.",
+      "lead": "Pendaftaran selesai dalam dua menit. Setelah itu Anda masuk sebagai pemilik, dan daftar persiapan memandu sisanya."
+    },
+    "footer": {
+      "tagline": "Sistem manajemen klinik pratama.",
+      "rights": "© {year} e-clinic",
+      "made": "Dibuat di Indonesia"
+    },
+    "notFound": {
+      "title": "Halaman tidak ditemukan",
+      "description": "Periksa alamatnya, atau kembali ke beranda.",
+      "home": "Ke beranda"
+    }
+  },
+  "tenants": {
+    "signup": {
+      "title": "Daftarkan klinik Anda",
+      "lead": "Akun pemilik dan klinik Anda siap dalam satu langkah. Setelah itu, daftar persiapan memandu sisanya.",
+      "haveAccount": "Sudah punya akun?",
+      "login": "Masuk",
+      "you": "Anda",
+      "fullName": "Nama lengkap",
+      "fullNameHint": "Nama Anda sebagai pemilik, mis. dr. Andi Wijaya",
+      "clinicNamePlaceholder": "Sentosa Medika Group",
+      "slug": "Alamat web",
+      "slugHint": "Huruf kecil, angka, dan tanda hubung. Tidak bisa diubah setelah daftar.",
+      "email": "Email",
+      "emailHint": "Untuk masuk sebagai pemilik.",
+      "password": "Kata sandi",
+      "passwordHint": "Minimal 8 karakter.",
+      "showPassword": "Tampilkan kata sandi",
+      "hidePassword": "Sembunyikan kata sandi",
+      "submit": "Buat klinik",
+      "creating": "Menyiapkan klinik…",
+      "terms": "Data pasien yang Anda masukkan tetap milik klinik Anda dan bisa diekspor kapan saja.",
+      "checking": "Memeriksa…",
+      "available": "Tersedia",
+      "taken": "Sudah dipakai klinik lain",
+      "preview": {
+        "label": "Pratinjau klinik Anda",
+        "owner": "Pemilik",
+        "greeting": "Halo, {name}",
+        "you": "Anda",
+        "checklist": "Daftar persiapan",
+        "caption": "Begitu terdaftar, Anda langsung masuk ke sini sebagai pemilik.",
+        "company": "Nama instansi",
+        "branch": "Cabang Utama"
+      },
+      "company": "Instansi",
+      "companyName": "Nama instansi",
+      "companyNameHint": "Nama usaha yang menaungi semua cabang. Tampil di atas nama cabang.",
+      "branchName": "Nama cabang pertama",
+      "branchNameHint": "Lokasi klinik pertama Anda, mis. Cabang Depok. Cabang lain bisa dibuka nanti, dan nama ini bisa diubah di Profil cabang.",
+      "branchNamePlaceholder": "Cabang Depok",
+      "branchNameDefault": "Cabang Utama"
+    },
+    "login": {
+      "title": "Masuk ke klinik Anda",
+      "lead": "Masuk dengan akun staf Anda; kami bukakan alamat klinik Anda.",
+      "email": "Email",
+      "password": "Kata sandi",
+      "submit": "Masuk",
+      "checking": "Memeriksa…",
+      "noAccount": "Belum terdaftar?",
+      "signup": "Daftarkan klinik",
+      "forgot": "Lupa kata sandi? Minta admin klinik mengatur ulang di Pengaturan → Staf."
+    },
+    "errors": {
+      "emailRequired": "Email wajib diisi.",
+      "emailInvalid": "Format email tidak valid, contoh: nama@klinik.com.",
+      "nameRequired": "Nama lengkap wajib diisi.",
+      "nameTooLong": "Nama maksimal 200 karakter.",
+      "clinicNameRequired": "Nama instansi minimal 3 karakter.",
+      "clinicNameTooLong": "Nama instansi maksimal 200 karakter.",
+      "passwordMin": "Kata sandi minimal 8 karakter.",
+      "passwordMax": "Kata sandi maksimal 72 karakter.",
+      "passwordRequired": "Kata sandi wajib diisi.",
+      "slug": {
+        "short": "Alamat minimal 3 karakter.",
+        "long": "Alamat maksimal 32 karakter.",
+        "format": "Gunakan huruf kecil, angka, dan tanda hubung, tanpa tanda hubung di awal atau akhir.",
+        "reserved": "Alamat ini dipakai sistem. Pilih nama lain."
+      },
+      "slugTaken": "Alamat ini sudah dipakai klinik lain. Pilih nama lain.",
+      "emailTaken": "Email ini sudah terdaftar. Masuk, atau gunakan email lain.",
+      "weakPassword": "Kata sandi terlalu lemah. Gunakan campuran huruf dan angka.",
+      "signupFailed": "Klinik gagal dibuat. Coba lagi sebentar lagi.",
+      "wrongCredentials": "Email atau kata sandi salah. Periksa kembali lalu coba lagi.",
+      "inactive": "Akun Anda tidak aktif. Hubungi admin klinik.",
+      "branchNameRequired": "Nama cabang pertama wajib diisi, mis. Cabang Utama.",
+      "branchNameTooLong": "Nama cabang maksimal 200 karakter."
+    }
+  },
+  "onboarding": {
+    "title": "Siapkan {clinic}",
+    "lead": "Langkah sebelum pasien pertama. Urutannya bebas; daftar ini hilang sendiri setelah semua selesai.",
+    "progress": "{done} dari {total} selesai",
+    "done": "Selesai",
+    "steps": {
+      "profile": {
+        "title": "Lengkapi profil cabang",
+        "body": "Alamat, telepon, dan logo cabang ini untuk kop surat dan kuitansi.",
+        "cta": "Buka profil cabang"
+      },
+      "polis": {
+        "title": "Tambah poli dan tarif konsultasi",
+        "body": "Setiap poli butuh tarif konsultasi agar tagihan terisi sendiri.",
+        "cta": "Atur poli"
+      },
+      "doctors": {
+        "title": "Tugaskan dokter",
+        "body": "Dokter yang bertugas di cabang ini, dengan nomor SIP.",
+        "cta": "Tambah dokter"
+      },
+      "schedules": {
+        "title": "Atur jadwal praktik",
+        "body": "Hari, jam, dan kuota pasien per dokter.",
+        "cta": "Atur jadwal"
+      },
+      "medicines": {
+        "title": "Masukkan daftar obat",
+        "body": "Satu per satu, atau impor dari templat Excel.",
+        "cta": "Buka daftar obat"
+      },
+      "team": {
+        "title": "Tugaskan tim",
+        "body": "Resepsionis, perawat, apoteker, dan kasir yang bertugas di cabang ini.",
+        "cta": "Tambah staf"
+      }
+    },
+    "companyGroup": "Data {company}",
+    "companyGroupHint": "sekali untuk semua cabang",
+    "branchGroup": "{branch}",
+    "companyLead": "Data perusahaan diisi sekali dan langsung dipakai semua cabang. Setiap cabang lalu menyiapkan profil, dokter, jadwal, dan timnya sendiri.",
+    "branchesGroup": "Cabang yang belum siap",
+    "branchReady": "{done} dari {total} siap",
+    "missing": "Belum: {steps}",
+    "setUpBranch": "Siapkan cabang"
+  },
+  "branches": {
+    "picker": {
+      "title": "Anda bekerja di cabang mana?",
+      "lead": "Halo, {name}. Pilih cabang tempat Anda bertugas sekarang. Antrean, resep, kasir, dan stok yang tampil hanya milik cabang ini.",
+      "none": "Anda belum ditugaskan ke cabang mana pun. Minta pemilik atau admin klinik menambahkan Anda di Pengaturan → Cabang.",
+      "noAddress": "Alamat belum diisi",
+      "current": "Sedang di sini",
+      "opening": "Membuka cabang…"
+    },
+    "errors": {
+      "nameRequired": "Nama cabang wajib diisi.",
+      "nameTooLong": "Nama cabang maksimal 200 karakter.",
+      "addressTooLong": "Alamat maksimal 500 karakter.",
+      "phoneTooLong": "Nomor telepon maksimal 50 karakter.",
+      "notAMember": "Anda tidak ditugaskan di cabang ini. Minta pemilik atau admin menambahkan Anda.",
+      "lastBranch": "Staf ini hanya bertugas di cabang ini. Tugaskan dulu ke cabang lain, atau nonaktifkan akunnya di Staf.",
+      "ownerEverywhere": "Pemilik selalu bertugas di semua cabang.",
+      "companyNameRequired": "Nama perusahaan wajib diisi.",
+      "lastOpenBranch": "Ini satu-satunya cabang yang buka. Buka cabang lain dulu sebelum menghapusnya."
+    },
+    "create": {
+      "open": "Buka cabang",
+      "title": "Buka cabang baru",
+      "name": "Nama cabang",
+      "nameHint": "Tampil di layar staf, kop surat, dan kuitansi, mis. Klinik Sehat Cabang Bogor.",
+      "address": "Alamat",
+      "addressHint": "Untuk kop surat dan kuitansi.",
+      "phone": "Telepon",
+      "after": "Setelah dibuka, tugaskan staf di halaman Staf, lalu buka cabangnya untuk mengatur jadwal dokter.",
+      "submit": "Buka cabang",
+      "created": "{name} dibuka.",
+      "shared": "Poli, tarif, obat, dan supplier perusahaan langsung berlaku di cabang ini. Stoknya mulai dari nol."
+    },
+    "staff": {
+      "colName": "Staf",
+      "assign": "{name} bertugas di {branch}",
+      "ownerEverywhere": "Pemilik bertugas di semua cabang"
+    }
+  },
+  "company": {
+    "noAddress": "Alamat belum diisi",
+    "overview": {
+      "title": "Ikhtisar",
+      "description": "{count} cabang buka. Angka hari ini dari semua cabang, diperbarui setiap halaman dibuka.",
+      "trend": "Tren 14 hari, semua cabang",
+      "branches": "Cabang",
+      "manage": "Kelola cabang",
+      "empty": "Belum ada cabang yang buka.",
+      "openBranch": "Buka {branch}",
+      "revenueToday": "Pendapatan hari ini",
+      "patientsToday": "Pasien hari ini",
+      "loading": "Memuat ikhtisar…"
+    },
+    "branches": {
+      "title": "Cabang",
+      "description": "Setiap cabang punya antrean, stok, kasir, dan laporannya sendiri. Pasien, staf, tarif, dan obat milik perusahaan dan dipakai bersama.",
+      "loading": "Memuat cabang…",
+      "colBranch": "Cabang",
+      "colStaff": "Staf",
+      "colOpened": "Dibuka",
+      "colActions": "Tindakan",
+      "current": "Sedang di sini",
+      "noAddress": "Alamat belum diisi",
+      "actions": "Tindakan untuk {name}",
+      "open": "Buka cabang ini",
+      "delete": "Hapus cabang",
+      "deleteTitle": "Hapus {name}?",
+      "deleteBody": "Cabang ini hilang dari pilihan cabang dan tidak bisa dipakai lagi; staf yang sedang di sini diminta memilih cabang lain. Data kunjungan, tagihan, dan stoknya tetap tersimpan untuk laporan dan riwayat pasien, dan cabang bisa dipulihkan kapan saja.",
+      "typeName": "Ketik {name} untuk memastikan",
+      "deleteConfirm": "Hapus cabang",
+      "deleted": "{name} dihapus. Pulihkan dari Diarsipkan bila perlu.",
+      "archived": "Diarsipkan",
+      "archivedHint": "Cabang yang sudah dihapus. Datanya tetap ada; pulihkan untuk memakainya lagi.",
+      "restore": "Pulihkan",
+      "restored": "{name} dipulihkan."
+    },
+    "staff": {
+      "title": "Staf",
+      "description": "Siapa bertugas di cabang mana. Staf di beberapa cabang memilih cabangnya setiap kali masuk; pemilik bertugas di semua cabang.",
+      "addHint": "Akun staf baru dibuat di cabangnya: buka cabang itu, lalu Pengaturan → Staf.",
+      "loading": "Memuat staf…"
+    },
+    "settings": {
+      "title": "Pengaturan",
+      "description": "Data perusahaan yang menaungi semua cabang.",
+      "name": "Nama perusahaan",
+      "nameHint": "Tampil di atas nama cabang dan di halaman masuk.",
+      "address": "Alamat web",
+      "addressHint": "Dipakai semua cabang. Tidak bisa diubah.",
+      "saved": "Nama perusahaan disimpan.",
+      "loading": "Memuat pengaturan…"
+    }
   }
 }

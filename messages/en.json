@@ -91,7 +91,11 @@
     "expenses": "Expenses",
     "settings": "Settings",
     "account": "My account",
-    "main": "Main menu"
+    "main": "Main menu",
+    "companyOverview": "Overview",
+    "companyBranches": "Branches",
+    "companyStaff": "Staff",
+    "companySettings": "Settings"
   },
   "shell": {
     "station": {
@@ -128,7 +132,8 @@
       "activity": "Activity log",
       "idle": "Signs out after {minutes} idle minutes. Sign out yourself when you leave the desk.",
       "signOut": "Sign out",
-      "signingOut": "Signing out…"
+      "signingOut": "Signing out…",
+      "company": "Company overview"
     },
     "textSize": {
       "label": "Text size",
@@ -137,6 +142,17 @@
       "xlarge": "Extra",
       "sampleName": "Sample patient name",
       "sampleMeta": "General clinic · Dr. Sample · waiting 5 min"
+    },
+    "scope": {
+      "switch": "Switch branch",
+      "choose": "Choose a branch",
+      "branches": "Branches",
+      "opening": "Opening branch…",
+      "current": "You are here",
+      "overview": "Company overview",
+      "newBranch": "Open a new branch",
+      "count": "{count, plural, one {# branch} other {# branches}}",
+      "noAddress": "No address yet"
     }
   },
   "journey": {
@@ -177,11 +193,12 @@
       "email": "Email",
       "password": "Password",
       "submit": "Sign in",
-      "checking": "Checking…"
-    },
-    "test": {
-      "title": "Quick sign-in as a test account",
-      "hint": "Only shown during development (bun run dev)."
+      "checking": "Checking…",
+      "linkExpired": "That sign-in link was already used or has expired. Sign in with your email and password.",
+      "demoNote": "This is a demo clinic with sample data.",
+      "demoCta": "Register your own clinic",
+      "otherClinic": "Not your clinic?",
+      "otherClinicCta": "Find your clinic"
     },
     "errors": {
       "emailRequired": "Enter your email.",
@@ -198,7 +215,8 @@
       "sessionEnded": "Your session ended. Sign in again, then change the password.",
       "wrongCredentials": "Wrong email or password. Check them and try again.",
       "inactive": "Your account is inactive. Contact the clinic admin.",
-      "devOnly": "Quick sign-in is only available during development."
+      "devOnly": "Quick sign-in is only available during development.",
+      "otherClinic": "This account belongs to another clinic. Sign in at {address}."
     },
     "password": {
       "changed": "Password changed. Use the new password next time you sign in.",
@@ -213,6 +231,39 @@
       "label": "Display language",
       "title": "Language",
       "description": "The screen language for your account, on any computer. Letters, receipts, labels and exports stay in Indonesian."
+    },
+    "demo": {
+      "eyebrow": "Demo clinic",
+      "title": "Try e-clinic from any desk",
+      "lead": "Pick a role to enter a sample clinic running today. No sign-up; change anything you like.",
+      "recommended": "For owners",
+      "withEmail": "Sign in with email",
+      "roles": {
+        "owner": {
+          "title": "Clinic owner",
+          "body": "Today's revenue, patients and queue; reports and every branch."
+        },
+        "front_desk": {
+          "title": "Front desk",
+          "body": "Register patients and issue queue numbers."
+        },
+        "nurse": {
+          "title": "Nurse",
+          "body": "Record vitals for waiting patients."
+        },
+        "doctor": {
+          "title": "Doctor",
+          "body": "SOAP, ICD-10 diagnoses, prescriptions and letters."
+        },
+        "pharmacist": {
+          "title": "Pharmacist",
+          "body": "Dispense FEFO and print drug labels."
+        },
+        "cashier": {
+          "title": "Cashier",
+          "body": "Invoices already filled in; cash, QRIS, transfer."
+        }
+      }
     }
   },
   "account": {
@@ -220,14 +271,18 @@
     "roleAt": "{role} at {clinic}",
     "profile": {
       "title": "Profile",
-      "description": "Your details at the clinic. To change them, contact the clinic admin.",
+      "description": "Your details at the organization. To change them, contact the clinic admin.",
       "fullName": "Full name",
       "email": "Email (for signing in)",
       "role": "Role",
-      "clinic": "Clinic",
       "nik": "NIK",
       "sip": "SIP number",
-      "notSet": "Not set"
+      "notSet": "Not set",
+      "organization": "Organization",
+      "branches": "Branches",
+      "currentBranch": "Working at",
+      "noBranch": "No branch chosen",
+      "allBranches": "Every branch ({count})"
     },
     "password": {
       "title": "Password",
@@ -485,7 +540,8 @@
       "empty": "No visits yet",
       "emptyHint": "Registered visits will be recorded here.",
       "queue": "queue {number}",
-      "cancelled": "Cancelled: {reason}"
+      "cancelled": "Cancelled: {reason}",
+      "hereBranch": "{branch}"
     },
     "list": {
       "empty": "No visits",
@@ -748,6 +804,11 @@
       "bpjsDoneHint": "visits",
       "waitingShort": "Waiting",
       "waitingHint": "patients"
+    },
+    "firstDay": {
+      "title": "Your day will appear here",
+      "body": "As soon as the first patient is registered, Beranda shows revenue, patient count and where every patient is, live.",
+      "cta": "Register the first patient"
     }
   },
   "audit": {
@@ -1779,7 +1840,8 @@
       "pickIcd10": "Choose an ICD-10 file.",
       "icd10Type": "The file must be Excel (.xlsx) or CSV.",
       "icd10Size": "The file can be 4 MB at most.",
-      "icd10Stopped": "The import stopped at row {row}. Earlier rows are saved; try importing again."
+      "icd10Stopped": "The import stopped at row {row}. Earlier rows are saved; try importing again.",
+      "consultationPrice": "Enter the consultation fee in rupiah, e.g. 50,000."
     },
     "activity": {
       "title": "Activity log",
@@ -1843,7 +1905,11 @@
       "bpjsHint": "optional, for PCare",
       "consultation": "Consultation price",
       "consultationHint": "billed automatically at the cashier",
-      "none": "None"
+      "none": "None",
+      "newConsultation": "+ New consultation fee",
+      "consultationPrice": "Consultation fee",
+      "consultationPriceHint": "Saved as the tariff \"Konsultasi {name}\" and billed automatically for every visit to this poli.",
+      "namePlaceholder": "this poli"
     },
     "staff": {
       "title": "Staff",
@@ -1946,7 +2012,8 @@
       "clinic": "Loading the clinic profile",
       "polis": "Loading clinics",
       "services": "Loading service prices"
-    }
+    },
+    "catalogShared": "Clinics, tariffs, medicines and suppliers apply to every branch."
   },
   "schedules": {
     "days": {
@@ -2215,5 +2282,371 @@
     "importing": "Importing…",
     "import": "Import {count, plural, one {# row} other {# rows}}",
     "finish": "Done"
+  },
+  "site": {
+    "meta": {
+      "title": "e-clinic · Clinic management for primary care",
+      "description": "Registration, queue, electronic medical records, pharmacy, cashier and reports for primary care clinics, in one system in the browser. Try the demo clinic or register yours."
+    },
+    "nav": {
+      "journey": "Patient visit",
+      "access": "Access",
+      "data": "Data",
+      "faq": "FAQ",
+      "login": "Sign in",
+      "signup": "Register your clinic",
+      "demo": "Demo clinic",
+      "home": "e-clinic home",
+      "main": "Main navigation",
+      "footer": "Footer navigation"
+    },
+    "language": "Language",
+    "hero": {
+      "title": "One flow for every patient, from registration to going home.",
+      "lead": "Clinic management for primary care: registration, queue, electronic medical records, pharmacy, cashier and owner reports. Shared by the whole staff, right in the browser.",
+      "primary": "Register your clinic",
+      "secondary": "See the demo clinic",
+      "demoNote": "The demo clinic holds sample data. Sign in as front desk, doctor, pharmacist, cashier or owner without registering."
+    },
+    "board": {
+      "title": "Today's queue",
+      "poli": "General clinic",
+      "label": "Sample queue board: patients move from the waiting room to the exam room, pharmacy, cashier, then home."
+    },
+    "journey": {
+      "title": "One visit, five desks",
+      "lead": "Every screen shows the same patient. When the doctor signs the record, the prescription appears at the pharmacy; when the medicines are handed over, the invoice appears at the cashier. No paper passed around.",
+      "who": "Done by",
+      "stations": {
+        "waiting": {
+          "title": "Patients register and join the queue at once",
+          "body": "The front desk finds the patient by name, NIK, phone or MRN, picks the clinic and doctor, and a queue number is issued. The doctor's quota for the day is enforced. A patient can be called only once their vitals are recorded.",
+          "who": "Front desk and nurses",
+          "alt": "Queue screen: patients in the waiting room, exam room, pharmacy and cashier."
+        },
+        "in_exam": {
+          "title": "Doctors write the record without switching screens",
+          "body": "SOAP, ICD-10 diagnoses found by their Indonesian disease names, procedures, prescriptions, and sick and referral letters. Once signed, the record is locked and corrections are kept as amendments.",
+          "who": "Doctors",
+          "alt": "Exam screen: SOAP notes, vitals, diagnoses and the completeness checklist."
+        },
+        "to_pharmacy": {
+          "title": "The prescription reaches the pharmacy before the patient does",
+          "body": "Medicines come from the batch closest to expiry, are recorded on the stock card, and their labels are ready to print. Compounded powders and capsules are supported. When stock runs short, an item is marked not given and is not charged.",
+          "who": "Pharmacists and assistants",
+          "alt": "Dispensing screen: the batch and expiry date of each medicine, with a label preview."
+        },
+        "to_cashier": {
+          "title": "The invoice is complete when the patient reaches the cashier",
+          "body": "Consultation, procedures, consumables and medicines are added automatically. Pay by cash, QRIS or transfer; BPJS patients pay nothing. Every discount has a reason, and a paid invoice can only be voided, never edited.",
+          "who": "Cashiers",
+          "alt": "Cashier screen: the patient waiting to pay, today's transactions and payment methods."
+        },
+        "done": {
+          "title": "The owner follows the day from their phone",
+          "body": "Revenue, patient count and who is still in the clinic, live. Revenue, doctor fee, profit and loss, and top-ten-diseases reports download to Excel.",
+          "who": "Owner",
+          "alt": "The owner's home on a phone: today's revenue, patient count and a 14-day trend."
+        }
+      }
+    },
+    "access": {
+      "title": "Who sees what",
+      "lead": "Access is checked on the server and in the database, not just hidden from the screen. Each clinic's data is kept apart in the database itself.",
+      "caption": "Access by role",
+      "action": "Action",
+      "allowed": "Allowed",
+      "denied": "Not allowed",
+      "rows": {
+        "readRecords": "Read SOAP notes and diagnoses",
+        "writeRecords": "Write and sign medical records",
+        "vitals": "Record vitals",
+        "voidInvoice": "Void a paid invoice",
+        "finance": "Financial reports and expenses",
+        "activity": "Activity log"
+      }
+    },
+    "data": {
+      "title": "Your clinic's data",
+      "items": {
+        "export": {
+          "term": "Owned by the clinic",
+          "body": "Every patient and transaction can be exported to Excel at any time."
+        },
+        "backup": {
+          "term": "Backed up nightly",
+          "body": "The database is backed up every night, encrypted, to a separate location."
+        },
+        "audit": {
+          "term": "Change history",
+          "body": "The activity log records who changed master, financial and operational data, and when."
+        },
+        "idle": {
+          "term": "Safe on shared computers",
+          "body": "Sessions end on their own when a computer sits idle. The clinic sets the timeout."
+        },
+        "integrations": {
+          "term": "SATUSEHAT and BPJS PCare",
+          "body": "In progress. Visits, diagnoses and medicines will be sent in the background, with a delivery status screen."
+        },
+        "browser": {
+          "term": "Nothing to install",
+          "body": "Runs in the browser on the clinic's computers and the owner's phone. Needs an internet connection."
+        }
+      }
+    },
+    "faq": {
+      "title": "FAQ",
+      "items": {
+        "migrate": {
+          "q": "Can we bring our existing data?",
+          "a": "Yes. Medicines, tariffs and suppliers import from Excel templates available in the app."
+        },
+        "offline": {
+          "q": "What if the internet goes down?",
+          "a": "e-clinic needs an internet connection. Data lives on the server, so nothing is lost if a computer turns off, and work continues as soon as the connection is back."
+        },
+        "setup": {
+          "q": "What do we set up after registering?",
+          "a": "A checklist on the home screen guides six steps: clinic profile, clinics and consultation fees, doctors, practice schedules, medicines, and the rest of the staff."
+        },
+        "domain": {
+          "q": "Can we use our own domain?",
+          "a": "Every clinic gets its own address, like sehat.{domain}. Your own domain is being prepared."
+        }
+      }
+    },
+    "closing": {
+      "title": "Look around the demo clinic first, or register yours now.",
+      "lead": "Registering takes two minutes. You then sign in as the owner, and a checklist guides the rest."
+    },
+    "footer": {
+      "tagline": "Clinic management for primary care.",
+      "rights": "© {year} e-clinic",
+      "made": "Made in Indonesia"
+    },
+    "notFound": {
+      "title": "Page not found",
+      "description": "Check the address, or go back home.",
+      "home": "Go home"
+    }
+  },
+  "tenants": {
+    "signup": {
+      "title": "Register your clinic",
+      "lead": "Your owner account and clinic are ready in one step. After that, a checklist guides the rest.",
+      "haveAccount": "Already have an account?",
+      "login": "Sign in",
+      "you": "You",
+      "fullName": "Full name",
+      "fullNameHint": "Your name as the owner, e.g. dr. Andi Wijaya",
+      "clinicNamePlaceholder": "Sentosa Medika Group",
+      "slug": "Web address",
+      "slugHint": "Lowercase letters, digits and hyphens. Cannot be changed after sign-up.",
+      "email": "Email",
+      "emailHint": "To sign in as the owner.",
+      "password": "Password",
+      "passwordHint": "At least 8 characters.",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "submit": "Create clinic",
+      "creating": "Setting up your clinic…",
+      "terms": "The patient data you enter stays your clinic's, and can be exported at any time.",
+      "checking": "Checking…",
+      "available": "Available",
+      "taken": "Taken by another clinic",
+      "preview": {
+        "label": "Preview of your clinic",
+        "owner": "Owner",
+        "greeting": "Hello, {name}",
+        "you": "you",
+        "checklist": "Setup checklist",
+        "caption": "Once registered, you land right here as the owner.",
+        "company": "Organization name",
+        "branch": "Cabang Utama"
+      },
+      "company": "Organization",
+      "companyName": "Organization name",
+      "companyNameHint": "The business that runs every branch. Shown above the branch name.",
+      "branchName": "First branch name",
+      "branchNameHint": "Where your first clinic is, e.g. Cabang Depok. You can open more branches later, and rename this one in the branch profile.",
+      "branchNamePlaceholder": "Cabang Depok",
+      "branchNameDefault": "Cabang Utama"
+    },
+    "login": {
+      "title": "Sign in to your clinic",
+      "lead": "Sign in with your staff account; we will open your clinic's address.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "checking": "Checking…",
+      "noAccount": "Not registered yet?",
+      "signup": "Register your clinic",
+      "forgot": "Forgot your password? Ask the clinic admin to reset it in Settings → Staff."
+    },
+    "errors": {
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Invalid email format, e.g. name@clinic.com.",
+      "nameRequired": "Full name is required.",
+      "nameTooLong": "Name can be at most 200 characters.",
+      "clinicNameRequired": "Organization name needs at least 3 characters.",
+      "clinicNameTooLong": "Organization name can be at most 200 characters.",
+      "passwordMin": "Password needs at least 8 characters.",
+      "passwordMax": "Password can be at most 72 characters.",
+      "passwordRequired": "Password is required.",
+      "slug": {
+        "short": "The address needs at least 3 characters.",
+        "long": "The address can be at most 32 characters.",
+        "format": "Use lowercase letters, digits and hyphens, with no hyphen at the start or end.",
+        "reserved": "This address is reserved by the system. Choose another name."
+      },
+      "slugTaken": "Another clinic already uses this address. Choose another name.",
+      "emailTaken": "This email is already registered. Sign in, or use another email.",
+      "weakPassword": "Password is too weak. Mix letters and numbers.",
+      "signupFailed": "The clinic could not be created. Try again in a moment.",
+      "wrongCredentials": "Wrong email or password. Check them and try again.",
+      "inactive": "Your account is inactive. Contact the clinic admin.",
+      "branchNameRequired": "Name the first branch, e.g. Cabang Utama.",
+      "branchNameTooLong": "Branch name can be at most 200 characters."
+    }
+  },
+  "onboarding": {
+    "title": "Set up {clinic}",
+    "lead": "Steps before your first patient, in any order. This list goes away once everything is done.",
+    "progress": "{done} of {total} done",
+    "done": "Done",
+    "steps": {
+      "profile": {
+        "title": "Complete the branch profile",
+        "body": "This branch's address, phone and logo for letterheads and receipts.",
+        "cta": "Open branch profile"
+      },
+      "polis": {
+        "title": "Add clinics and consultation fees",
+        "body": "Each poli needs a consultation fee so invoices fill themselves.",
+        "cta": "Set up polis"
+      },
+      "doctors": {
+        "title": "Assign doctors",
+        "body": "Doctors who work at this branch, with their SIP number.",
+        "cta": "Add a doctor"
+      },
+      "schedules": {
+        "title": "Set practice schedules",
+        "body": "Days, hours and patient quota per doctor.",
+        "cta": "Set schedules"
+      },
+      "medicines": {
+        "title": "Enter your medicines",
+        "body": "One by one, or import from the Excel template.",
+        "cta": "Open medicines"
+      },
+      "team": {
+        "title": "Assign the team",
+        "body": "Front desk, nurses, pharmacists and cashiers who work at this branch.",
+        "cta": "Add staff"
+      }
+    },
+    "companyGroup": "{company} data",
+    "companyGroupHint": "once for every branch",
+    "branchGroup": "{branch}",
+    "companyLead": "Company data is entered once and every branch uses it at once. Each branch then sets up its own profile, doctors, schedules and team.",
+    "branchesGroup": "Branches not ready yet",
+    "branchReady": "{done} of {total} ready",
+    "missing": "Still to do: {steps}",
+    "setUpBranch": "Set up branch"
+  },
+  "branches": {
+    "picker": {
+      "title": "Which branch are you working at?",
+      "lead": "Hello, {name}. Choose the branch you are working at now. The queue, prescriptions, cashier and stock you see belong to this branch only.",
+      "none": "You are not assigned to any branch yet. Ask the owner or the clinic admin to add you in Settings → Branches.",
+      "noAddress": "No address yet",
+      "current": "You are here",
+      "opening": "Opening branch…"
+    },
+    "errors": {
+      "nameRequired": "Branch name is required.",
+      "nameTooLong": "Branch name can be at most 200 characters.",
+      "addressTooLong": "Address can be at most 500 characters.",
+      "phoneTooLong": "Phone number can be at most 50 characters.",
+      "notAMember": "You are not assigned to this branch. Ask the owner or an admin to add you.",
+      "lastBranch": "This staff member only works at this branch. Assign them to another branch first, or deactivate the account in Staff.",
+      "ownerEverywhere": "Owners always work at every branch.",
+      "companyNameRequired": "Company name is required.",
+      "lastOpenBranch": "This is the only open branch. Open another one before deleting it."
+    },
+    "create": {
+      "open": "Open a branch",
+      "title": "Open a new branch",
+      "name": "Branch name",
+      "nameHint": "Shown on staff screens, letterheads and receipts, e.g. Klinik Sehat Cabang Bogor.",
+      "address": "Address",
+      "addressHint": "For letterheads and receipts.",
+      "phone": "Phone",
+      "after": "Once it is open, assign staff on the Staff page, then open the branch to set its doctor schedules.",
+      "submit": "Open branch",
+      "created": "{name} is open.",
+      "shared": "The company's clinics, tariffs, medicines and suppliers apply here at once. Stock starts at zero."
+    },
+    "staff": {
+      "colName": "Staff",
+      "assign": "{name} works at {branch}",
+      "ownerEverywhere": "Owners work at every branch"
+    }
+  },
+  "company": {
+    "noAddress": "No address yet",
+    "overview": {
+      "title": "Overview",
+      "description": "{count, plural, one {# branch open} other {# branches open}}. Today's figures for every branch, refreshed each time the page opens.",
+      "trend": "14-day trend, all branches",
+      "branches": "Branches",
+      "manage": "Manage branches",
+      "empty": "No branch is open yet.",
+      "openBranch": "Open {branch}",
+      "revenueToday": "Revenue today",
+      "patientsToday": "Patients today",
+      "loading": "Loading overview…"
+    },
+    "branches": {
+      "title": "Branches",
+      "description": "Each branch has its own queue, stock, cashier and reports. Patients, staff, tariffs and medicines belong to the company and are shared.",
+      "loading": "Loading branches…",
+      "colBranch": "Branch",
+      "colStaff": "Staff",
+      "colOpened": "Opened",
+      "colActions": "Actions",
+      "current": "You are here",
+      "noAddress": "No address yet",
+      "actions": "Actions for {name}",
+      "open": "Open this branch",
+      "delete": "Delete branch",
+      "deleteTitle": "Delete {name}?",
+      "deleteBody": "The branch disappears from the branch choice and can no longer be used; staff working there are asked to choose another branch. Its visits, invoices and stock stay on record for reports and patient history, and the branch can be restored at any time.",
+      "typeName": "Type {name} to confirm",
+      "deleteConfirm": "Delete branch",
+      "deleted": "{name} deleted. Restore it from Archived if needed.",
+      "archived": "Archived",
+      "archivedHint": "Deleted branches. Their data is kept; restore one to use it again.",
+      "restore": "Restore",
+      "restored": "{name} restored."
+    },
+    "staff": {
+      "title": "Staff",
+      "description": "Who works at which branch. Staff at several branches choose their branch every time they sign in; owners work at every branch.",
+      "addHint": "New staff accounts are created at their branch: open that branch, then Settings → Staff.",
+      "loading": "Loading staff…"
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "The company that runs every branch.",
+      "name": "Company name",
+      "nameHint": "Shown above the branch name and on the sign-in page.",
+      "address": "Web address",
+      "addressHint": "Used by every branch. Cannot be changed.",
+      "saved": "Company name saved.",
+      "loading": "Loading settings…"
+    }
   }
 }

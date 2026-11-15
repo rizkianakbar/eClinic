@@ -1,6 +1,6 @@
 import { cookies, headers } from 'next/headers';
 import { getRequestConfig } from 'next-intl/server';
-import { getSession } from '@/lib/auth';
+import { getSessionState } from '@/lib/auth';
 import { CLINIC_TIME_ZONE } from '@/lib/dates';
 import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE, PRINT_HEADER } from './locales';
 
@@ -10,12 +10,13 @@ import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE, PRINT_HEADER } from './locales
  * (login page), else Bahasa.
  */
 export default getRequestConfig(async () => {
-  const [session, cookieStore, headerStore] = await Promise.all([getSession(), cookies(), headers()]);
+  const [state, cookieStore, headerStore] = await Promise.all([getSessionState(), cookies(), headers()]);
+  const signedIn = state.kind === 'ready' ? state.session : state.kind === 'needs-branch' ? state.account : null;
   const remembered = cookieStore.get(LOCALE_COOKIE)?.value;
 
   const locale = headerStore.has(PRINT_HEADER)
     ? DEFAULT_LOCALE
-    : (session?.locale ?? (isLocale(remembered) ? remembered : DEFAULT_LOCALE));
+    : (signedIn?.locale ?? (isLocale(remembered) ? remembered : DEFAULT_LOCALE));
 
   return {
     locale,
